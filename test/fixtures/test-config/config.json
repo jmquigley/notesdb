@@ -1,0 +1,16 @@
+{
+	"root": "",
+	"binderName": "",
+	"configFile": "{DIR}config.json",
+	"configRoot": "{DIR}",
+	"log4js": {
+		"appenders": [
+			{
+				"type": "file",
+				"filename": "{DIR}notesdb.log",
+			    "category": "notesdb"
+			}
+		]
+	},
+	"saveInterval": 1000
+}

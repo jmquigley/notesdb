@@ -1,0 +1,16 @@
+{
+	"root": "{DIR}sampledb",
+	"binderName": "sampledb",
+	"configFile": "badconfigfile",
+	"configRoot": "{DIR}",
+	"log4js": {
+		"appenders": [
+			{
+				"type": "file",
+				"filename": "{DIR}notesdb.log",
+			    "category": "notesdb"
+			}
+		]
+	},
+	"saveInterval": 1000
+}
