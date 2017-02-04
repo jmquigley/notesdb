@@ -1,0 +1,77 @@
+{
+  "name": "notesdb",
+  "version": "0.0.0",
+  "author": "jmquigley <jmquigley@outlook.com>",
+  "description": "A text file notes database (Experimental)",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmquigley/notesdb"
+  },
+  "bugs": {
+    "url": "https://github.com/jmquigley/notesdb/issues"
+  },
+  "engines": {
+    "node": ">=7.4"
+  },
+  "dependencies": {
+    "expand-home-dir": "0.0.3",
+    "fs-extra": "^2.0.0",
+    "lodash": "^4.17.4",
+    "object-assign": "^4.1.1",
+    "util.rstrip": "0.0.3",
+    "uuid": "^3.0.1",
+    "yargs": "^6.5.0"
+  },
+  "devDependencies": {
+    "ava": "^0.17.0",
+    "coveralls": "^2.11.15",
+    "nyc": "^10.1.2",
+    "util.pkgwrap": "0.0.2",
+    "xo": "^0.17.1"
+  },
+  "main": "index.js",
+  "bin": {
+    "blahblahblah": "./cli.js"
+  },
+  "scripts": {
+    "postinstall": "pkgwrap --postinstall",
+    "test": "pkgwrap --testing",
+    "report": "pkgwrap --reporting",
+    "coverage": "pkgwrap --coverage"
+  },
+  "xo": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": true
+    },
+    "global": [
+      "window",
+      "describe",
+      "it",
+      "JSON"
+    ],
+    "rules": {
+      "space-before-function-paren": "off",
+      "no-multiple-empty-lines": [
+        "error",
+        {
+          "max": 2,
+          "maxEOF": 1
+        }
+      ],
+      "unicorn/filename-case": [
+        "error",
+        {
+          "case": "snakeCase"
+        }
+      ],
+      "arrow-parens": [
+        "error",
+        "as-needed"
+      ]
+    }
+  }
+}
