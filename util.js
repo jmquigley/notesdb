@@ -9,6 +9,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const uuidV4 = require('uuid/v4');
+const pkg = require('./package.json');
 
 
 /**
@@ -18,14 +19,16 @@ const uuidV4 = require('uuid/v4');
  * @param logger a reference to the log4j object.
  */
 function addConsole(logger) {
-	let obj = logger.appenders.filter(function(obj) {
-		return obj.type === 'console';
-	})[0];
+	if (pkg.debug) {
+		let obj = logger.appenders.filter(function (obj) {
+			return obj.type === 'console';
+		})[0];
 
-	if (typeof obj === 'undefined') {
-		logger.appenders.push({
-			type: 'console'
-		});
+		if (typeof obj === 'undefined') {
+			logger.appenders.push({
+				type: 'console'
+			});
+		}
 	}
 }
 

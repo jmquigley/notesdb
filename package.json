@@ -4,6 +4,7 @@
   "author": "jmquigley <jmquigley@outlook.com>",
   "description": "Text file database (WIP)",
   "private": false,
+  "debug": false,
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -24,15 +25,15 @@
     "lodash": "^4.17.4",
     "log4js": "^1.1.0",
     "object-assign": "^4.1.1",
-    "util.fixture": "0.0.14",
+    "util.fixture": "0.0.18",
     "util.pkgwrap": "^0.0.5",
-    "util.rstrip": "^0.0.6",
-    "util.timestamp": "^0.0.12",
+    "util.rstrip": "^0.0.7",
+    "util.timestamp": "^0.0.13",
     "uuid": "^3.0.1",
     "yargs": "^6.6.0"
   },
   "devDependencies": {
-    "ava": "^0.17.0",
+    "ava": "^0.18.1",
     "coveralls": "^2.11.15",
     "nyc": "^10.1.2",
     "xo": "^0.17.1"
@@ -76,8 +77,5 @@
         "as-needed"
       ]
     }
-  },
-  "notesDBConfig": {
-    "debug": true
   }
 }

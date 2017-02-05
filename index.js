@@ -23,7 +23,6 @@ const fs = require('fs-extra');
 const home = require('expand-home-dir');
 const objectAssign = require('object-assign');
 const log4js = require('log4js');
-const pkg = require('./package.json');
 const util = require('./util');
 
 let log = null;
@@ -80,9 +79,7 @@ class NotesDB {
 			}
 		}
 
-		if (pkg.notesDBConfig.debug) {
-			util.addConsole(this._config.log4js);
-		}
+		util.addConsole(this._config.log4js);
 
 		log4js.configure(this._config.log4js);
 		log = log4js.getLogger('notesdb');
@@ -106,7 +103,7 @@ class NotesDB {
 			schema: this._schema
 		};
 
-		return JSON.stringify(obj, null, 4);
+		return JSON.stringify(obj, null, 2);
 	}
 
 
@@ -146,27 +143,27 @@ class NotesDB {
 		}
 	}
 
-	/**
-	 * Creates a new notebook within a section.
-	 * @param notebookName {string} the name of the notebook to create
-	 * @param sectionName {string} the name of the section where the notebook
-	 * will be created.
-	 */
-	createNotebook(notebookName, sectionName) {
-		if (this.hasSection(sectionName)) {
-			let dst = path.join(this._config.root, sectionName, notebookName);
-
-			if (fs.existsSync(dst)) {
-				log.warn(`The notebook ${notebookName} already exists... skipping.`);
-			} else {
-				fs.mkdirs(dst);
-				log.info(`Creating notebook: ${notebookName} in section ${sectionName}`);
-				this._schema[sectionName][notebookName] = {};
-			}
-		} else {
-			throw new Error(`Invalid section ${sectionName} used when creating notebook ${notebookName}`);
-		}
-	}
+	// /**
+	//  * Creates a new notebook within a section.
+	//  * @param notebookName {string} the name of the notebook to create
+	//  * @param sectionName {string} the name of the section where the notebook
+	//  * will be created.
+	//  */
+	// createNotebook(notebookName, sectionName) {
+	// 	if (this.hasSection(sectionName)) {
+	// 		let dst = path.join(this._config.root, sectionName, notebookName);
+	//
+	// 		if (fs.existsSync(dst)) {
+	// 			log.warn(`The notebook ${notebookName} already exists... skipping.`);
+	// 		} else {
+	// 			fs.mkdirs(dst);
+	// 			log.info(`Creating notebook: ${notebookName} in section ${sectionName}`);
+	// 			this._schema[sectionName][notebookName] = {};
+	// 		}
+	// 	} else {
+	// 		throw new Error(`Invalid section ${sectionName} used when creating notebook ${notebookName}`);
+	// 	}
+	// }
 
 
 	/**

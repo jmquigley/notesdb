@@ -5,16 +5,20 @@ import test from 'ava';
 const path = require('path');
 const _ = require('lodash');
 const fs = require('fs-extra');
-const home = require('expand-home-dir');
 const uuidV4 = require('uuid/v4');
 const log4js = require('log4js');
+const Fixture = require('util.fixture');
 const util = require('../util');
+const pkg = require('../package.json');
 
-let unitTestBaseDir = home(path.join('~/', '.tmp', 'unit-test-data'));
-let unitTestDir = home(path.join(unitTestBaseDir, uuidV4()));
-if (!fs.existsSync(unitTestDir)) {
-	fs.mkdirsSync(unitTestDir);
-}
+
+test.after.always(t => {
+	console.log('final cleanup: test_util');
+	let directories = Fixture.cleanup();
+	directories.forEach(directory => {
+		t.false(fs.existsSync(directory));
+	});
+});
 
 
 test('Adding console logger to log4js', t => {
@@ -25,16 +29,25 @@ test('Adding console logger to log4js', t => {
 		appenders: []
 	};
 
-	util.addConsole(config);
-	logger.configure(config);
+	// this tries it with debug=true twice, and with it false twice.  It will
+	// test the debug flag, and it will also attempt to add the console twice
+	// testing the condition withing the filter.
+	_.times(4, () => {
+		util.addConsole(config);
+		logger.configure(config);
 
-	t.is(config.appenders.length, 1);
-	t.is(config.appenders[0].type, 'console');
+		if (pkg.debug) {
+			t.is(config.appenders.length, 1);
+			t.is(config.appenders[0].type, 'console');
+		}
+		pkg.debug = !pkg.debug;
+	});
 });
 
 
 test('Directory retrieval process', t => {
-	let root = path.join(unitTestDir, uuidV4());
+	let fixture = new Fixture('tmpdir');
+	let root = path.join(fixture.dir, uuidV4());
 	let dirs = [];
 
 	_.times(5, () => {
