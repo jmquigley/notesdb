@@ -85,8 +85,8 @@ class NotesDB {
 		log = log4js.getLogger('notesdb');
 
 		log.debug(`Initialized notesdb with: ${this._config.configFile}`);
-		loadBinder();
 
+		loadBinder();
 		let saveInterval = Object.prototype.hasOwnProperty.call(this._config, 'saveInterval') ? this._config.saveInterval : opts.saveInterval;
 		setInterval(saveBinder, saveInterval);
 	}
@@ -116,78 +116,93 @@ class NotesDB {
 	 *     - schema: a list of directories (sections) under this binder location.
 	 *     each of these directories will be created under this binder unless they
 	 *     already exist.
+	 *
+	 * @returns {Promise} a javascript promise object
 	 */
 	createBinder(binderName, directory, opts = null) {
 		opts = objectAssign({
 			schema: ['Default']
 		}, opts);
 
-		if (isValidName(binderName)) {
-			log.info(`Creating binder ${binderName} in ${directory}`);
+		return new Promise(function(resolve, reject) {
+			if (isValidName(binderName)) {
+				log.info(`Creating binder ${binderName} in ${directory}`);
 
-			this._config.root = path.join(directory, binderName);
-			this._config.binderName = binderName;
+				self.config.root = path.join(directory, binderName);
+				self.config.binderName = binderName;
 
-			if (!fs.existsSync(this._config.root)) {
-				fs.mkdirsSync(this._config.root);
+				if (!fs.existsSync(self.config.root)) {
+					fs.mkdirsSync(self.config.root);
+				}
+
+				opts.schema.forEach(function (it) {
+					this.createSection(it);
+				}, self);
+
+				loadBinder();
+				saveBinder();
+				resolve();
+			} else {
+				reject(`Invalid binder name '${binderName}'.  Can only use 'a-Z, 0-9, _'`);
 			}
-
-			opts.schema.forEach(function (it) {
-				this.createSection(it);
-			}, this);
-
-			loadBinder();
-			saveBinder();
-		} else {
-			throw new Error(`Invalid binder name '${binderName}'.  Can only use 'a-Z, 0-9, _'`);
-		}
+		});
 	}
 
-	// /**
-	//  * Creates a new notebook within a section.
-	//  * @param notebookName {string} the name of the notebook to create
-	//  * @param sectionName {string} the name of the section where the notebook
-	//  * will be created.
-	//  */
-	// createNotebook(notebookName, sectionName) {
-	// 	if (this.hasSection(sectionName)) {
-	// 		let dst = path.join(this._config.root, sectionName, notebookName);
-	//
-	// 		if (fs.existsSync(dst)) {
-	// 			log.warn(`The notebook ${notebookName} already exists... skipping.`);
-	// 		} else {
-	// 			fs.mkdirs(dst);
-	// 			log.info(`Creating notebook: ${notebookName} in section ${sectionName}`);
-	// 			this._schema[sectionName][notebookName] = {};
-	// 		}
-	// 	} else {
-	// 		throw new Error(`Invalid section ${sectionName} used when creating notebook ${notebookName}`);
-	// 	}
-	// }
+	/**
+	 * Creates a new notebook within a section.
+	 * @param notebookName {string} the name of the notebook to create
+	 * @param sectionName {string} the name of the section where the notebook
+	 * will be created.
+	 * @returns {Promise} a javascript promise object
+	 */
+	createNotebook(notebookName, sectionName) {
+		return new Promise(function(resolve, reject) {
+			if (this.hasSection(sectionName)) {
+				let dst = path.join(this._config.root, sectionName, notebookName);
+
+				if (fs.existsSync(dst)) {
+					log.warn(`The notebook ${notebookName} already exists... skipping.`);
+				} else {
+					fs.mkdirs(dst);
+					log.info(`Creating notebook: ${notebookName} in section ${sectionName}`);
+					this._schema[sectionName][notebookName] = {};
+				}
+
+				resolve();
+			} else {
+				reject(`Invalid section ${sectionName} used when creating notebook ${notebookName}`);
+			}
+		});
+	}
 
 
 	/**
 	 * Creates a new section (directory) within the database.  If the section
 	 * already exists, then the call is ignored.
 	 * @param sectionName {string} the name of the section to create.
+	 * @returns {Promise} a javascript promise object
 	 */
 	createSection(sectionName) {
-		if (isValidName(sectionName)) {
-			let dst = path.join(this._config.root, sectionName);
+		return new Promise(function(resolve, reject) {
+			if (isValidName(sectionName)) {
+				let dst = path.join(self.config.root, sectionName);
 
-			if (fs.existsSync(dst)) {
-				log.warn(` ~> section ${sectionName} already exists, no creation needed`);
+				if (fs.existsSync(dst)) {
+					log.warn(` ~> section ${sectionName} already exists, no creation needed`);
+				} else {
+					log.info(` ~> creating section: ${sectionName}`);
+					fs.mkdirs(dst);
+				}
+
+				if (!self.hasSection(sectionName)) {
+					self._schema[sectionName] = {};
+				}
+
+				resolve();
 			} else {
-				log.info(` ~> creating section: ${sectionName}`);
-				fs.mkdirs(dst);
+				reject(`Invalid section name '${sectionName}'.  Can only use 'a-Z, 0-9, _'`);
 			}
-
-			if (!this.hasSection(sectionName)) {
-				this._schema[sectionName] = {};
-			}
-		} else {
-			throw new Error(`Invalid section name '${sectionName}'.  Can only use 'a-Z, 0-9, _'`);
-		}
+		});
 	}
 
 
@@ -308,9 +323,17 @@ function loadBinder() {
  * file to disk.
  */
 function saveBinder() {
-	if (self.initialized()) {
-		fs.writeFileSync(self.config.configFile, JSON.stringify(self.config, null, '\t'));
-	}
+	return new Promise(function(resolve, reject) {
+		if (self.initialized()) {
+			fs.writeFile(self.config.configFile, JSON.stringify(self.config, null, '\t'), err => {
+				if (err) {
+					reject(err);
+				}
+
+				resolve();
+			});
+		}
+	});
 }
 
 /**

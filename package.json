@@ -1,5 +1,5 @@
 {
-  "name": "txtdb",
+  "name": "notesdb",
   "version": "0.0.1",
   "author": "jmquigley <jmquigley@outlook.com>",
   "description": "Text file database (WIP)",
@@ -8,10 +8,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jmquigley/txtdb"
+    "url": "https://github.com/jmquigley/notesdb"
   },
   "bugs": {
-    "url": "https://github.com/jmquigley/txtdb/issues"
+    "url": "https://github.com/jmquigley/notesdb/issues"
   },
   "engines": {
     "node": ">=7.4"

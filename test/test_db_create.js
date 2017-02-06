@@ -65,7 +65,7 @@ test('Create new database with custom configuration file', t => {
 });
 
 
-test('Create an initial binder', t => {
+test('Create an initial binder', async t => {
 	let fixture = new Fixture('test-config');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let binder = `testdb`;
@@ -73,7 +73,7 @@ test('Create an initial binder', t => {
 
 	validateDB(notesDB, configFile, '', '', !notesDB.initialized(), fixture, t);
 
-	notesDB.createBinder(binder, fixture.dir, {
+	await notesDB.createBinder(binder, fixture.dir, {
 		schema: [
 			'Test1',
 			'Test2'
@@ -94,7 +94,7 @@ test('Create an initial binder', t => {
 });
 
 
-test('Try to create a binder with a bad name (negative test)', t => {
+test('Try to create a binder with a bad name (negative test)', async t => {
 	let fixture = new Fixture('test-config');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let binder = `@@@@testdb`;
@@ -102,26 +102,24 @@ test('Try to create a binder with a bad name (negative test)', t => {
 
 	validateDB(notesDB, configFile, '', '', !notesDB.initialized(), fixture, t);
 
-	try {
-		notesDB.createBinder(binder, fixture.dir);
-	} catch (err) {
-		t.pass(err.message);
-	}
+	await notesDB.createBinder(binder, fixture.dir)
+		.catch(err => {
+			t.pass(err);
+		});
 });
 
 
-test('Try to create a binder with bad section name (negative test)', t => {
+test('Try to create a binder with bad section name (negative test)', async t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB(configFile);
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	try {
-		notesDB.createSection('@@@badSectionName');
-	} catch (err) {
-		t.pass(err.message);
-	}
+	await notesDB.createSection('@@@badSectionName')
+		.catch(err => {
+			t.pass(err);
+		});
 });
 
 
@@ -228,14 +226,14 @@ test('Get the sections from an existing database', t => {
 	});
 });
 
-test('Create a new section within an existing database', t => {
+test('Create a new section within an existing database', async t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB(configFile);
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	notesDB.createSection('Test3');
+	await notesDB.createSection('Test3');
 
 	let sections = notesDB.getSections();
 
@@ -257,14 +255,14 @@ test('Create a new section within an existing database', t => {
 });
 
 
-test('Try to create a section that already exists within a database', t => {
+test('Try to create a section that already exists within a database', async t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB(configFile);
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	notesDB.createSection('Test1');
+	await notesDB.createSection('Test1');
 
 	let sections = notesDB.getSections();
 
