@@ -1,13 +1,16 @@
 'use strict';
 
 import test from 'ava';
+import {validateDB} from './helpers';
 
 const path = require('path');
+const _ = require('lodash');
 const fs = require('fs-extra');
 const Fixture = require('util.fixture');
 const uuidV4 = require('uuid/v4');
-const NotesDB = require('../index');
 const pkg = require('../package.json');
+const NotesDB = require('../notesdb');
+const Artifact = require('../artifact');
 
 
 test.after.always(t => {
@@ -19,17 +22,20 @@ test.after.always(t => {
 });
 
 
-function validateDB(notesDB, configFile, binderName, root, valid, fixture, t) {  // eslint-disable-line max-params
-	t.true(notesDB && typeof notesDB !== 'undefined' && notesDB instanceof NotesDB);
-	t.is(notesDB.config.configFile, configFile);
-	t.is(notesDB.config.binderName, binderName);
-	t.is(notesDB.config.root, root);
-	t.true(valid);
+test('The database toString() function', t => {
+	let fixture = new Fixture('initial-db');
+	let configFile = path.join(fixture.dir, 'config.json');
+	let notesDB = new NotesDB(configFile);
 
-	if (fixture) {
-		t.true(fs.existsSync(path.join(fixture.dir, 'notesdb.log')));
+	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
+
+	let s = notesDB.toString();
+	t.true(typeof s === 'string');
+
+	if (pkg.debug) {
+		console.log(s);
 	}
-}
+});
 
 
 test('Create a new database with a default configuration', t => {
@@ -45,13 +51,14 @@ test('Create a new database with a default configuration', t => {
 
 test('Create new database with NOTESDB_HOME environment variable', t => {
 	let fixture = new Fixture('tmpdir');
+	let env = _.cloneDeep(process.env);
 
-	process.env.NOTESDB_HOME = path.join(fixture.dir, uuidV4(), 'config.json');
-	let notesDB = new NotesDB();
+	env.NOTESDB_HOME = path.join(fixture.dir, uuidV4(), 'config.json');
+	let notesDB = new NotesDB('', {
+		env: env
+	});
 
-	validateDB(notesDB, process.env.NOTESDB_HOME, '', '', !notesDB.initialized(), null, t);
-
-	process.env.NOTESDB_HOME = '';
+	validateDB(notesDB, env.NOTESDB_HOME, '', '', !notesDB.initialized(), null, t);
 });
 
 
@@ -73,24 +80,30 @@ test('Create an initial binder', async t => {
 
 	validateDB(notesDB, configFile, '', '', !notesDB.initialized(), fixture, t);
 
-	await notesDB.createBinder(binder, fixture.dir, {
+	await notesDB.create(binder, fixture.dir, {
 		schema: [
 			'Test1',
 			'Test2'
-		]
-	});
+		]})
+		.then(db => {
+			t.is(notesDB.config.binderName, binder);
+			t.is(notesDB.config.root, path.join(fixture.dir, binder));
+			return (db.sections());
+		})
+		.then(sections => {
+			let l = [
+				'Default',
+				'Test1',
+				'Test2'
+			];
 
-	t.is(notesDB.config.binderName, binder);
-	t.is(notesDB.config.root, path.join(fixture.dir, binder));
-
-	let schema = [
-		'Default',
-		'Test1',
-		'Test2'
-	];
-	notesDB.getSections().forEach(section => {
-		t.true(schema.indexOf(section) > -1);
-	});
+			sections.forEach(section => {
+				t.true(l.indexOf(section) > -1);
+			});
+		})
+		.catch(function(err) {
+			t.fail(`${t.context.title}: ${err}`);
+		});
 });
 
 
@@ -102,64 +115,88 @@ test('Try to create a binder with a bad name (negative test)', async t => {
 
 	validateDB(notesDB, configFile, '', '', !notesDB.initialized(), fixture, t);
 
-	await notesDB.createBinder(binder, fixture.dir)
+	await notesDB.create(binder, fixture.dir)
 		.catch(err => {
 			t.pass(err);
 		});
 });
 
-
-test('Try to create a binder with bad section name (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
+test('Create a binder with a bad initial section name', async t => {
+	let fixture = new Fixture('test-config');
 	let configFile = path.join(fixture.dir, 'config.json');
+	let binder = `testdb`;
 	let notesDB = new NotesDB(configFile);
 
-	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
+	validateDB(notesDB, configFile, '', '', !notesDB.initialized(), fixture, t);
 
-	await notesDB.createSection('@@@badSectionName')
-		.catch(err => {
+	await notesDB.create(binder, fixture.dir, {
+		schema: [
+			'@@@@@@@Test1'
+		]})
+		.catch(function(err) {
+			t.is(err, `Invalid section name '@@@@@@@Test1'.  Can only use 'a-Z, 0-9, _'`);
 			t.pass(err);
 		});
 });
 
 
-test('Open existing database with NOTESDB_HOME environment variable configuration', t => {
+test('Open existing database with NOTESDB_HOME environment variable configuration', async t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
-	process.env.NOTESDB_HOME = configFile;
-	let notesDB = new NotesDB();
+	let env = _.cloneDeep(process.env);
+
+	env.NOTESDB_HOME = configFile;
+
+	let notesDB = new NotesDB('', {
+		env: env
+	});
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	let schema = [
+	let l = [
 		'Default',
 		'Test1',
 		'Test2'
 	];
-	notesDB.getSections().forEach(section => {
-		t.true(schema.indexOf(section) > -1);
-	});
 
-	process.env.NOTESDB_HOME = '';
+	await notesDB.sections()
+		.then(sections => {
+			sections.forEach(section => {
+				t.true(l.indexOf(section) > -1);
+			});
+		})
+		.catch(err => {
+			t.fail(`${t.context.title}: ${err}`);
+		});
 });
 
 
-test('Open existing database with defaultConfigFile location', t => {
+test('Open existing database with defaultConfigFile location', async t => {
+	process.env.NOTESDB_HOME = '';
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
-	let notesDB = new NotesDB('', {defaultConfigFile: configFile});
+	let notesDB = new NotesDB('', {
+		defaultConfigFile: configFile,
+		saveInterval: 10
+	});
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	let schema = [
+	let l = [
 		'Default',
 		'Test1',
 		'Test2'
 	];
 
-	notesDB.getSections().forEach(section => {
-		t.true(schema.indexOf(section) > -1);
-	});
+	await notesDB.sections()
+		.then(sections => {
+			sections.forEach(section => {
+				t.true(l.indexOf(section) > -1);
+			});
+		})
+		.catch(err => {
+			t.fail(`${t.context.title}: ${err}`);
+		});
 });
 
 
@@ -189,42 +226,48 @@ test('Try to load existing database with missing root directory', t => {
 });
 
 
-test('Try to get sections from an unitialized database', t => {
+test('Try to get sections from an unitialized database', async t => {
 	let fixture = new Fixture('test-config');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB(configFile);
 
 	validateDB(notesDB, configFile, '', '', !notesDB.initialized(), fixture, t);
 
-	let sections = notesDB.getSections();
-
-	t.true(sections instanceof Array);
-	t.is(sections.length, 0);
+	await notesDB.sections()
+		.then(null)
+		.catch(err => {
+			t.pass(`${t.context.title}: ${err}`);
+		});
 });
 
 
-test('Get the sections from an existing database', t => {
+test('Get the sections from an existing database', async t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB(configFile);
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	let sections = notesDB.getSections();
+	await notesDB.sections()
+		.then(sections => {
+			t.true(sections instanceof Array);
+			t.is(sections.length, 3);
 
-	t.true(sections instanceof Array);
-	t.is(sections.length, 3);
+			let l = [
+				'Default',
+				'Test1',
+				'Test2'
+			];
 
-	let schema = [
-		'Default',
-		'Test1',
-		'Test2'
-	];
-
-	schema.forEach(name => {
-		t.true(notesDB.hasSection(name));
-	});
+			l.forEach(name => {
+				t.true(notesDB.hasSection(name));
+			});
+		})
+		.catch(err => {
+			t.fail(`${t.context.title}: ${err}`);
+		});
 });
+
 
 test('Create a new section within an existing database', async t => {
 	let fixture = new Fixture('simple-db');
@@ -233,25 +276,50 @@ test('Create a new section within an existing database', async t => {
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	await notesDB.createSection('Test3');
+	let artifact = new Artifact('Test3');
+	t.true(artifact instanceof Artifact);
 
-	let sections = notesDB.getSections();
+	await notesDB.add(artifact)
+		.then(db => {
+			return db.sections();
+		})
+		.then(sections => {
+			t.true(sections instanceof Array);
+			t.is(sections.length, 4);
 
-	t.true(sections instanceof Array);
-	t.is(sections.length, 4);
+			let l = [
+				'Default',
+				'Test1',
+				'Test2',
+				'Test3'
+			];
 
-	let schema = [
-		'Default',
-		'Test1',
-		'Test2',
-		'Test3'
-	];
+			l.forEach(name => {
+				t.true(notesDB.hasSection(name));
+			});
 
-	schema.forEach(name => {
-		t.true(notesDB.hasSection(name));
-	});
+			t.true(fs.existsSync(path.join(notesDB.config.root, 'Test3')));
+		})
+		.catch(err => {
+			t.fail(`${t.context.title}: ${err}`);
+		});
+});
 
-	t.true(fs.existsSync(path.join(notesDB.config.root, 'Test3')));
+
+test('Try to create a binder with bad section name (negative test)', async t => {
+	let fixture = new Fixture('simple-db');
+	let configFile = path.join(fixture.dir, 'config.json');
+	let notesDB = new NotesDB(configFile);
+
+	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
+
+	let artifact = new Artifact('@@@badSectionName');
+	t.true(artifact instanceof Artifact);
+
+	await notesDB.add(artifact)
+		.catch(err => {
+			t.pass(err);
+		});
 });
 
 
@@ -262,36 +330,26 @@ test('Try to create a section that already exists within a database', async t =>
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	await notesDB.createSection('Test1');
+	let artifact = new Artifact('Test1');
+	t.true(artifact instanceof Artifact);
 
-	let sections = notesDB.getSections();
-
-	t.true(sections instanceof Array);
-	t.is(sections.length, 3);
-
-	let schema = [
-		'Default',
-		'Test1',
-		'Test2'
-	];
-
-	schema.forEach(name => {
-		t.true(notesDB.hasSection(name));
-	});
+	await notesDB.add(artifact)
+		.catch(err => {
+			t.pass(err);
+		});
 });
 
 
-test('The database toString() function', t => {
-	let fixture = new Fixture('initial-db');
+test('Test artifact add with bad artifact', async t => {
+	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB(configFile);
 
 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
 
-	let s = notesDB.toString();
-	t.true(typeof s === 'string');
-
-	if (pkg.debug) {
-		console.log(s);
-	}
+	await notesDB.add(null)
+		.catch(err => {
+			t.is(err, 'Invalid artifact given for creation');
+			t.pass(err);
+		});
 });
