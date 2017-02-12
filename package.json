@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "author": "jmquigley <jmquigley@outlook.com>",
   "description": "Text file database (WIP)",
-  "private": false,
-  "debug": false,
+  "private": true,
+  "debug": true,
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -17,16 +17,18 @@
     "node": ">=7.4"
   },
   "bin": {
-    "txtdb": "./cli.js"
+    "notesdb": "./cli.js"
   },
   "dependencies": {
     "expand-home-dir": "0.0.3",
     "fs-extra": "^2.0.0",
+    "klaw-sync": "^1.1.0",
     "lodash": "^4.17.4",
     "log4js": "^1.1.0",
     "object-assign": "^4.1.1",
-    "util.fixture": "0.0.18",
+    "util.fixture": "0.0.22",
     "util.pkgwrap": "^0.0.5",
+    "util.promise": "0.0.4",
     "util.rstrip": "^0.0.7",
     "util.timestamp": "^0.0.13",
     "uuid": "^3.0.1",
@@ -53,19 +55,10 @@
     },
     "global": [
       "window",
-      "describe",
-      "it",
       "JSON"
     ],
     "rules": {
       "space-before-function-paren": "off",
-      "no-multiple-empty-lines": [
-        "error",
-        {
-          "max": 2,
-          "maxEOF": 1
-        }
-      ],
       "unicorn/filename-case": [
         "error",
         {

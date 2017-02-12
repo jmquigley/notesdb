@@ -7,12 +7,14 @@
 const path = require('path');
 const fs = require('fs-extra');
 const NotesDB = require('../../index').NotesDB;
+const Artifact = require('../../index').Artifact;
 
 function validateDB(notesDB, configFile, binderName, root, valid, fixture, t) {  // eslint-disable-line max-params
 	t.true(notesDB && typeof notesDB !== 'undefined' && notesDB instanceof NotesDB);
 	t.is(notesDB.config.configFile, configFile);
 	t.is(notesDB.config.binderName, binderName);
 	t.is(notesDB.config.root, root);
+	t.is(notesDB.config.dbdir, path.join(root, binderName));
 	t.true(valid);
 
 	if (fixture) {
@@ -20,6 +22,14 @@ function validateDB(notesDB, configFile, binderName, root, valid, fixture, t) { 
 	}
 }
 
+function validateArtifact(artifact, section, notebook, filename, t) { // eslint-disable-line max-params
+	t.true(artifact && typeof artifact !== 'undefined' && artifact instanceof Artifact);
+	t.is(artifact.section, section);
+	t.is(artifact.notebook, notebook);
+	t.is(artifact.filename, filename);
+}
+
 module.exports = {
+	validateArtifact: validateArtifact,
 	validateDB: validateDB
 };

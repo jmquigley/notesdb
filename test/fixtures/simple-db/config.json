@@ -1,6 +1,7 @@
 {
-	"root": "{DIR}sampledb",
+	"root": "{DIR}",
 	"binderName": "sampledb",
+	"dbdir": "{DIR}sampledb",
 	"configFile": "{DIR}config.json",
 	"configRoot": "{DIR}",
 	"log4js": {
@@ -12,5 +13,5 @@
 			}
 		]
 	},
-	"saveInterval": 1000
+	"saveInterval": 5000
 }

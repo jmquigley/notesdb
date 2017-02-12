@@ -8,9 +8,8 @@ const fs = require('fs-extra');
 const uuidV4 = require('uuid/v4');
 const log4js = require('log4js');
 const Fixture = require('util.fixture');
-const util = require('../util');
+const util = require('../lib/util');
 const pkg = require('../package.json');
-
 
 test.after.always(t => {
 	console.log('final cleanup: test_util');
@@ -19,7 +18,6 @@ test.after.always(t => {
 		t.false(fs.existsSync(directory));
 	});
 });
-
 
 test('Adding console logger to log4js', t => {
 	let logger = _.cloneDeep(log4js);
@@ -44,7 +42,6 @@ test('Adding console logger to log4js', t => {
 	});
 });
 
-
 test('Directory retrieval process', t => {
 	let fixture = new Fixture('tmpdir');
 	let root = path.join(fixture.dir, uuidV4());
@@ -61,7 +58,6 @@ test('Directory retrieval process', t => {
 	});
 });
 
-
 test('Get UUID with no dashes', t => {
 	let uuid = util.getUUID(true);
 
@@ -69,7 +65,6 @@ test('Get UUID with no dashes', t => {
 	t.true(uuid.indexOf('-') === -1);
 	t.true(uuid.length === 32);
 });
-
 
 test('Get UUID with dashes', t => {
 	let uuid = util.getUUID();

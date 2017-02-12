@@ -12,5 +12,5 @@
 			}
 		]
 	},
-	"saveInterval": 1000
+	"saveInterval": 5000
 }

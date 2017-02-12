@@ -1,11 +1,12 @@
 'use strict';
 
 import test from 'ava';
+import {Artifact} from '../index';
+import {validateArtifact} from './helpers';
 
+const path = require('path');
 const fs = require('fs-extra');
 const Fixture = require('util.fixture');
-const Artifact = require('../artifact');
-
 
 test.after.always(t => {
 	console.log('final cleanup: test_artifact');
@@ -15,19 +16,56 @@ test.after.always(t => {
 	});
 });
 
+test('Testing artifact with factory all creation', t => {
+	let artifact = Artifact.factory('all', {
+		section: 'section',
+		notebook: 'notebook',
+		filename: 'filename'
+	});
 
-test('Testing artifact simple creation', t => {
-	let artifact = new Artifact('section', 'notebook', 'filename');
-
-	t.true(artifact && typeof artifact !== 'undefined' && artifact instanceof Artifact);
-	t.is(artifact.section, 'section');
-	t.is(artifact.notebook, 'notebook');
-	t.is(artifact.filename, 'filename');
+	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
 });
 
+test('Testing artifact with factory treeitem creation', t => {
+	let treeitem = `section${path.sep}notebook${path.sep}filename`;
+	let artifact = Artifact.factory('treeitem', treeitem);
+
+	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
+});
+
+test('Testing artifact with factory treeitem section only creation', t => {
+	let treeitem = `section`;
+	let artifact = Artifact.factory('treeitem', treeitem);
+
+	validateArtifact(artifact, 'section', 'Default', '', t);
+});
+
+test('Testing artifact with factory treeitem section & notebook only creation', t => {
+	let treeitem = `section${path.sep}notebook${path.sep}`;
+	let artifact = Artifact.factory('treeitem', treeitem);
+
+	validateArtifact(artifact, 'section', 'notebook', '', t);
+});
+
+test('Testing artifact with factory treeitem too many items on creation', t => {
+	let treeitem = `section${path.sep}notebook${path.sep}filename${path.sep}blah1${path.sep}blah2`;
+	let artifact = Artifact.factory('treeitem', treeitem);
+
+	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
+});
+
+test('Test with an unknown mode sent to factory', t => {
+	let artifact = Artifact.factory('blahblahblah');
+
+	validateArtifact(artifact, 'Default', 'Default', '', t);
+});
 
 test('Testing the dirty flag', t => {
-	let artifact = new Artifact('section', 'notebook', 'filename');
+	let artifact = Artifact.factory('all', {
+		section: 'section',
+		notebook: 'notebook',
+		filename: 'filename'
+	});
 
 	t.false(artifact.isDirty());
 	artifact.makeDirty();
@@ -36,12 +74,11 @@ test('Testing the dirty flag', t => {
 	t.false(artifact.isDirty());
 });
 
-
 test('Testing has functions', t => {
 	let artifact = new Artifact();
 
-	t.false(artifact.hasSection());
+	t.true(artifact.hasSection());
+	t.true(artifact.hasNotebook());
 	t.false(artifact.hasFilename());
-	t.false(artifact.hasNotebook());
-	t.true(artifact.isEmpty());
+	t.false(artifact.isEmpty());
 });
