@@ -1,0 +1,15 @@
+{
+	"extends": "tslint:recommended",
+	"rules": {
+		"curly": true,
+		"indent": [true, "tabs"],
+		"max-line-length": false,
+		"no-console": false,
+		"no-empty": false,
+		"no-var-requires": false,
+		"object-literal-shorthand": false,
+		"object-literal-sort-keys": false,
+		"quotemark": [true, "single", "avoid-escape"],
+		"variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"]
+	}
+}

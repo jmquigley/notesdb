@@ -6,8 +6,9 @@
  */
 'use strict';
 
-const path = require('path');
-const fs = require('fs-extra');
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import {IAppender, IAppenderList} from './notesdb';
 const uuidV4 = require('uuid/v4');
 const pkg = require('../package.json');
 
@@ -15,17 +16,17 @@ const pkg = require('../package.json');
  * Adds a console logging appender to to the logging facility used by the TxtDB
  * class.  It checks to see if there is already a console logger in the config.
  * If it is already there, then it is not added again.
- * @param logger a reference to the log4j object.
+ * @param logger {Logger} a reference to the log4j object.
  */
-function addConsole(logger) {
+export function addConsole(logger: IAppenderList) {
 	if (pkg.debug) {
-		let obj = logger.appenders.filter(o => {
-			return o.type === 'console';
+		let obj = logger.appenders.filter((appender: IAppender) => {
+			return appender.type === 'console';
 		})[0];
 
 		if (typeof obj === 'undefined') {
 			logger.appenders.push({
-				type: 'console'
+				type: 'console',
 			});
 		}
 	}
@@ -36,9 +37,9 @@ function addConsole(logger) {
  * @param src {string} the source directory to search for sub directories
  * @returns {Array} a list of directories.
  */
-function getDirectories(src) {
+export function getDirectories(src: string) {
 	return fs.readdirSync(src)
-		.filter(file => fs.statSync(path.join(src, file)).isDirectory());
+		.filter((file: string) => fs.statSync(path.join(src, file)).isDirectory());
 }
 
 /**
@@ -47,16 +48,10 @@ function getDirectories(src) {
  * v4 uuid is created.
  * @returns {string} a v4 uuid
  */
-function getUUID(nodash = false) {
+export function getUUID(nodash = false) {
 	if (nodash) {
 		return uuidV4().replace(/-/g, '');
 	}
 
 	return uuidV4();
 }
-
-module.exports = {
-	addConsole: addConsole,
-	getDirectories: getDirectories,
-	getUUID: getUUID
-};

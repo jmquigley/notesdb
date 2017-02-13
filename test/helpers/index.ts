@@ -5,9 +5,10 @@
 'use strict';
 
 const path = require('path');
+const test = require('ava');
 const fs = require('fs-extra');
-const NotesDB = require('../../index').NotesDB;
 const Artifact = require('../../index').Artifact;
+const NotesDB = require('../../index').NotesDB;
 
 function validateDB(notesDB, configFile, binderName, root, valid, fixture, t) {  // eslint-disable-line max-params
 	t.true(notesDB && typeof notesDB !== 'undefined' && notesDB instanceof NotesDB);

@@ -1,24 +1,16 @@
-const path = require('path');
+import * as path from 'path';
+
+interface IArtifactOpts {
+	section: string;
+	notebook: string;
+	filename: string;
+}
 
 /**
  * A container class that holds the information for a single artifact within
  * the database.
  */
-class Artifact {
-
-	constructor() {
-		this._section = 'Default';
-		this._notebook = 'Default';
-		this._filename = '';
-		this._type = '';
-		this._loaded = false;
-		this._dirty = false;
-		this._buf = [];
-		this._created = '';
-		this._updated = '';
-		this._tags = [];
-		this._layout = {};
-	}
+export class Artifact {
 
 	/**
 	 * A factory method for creating different types of artifacts.  The mode
@@ -32,17 +24,17 @@ class Artifact {
 	 * - empty - just return an empty object.  This is the default.
 	 *
 	 * @param mode {string} tells the factory what to make
-	 * @param [args] {Object|string} parameters to the facility that will make
+	 * @param [opts] {Object|string} parameters to the facility that will make
 	 * the object.
 	 * @returns {Artifact} a newly constructed artifact object.
 	 */
-	static factory(mode = 'empty', args = '') {
+	public static factory(mode: string = 'empty', opts: any = {}): Artifact {
 		let artifact = new Artifact();
-		let a = '';
+		let a: string[] = [];
 
 		switch (mode) {
 			case 'treeitem':
-				a = args.split(path.sep);
+				a = opts.split(path.sep);
 
 				artifact._section = a[0] || 'Default';
 				artifact._notebook = a[1] || 'Default';
@@ -50,6 +42,7 @@ class Artifact {
 				break;
 
 			case 'all':
+				let args: IArtifactOpts = opts;
 				if (args instanceof Object) {
 					if (Object.prototype.hasOwnProperty.call(args, 'section')) {
 						artifact._section = args.section;
@@ -74,47 +67,57 @@ class Artifact {
 		return artifact;
 	}
 
-	hasFilename() {
+	private _section: string = 'Default';
+	private _notebook: string = 'Default';
+	private _filename: string = '';
+	private _type: string = '';
+	private _loaded: boolean = false;
+	private _dirty: boolean = false;
+	private _buf: any = [];
+	private _created: string = '';
+	private _updated: string = '';
+	private _tags: string[] = [];
+	private _layout: any = {};
+
+	constructor() {}
+
+	public hasFilename() {
 		return this.filename !== '';
 	}
 
-	hasNotebook() {
+	public hasNotebook() {
 		return this.notebook !== '';
 	}
 
-	hasSection() {
+	public hasSection() {
 		return this.section !== '';
 	}
 
-	info() {
+	public info() {
 		return `${this.section}|${this.notebook}|${this.filename}`;
 	}
 
-	isDirty() {
+	public isDirty() {
 		return this._dirty;
 	}
 
-	isEmpty() {
+	public isEmpty() {
 		return (this.section === '' && this.notebook === '' && this.filename === '');
 	}
 
-	isLoaded() {
-		return this._loaded;
-	}
-
-	makeClean() {
+	public makeClean() {
 		this._dirty = false;
 	}
 
-	makeDirty() {
+	public makeDirty() {
 		this._dirty = true;
 	}
 
-	path() {
+	public path() {
 		return path.join(this.section, this.notebook, this.filename);
 	}
 
-	toString() {
+	public toString() {
 		return JSON.stringify(this, null, 2);
 	}
 
@@ -137,7 +140,8 @@ class Artifact {
 	get layout() {
 		return this._layout;
 	}
-	set loaded(val) {
+
+	set loaded(val: boolean) {
 		this._loaded = val;
 	}
 
@@ -161,5 +165,3 @@ class Artifact {
 		return this._updated;
 	}
 }
-
-module.exports = Artifact;

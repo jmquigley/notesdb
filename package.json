@@ -20,6 +20,11 @@
     "notesdb": "./cli.js"
   },
   "dependencies": {
+    "@types/fs-extra": "0.0.37",
+    "@types/lodash": "^4.14.52",
+    "@types/log4js": "0.0.32",
+    "@types/node": "^7.0.5",
+    "@types/uuid": "^2.0.29",
     "expand-home-dir": "0.0.3",
     "fs-extra": "^2.0.0",
     "klaw-sync": "^1.1.0",
@@ -27,7 +32,7 @@
     "log4js": "^1.1.0",
     "object-assign": "^4.1.1",
     "util.fixture": "0.0.22",
-    "util.pkgwrap": "^0.0.5",
+    "util.pkgwrap": "^0.0.6",
     "util.promise": "0.0.4",
     "util.rstrip": "^0.0.7",
     "util.timestamp": "^0.0.13",
@@ -38,10 +43,14 @@
     "ava": "^0.18.1",
     "coveralls": "^2.11.15",
     "nyc": "^10.1.2",
+    "tslint": "^4.4.2",
+    "typescript": "^2.1.6",
     "xo": "^0.17.1"
   },
-  "main": "index.js",
+  "main": "./index.js",
+  "types": "./index.d.ts",
   "scripts": {
+    "build": "tsc -p .",
     "postinstall": "./node_modules/.bin/pkgwrap --postinstall",
     "test": "./node_modules/.bin/pkgwrap --testing",
     "report": "./node_modules/.bin/pkgwrap --reporting",
@@ -70,5 +79,8 @@
         "as-needed"
       ]
     }
+  },
+  "ava": {
+    "concurrency": 5
   }
 }

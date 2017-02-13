@@ -1,26 +1,25 @@
 'use strict';
 
-import test from 'ava';
-import {Artifact} from '../index';
-import {validateArtifact} from './helpers';
-
+const test = require('ava');
 const path = require('path');
+const Artifact = require('../index').Artifact;
+const validateArtifact = require('./helpers').validateArtifact;
 const fs = require('fs-extra');
 const Fixture = require('util.fixture');
 
 test.after.always(t => {
-	console.log('final cleanup: test_artifact');
+	console.log('final cleanup: test_db_create');
 	let directories = Fixture.cleanup();
-	directories.forEach(directory => {
+	directories.forEach((directory) => {
 		t.false(fs.existsSync(directory));
 	});
 });
 
 test('Testing artifact with factory all creation', t => {
 	let artifact = Artifact.factory('all', {
-		section: 'section',
+		filename: 'filename',
 		notebook: 'notebook',
-		filename: 'filename'
+		section: 'section',
 	});
 
 	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
@@ -62,9 +61,9 @@ test('Test with an unknown mode sent to factory', t => {
 
 test('Testing the dirty flag', t => {
 	let artifact = Artifact.factory('all', {
-		section: 'section',
+		filename: 'filename',
 		notebook: 'notebook',
-		filename: 'filename'
+		section: 'section',
 	});
 
 	t.false(artifact.isDirty());

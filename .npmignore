@@ -1,0 +1,11 @@
+node_modules/
+*.log
+*.tgz
+
+test/
+gulpfile.js
+tsconfig.json
+tslint.json
+
+*.ts
+*.js.map

@@ -1,7 +1,6 @@
 'use strict';
 
-import test from 'ava';
-
+const test = require('ava');
 const path = require('path');
 const _ = require('lodash');
 const fs = require('fs-extra');
@@ -12,9 +11,9 @@ const util = require('../lib/util');
 const pkg = require('../package.json');
 
 test.after.always(t => {
-	console.log('final cleanup: test_util');
+	console.log('final cleanup: test_db_create');
 	let directories = Fixture.cleanup();
-	directories.forEach(directory => {
+	directories.forEach((directory) => {
 		t.false(fs.existsSync(directory));
 	});
 });
@@ -24,7 +23,7 @@ test('Adding console logger to log4js', t => {
 	t.truthy(logger);
 
 	let config = {
-		appenders: []
+		appenders: [],
 	};
 
 	// this tries it with debug=true twice, and with it false twice.  It will

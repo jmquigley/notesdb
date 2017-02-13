@@ -1,18 +1,18 @@
 'use strict';
 
-import test from 'ava';
-import {NotesDB, Artifact} from '../index';
-import {validateDB} from './helpers';
-
+const test = require('ava');
 const path = require('path');
 const fs = require('fs-extra');
 const Fixture = require('util.fixture');
+const Artifact = require('../index').Artifact;
+const NotesDB = require('../index').NotesDB;
+const validateDB = require('./helpers').validateDB;
 const pkg = require('../package.json');
 
 test.after.always(t => {
 	console.log('final cleanup: test_db_create');
 	let directories = Fixture.cleanup();
-	directories.forEach(directory => {
+	directories.forEach((directory) => {
 		t.false(fs.existsSync(directory));
 	});
 });
@@ -20,15 +20,15 @@ test.after.always(t => {
 test.cb('The database toString() function', t => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
-	let adb = new NotesDB({
-		configFile: configFile,
+	let notesDB = new NotesDB({
 		binderName: 'sampledb',
-		root: fixture.dir
+		configFile: configFile,
+		root: fixture.dir,
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, fixture, t);
+	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, fixture, t);
 
-	let s = adb.toString();
+	let s = notesDB.toString();
 	t.true(typeof s === 'string');
 
 	if (pkg.debug) {
@@ -42,7 +42,7 @@ test.cb('Create a new database with a custom configuration', t => {
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		configFile: configFile,
-		root: fixture.dir
+		root: fixture.dir,
 	});
 
 	validateDB(adb, configFile, 'adb', fixture.dir, adb.initialized, fixture, t);
@@ -52,22 +52,22 @@ test.cb('Create a new database with a custom configuration', t => {
 test('Create an initial binder', async t => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
-	let adb = new NotesDB({
-		configFile: configFile
+	let notesDB = new NotesDB({
+		configFile: configFile,
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, fixture, t);
+	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, fixture, t);
 
-	await adb.create([
+	await notesDB.create([
 		'Test1',
-		'Test2'
+		'Test2',
 	])
-		.then(adb => {
+		.then((adb) => {
 			let sections = adb.sections();
 			let l = [
 				'Default',
 				'Test1',
-				'Test2'
+				'Test2',
 			];
 
 			sections.forEach(section => {
@@ -75,7 +75,7 @@ test('Create an initial binder', async t => {
 			});
 		})
 		.catch(err => {
-			t.fail(`${t.context.title}: ${err}`);
+			t.fail(`${this.name}: ${err}`);
 		});
 });
 
@@ -86,9 +86,9 @@ test.cb('Try to create a binder with a bad name (negative test)', t => {
 	try {
 		let adb = new NotesDB({
 			configFile: configFile,
-			binderName: '////testdb'
+			binderName: '////testdb',
 		});
-		t.fail(adb);
+		t.fail(adb.toString());
 	} catch (err) {
 		t.is(err.message, `Invalid binder name '////testdb'.  Can only use '-\\.+@_0-9a-zA-Z '.`);
 		t.pass(err.message);
@@ -99,15 +99,15 @@ test.cb('Try to create a binder with a bad name (negative test)', t => {
 test('Create a binder with a bad initial section name', async t => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
-	let adb = new NotesDB({
-		configFile: configFile
+	let notesDB = new NotesDB({
+		configFile: configFile,
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, fixture, t);
+	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, fixture, t);
 
-	await adb.create('////Test1')
+	await notesDB.create('////Test1')
 		.then(adb => {
-			t.fail(adb);
+			t.fail(adb.toString());
 		})
 		.catch(err => {
 			t.is(err, `Invalid section name '////Test1'.  Can only use '-\\.+@_0-9a-zA-Z '.`);
@@ -119,7 +119,7 @@ test.cb('Open existing database with defaultConfigFile location', t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile
+		configFile: configFile,
 	});
 
 	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, fixture, t);
@@ -139,28 +139,28 @@ test.cb('Open existing database with defaultConfigFile location', t => {
 	let artifact = Artifact.factory('all', {
 		section: 'Default',
 		notebook: 'Default',
-		filename: 'test1.txt'
+		filename: 'test1.txt',
 	});
 	t.true(adb.hasArtifact(artifact));
 
 	artifact = Artifact.factory('all', {
 		section: 'Default',
 		notebook: 'notebook1',
-		filename: 'test2.txt'
+		filename: 'test2.txt',
 	});
 	t.true(adb.hasArtifact(artifact));
 
 	artifact = Artifact.factory('all', {
 		section: 'Test1',
 		notebook: 'Default',
-		filename: 'test3.txt'
+		filename: 'test3.txt',
 	});
 	t.true(adb.hasArtifact(artifact));
 
 	artifact = Artifact.factory('all', {
 		section: 'Test2',
 		notebook: 'Default',
-		filename: 'test4.txt'
+		filename: 'test4.txt',
 	});
 	t.true(adb.hasArtifact(artifact));
 
@@ -173,9 +173,9 @@ test.cb('Try to load existing database with missing config file', t => {
 
 	try {
 		let adb = new NotesDB({
-			configFile: configFile
+			configFile: configFile,
 		});
-		t.fail(adb);
+		t.fail(adb.toString());
 	} catch (err) {
 		t.is(err.message, `Can't find notesdb configuration: badconfigfile.`);
 		t.pass(err.message);
@@ -189,9 +189,9 @@ test.cb('Try to load existing database with missing root directory', t => {
 
 	try {
 		let adb = new NotesDB({
-			configFile: configFile
+			configFile: configFile,
 		});
-		t.fail(adb);
+		t.fail(adb.toString());
 	} catch (err) {
 		t.is(err.message, `No notesdb located @ badrootdirsampledb.`);
 		t.pass(err.message);
@@ -203,14 +203,14 @@ test.cb('Try to get sections from an unitialized database', t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile
+		configFile: configFile,
 	});
 
 	adb.initialized = false;
 
 	try {
 		let sections = adb.sections();
-		t.fail(sections);
+		t.fail(sections.toString());
 	} catch (err) {
 		t.is(err.message, `Trying to retrieve sections from an unitialized database.`);
 		t.pass(err.message);
@@ -221,16 +221,16 @@ test.cb('Try to get sections from an unitialized database', t => {
 test('Create a new section within an existing database', async t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
-	let adb = new NotesDB({
-		configFile: configFile
+	let notesDB = new NotesDB({
+		configFile: configFile,
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, fixture, t);
+	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, fixture, t);
 
 	let artifact = Artifact.factory('all', {section: 'Test3'});
 	t.true(artifact instanceof Artifact);
 
-	await adb.add(artifact)
+	await notesDB.add(artifact)
 		.then(adb => {
 			let sections = adb.sections();
 			t.true(sections instanceof Array);
@@ -240,7 +240,7 @@ test('Create a new section within an existing database', async t => {
 				'Default',
 				'Test1',
 				'Test2',
-				'Test3'
+				'Test3',
 			];
 
 			l.forEach(name => {
@@ -250,30 +250,30 @@ test('Create a new section within an existing database', async t => {
 			t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test3')));
 		})
 		.catch(err => {
-			t.fail(`${t.context.title}: ${err}`);
+			t.fail(`${this.name}: ${err}`);
 		});
 });
 
 test('Try to create an artifact with bad section name (negative test)', async t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
-	let adb = new NotesDB({
-		configFile: configFile
+	let notesDB = new NotesDB({
+		configFile: configFile,
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, fixture, t);
+	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, fixture, t);
 
 	let artifact = Artifact.factory('all', {
-		section: '////badSectionName'
+		section: '////badSectionName',
 	});
 	t.true(artifact instanceof Artifact);
 
-	await adb.add(artifact)
+	await notesDB.add(artifact)
 		.then(adb => {
-			t.fail(adb);
+			t.fail(adb.toString());
 		})
 		.catch(err => {
-			t.is(err.message, `Invalid section name '////badSectionName'.  Can only use '-\\.+@_0-9a-zA-Z '.`);
+			t.is(err, `Invalid section name '////badSectionName'.  Can only use '-\\.+@_0-9a-zA-Z '.`);
 			t.pass(err);
 		});
 });
@@ -281,36 +281,38 @@ test('Try to create an artifact with bad section name (negative test)', async t 
 test('Try to create a section that already exists within a database', async t => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
-	let adb = new NotesDB({
-		configFile: configFile
+	let notesDB = new NotesDB({
+		configFile: configFile,
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, fixture, t);
+	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, fixture, t);
 
 	let artifact = Artifact.factory('all', {
-		section: 'Test1'
+		section: 'Test1',
 	});
 	t.true(artifact instanceof Artifact);
 
-	await adb.add(artifact)
+	await notesDB.add(artifact)
 		.then(adb => {
-			t.pass(adb);
+			t.pass(adb.toString());
 		})
 		.catch(err => {
-			t.fail(`${t.context.title}: ${err}`);
+			t.fail(`${this.name}: ${err}`);
 		});
 });
 
-// test('Test artifact add with bad artifact', async t => {
-// 	let fixture = new Fixture('simple-db');
-// 	let configFile = path.join(fixture.dir, 'config.json');
-// 	let notesDB = new NotesDB(configFile);
-//
-// 	validateDB(notesDB, configFile, 'sampledb', `${fixture.dir}/sampledb`, notesDB.initialized(), fixture, t);
-//
-// 	await notesDB.add(null)
-// 		.catch(err => {
-// 			t.is(err, 'Invalid artifact given for creation');
-// 			t.pass(err);
-// 		});
-// });
+test('Test artifact add with bad artifact', async t => {
+	let fixture = new Fixture('simple-db');
+	let configFile = path.join(fixture.dir, 'config.json');
+	let notesDB = new NotesDB({
+		configFile: configFile
+	});
+
+	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, fixture, t);
+
+	await notesDB.add(null)
+		.catch(err => {
+			t.is(err, 'Not a valid Artifact object for add().');
+			t.pass(err);
+		});
+});

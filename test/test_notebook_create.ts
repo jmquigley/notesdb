@@ -1,19 +1,20 @@
 'use strict';
 
-import test from 'ava';
+const test = require('ava');
+const fs = require('fs-extra');
 // import path from 'path';
-import fs from 'fs-extra';
 // import {validateDB} from './helpers';
 // cimport {NotesDB, Artifact} from '../index';
-import {Fixture} from 'util.fixture';
+const Fixture = require('util.fixture');
 
 test.after.always(t => {
-	console.log('final cleanup: test_notebook_create');
+	console.log('final cleanup: test_db_create');
 	let directories = Fixture.cleanup();
 	directories.forEach(directory => {
 		t.false(fs.existsSync(directory));
 	});
 });
+
 
 // test('Create a notebook within an existing database', async t => {
 // 	let fixture = new Fixture('simple-db');
