@@ -3,14 +3,14 @@
 import {test, TestContext} from 'ava';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
+import * as log4js from 'log4js';
 import * as path from 'path';
+import {Fixture} from 'util.fixture';
 import {IAppenderList} from '../lib/notesdb';
 
-const Fixture = require('util.fixture');
-const pkg = require('../package.json');
 const uuidV4 = require('uuid/v4');
 const util = require('../lib/util');
-const log4js = require('log4js');
+const pkg = require('../package.json');
 
 test.after.always((t: TestContext) => {
 	console.log('final cleanup: test_util');
@@ -25,7 +25,7 @@ test('Adding console logger to log4js', (t: TestContext) => {
 	t.truthy(logger);
 
 	let config: IAppenderList = {
-		appenders: [],
+		appenders: []
 	};
 
 	// this tries it with debug=true twice, and with it false twice.  It will

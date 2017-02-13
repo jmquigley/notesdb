@@ -3,10 +3,9 @@
 import {test, TestContext} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import {Fixture} from 'util.fixture';
 import {Artifact} from '../lib/artifact';
 import {validateArtifact} from './helpers';
-
-const Fixture = require('util.fixture');
 
 test.after.always((t: TestContext) => {
 	console.log('final cleanup: test_artifacts');
@@ -20,7 +19,7 @@ test('Testing artifact with factory all creation', (t: TestContext) => {
 	let artifact = Artifact.factory('all', {
 		filename: 'filename',
 		notebook: 'notebook',
-		section: 'section',
+		section: 'section'
 	});
 
 	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
@@ -64,7 +63,7 @@ test('Testing the dirty flag', (t: TestContext) => {
 	let artifact = Artifact.factory('all', {
 		filename: 'filename',
 		notebook: 'notebook',
-		section: 'section',
+		section: 'section'
 	});
 
 	t.false(artifact.isDirty());

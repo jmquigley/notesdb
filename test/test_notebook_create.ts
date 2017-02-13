@@ -2,12 +2,11 @@
 
 import {test, TestContext} from 'ava';
 import * as fs from 'fs-extra';
+import {Fixture} from 'util.fixture';
 // import * as path from 'path';
 // import {NotesDB} from '../lib/notesdb';
 // import {Artifact} from '../lib/artifact';
 // import {validateDB} from './helpers';
-
-const Fixture = require('util.fixture');
 
 test.after.always((t: TestContext) => {
 	console.log('final cleanup: test_notebook_create');
