@@ -37,7 +37,7 @@ export function addConsole(logger: IAppenderList) {
  * @param src {string} the source directory to search for sub directories
  * @returns {Array} a list of directories.
  */
-export function getDirectories(src: string) {
+export function getDirectories(src: string): string[] {
 	return fs.readdirSync(src)
 		.filter((file: string) => fs.statSync(path.join(src, file)).isDirectory());
 }
@@ -48,7 +48,7 @@ export function getDirectories(src: string) {
  * v4 uuid is created.
  * @returns {string} a v4 uuid
  */
-export function getUUID(nodash = false) {
+export function getUUID(nodash = false): string {
 	if (nodash) {
 		return uuidV4().replace(/-/g, '');
 	}

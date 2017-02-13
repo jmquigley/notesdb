@@ -1,28 +1,30 @@
 'use strict';
 
-const test = require('ava');
-const path = require('path');
-const _ = require('lodash');
-const fs = require('fs-extra');
-const uuidV4 = require('uuid/v4');
-const log4js = require('log4js');
-const Fixture = require('util.fixture');
-const util = require('../lib/util');
-const pkg = require('../package.json');
+import {test, TestContext} from 'ava';
+import * as fs from 'fs-extra';
+import * as _ from 'lodash';
+import * as path from 'path';
+import {IAppenderList} from '../lib/notesdb';
 
-test.after.always(t => {
-	console.log('final cleanup: test_db_create');
+const Fixture = require('util.fixture');
+const pkg = require('../package.json');
+const uuidV4 = require('uuid/v4');
+const util = require('../lib/util');
+const log4js = require('log4js');
+
+test.after.always((t: TestContext) => {
+	console.log('final cleanup: test_util');
 	let directories = Fixture.cleanup();
-	directories.forEach((directory) => {
+	directories.forEach((directory: string) => {
 		t.false(fs.existsSync(directory));
 	});
 });
 
-test('Adding console logger to log4js', t => {
+test('Adding console logger to log4js', (t: TestContext) => {
 	let logger = _.cloneDeep(log4js);
 	t.truthy(logger);
 
-	let config = {
+	let config: IAppenderList = {
 		appenders: [],
 	};
 
@@ -41,23 +43,23 @@ test('Adding console logger to log4js', t => {
 	});
 });
 
-test('Directory retrieval process', t => {
+test('Directory retrieval process', (t: TestContext) => {
 	let fixture = new Fixture('tmpdir');
-	let root = path.join(fixture.dir, uuidV4());
-	let dirs = [];
+	let root: string = path.join(fixture.dir, uuidV4());
+	let dirs: string[] = [];
 
 	_.times(5, () => {
-		let dst = path.join(root, uuidV4());
+		let dst: string = path.join(root, uuidV4());
 		fs.mkdirsSync(dst);
 		dirs.push(dst);
 	});
 
-	util.getDirectories(root).forEach(directory => {
+	util.getDirectories(root).forEach((directory: string) => {
 		t.true(dirs.indexOf(path.join(root, directory)) > -1);
 	});
 });
 
-test('Get UUID with no dashes', t => {
+test('Get UUID with no dashes', (t: TestContext) => {
 	let uuid = util.getUUID(true);
 
 	t.true(uuid && typeof uuid === 'string');
@@ -65,7 +67,7 @@ test('Get UUID with no dashes', t => {
 	t.true(uuid.length === 32);
 });
 
-test('Get UUID with dashes', t => {
+test('Get UUID with dashes', (t: TestContext) => {
 	let uuid = util.getUUID();
 
 	t.true(uuid && typeof uuid === 'string');

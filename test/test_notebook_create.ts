@@ -1,20 +1,25 @@
 'use strict';
 
-const test = require('ava');
-const fs = require('fs-extra');
-// import path from 'path';
+import {test, TestContext} from 'ava';
+import * as fs from 'fs-extra';
+// import * as path from 'path';
+// import {NotesDB} from '../lib/notesdb';
+// import {Artifact} from '../lib/artifact';
 // import {validateDB} from './helpers';
-// cimport {NotesDB, Artifact} from '../index';
+
 const Fixture = require('util.fixture');
 
-test.after.always(t => {
-	console.log('final cleanup: test_db_create');
+test.after.always((t: TestContext) => {
+	console.log('final cleanup: test_notebook_create');
 	let directories = Fixture.cleanup();
-	directories.forEach(directory => {
+	directories.forEach((directory: string) => {
 		t.false(fs.existsSync(directory));
 	});
 });
 
+test('Empty, template test case', (t: TestContext) => {
+	t.pass();
+});
 
 // test('Create a notebook within an existing database', async t => {
 // 	let fixture = new Fixture('simple-db');

@@ -1,21 +1,22 @@
 'use strict';
 
-const test = require('ava');
-const path = require('path');
-const Artifact = require('../index').Artifact;
-const validateArtifact = require('./helpers').validateArtifact;
-const fs = require('fs-extra');
+import {test, TestContext} from 'ava';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import {Artifact} from '../lib/artifact';
+import {validateArtifact} from './helpers';
+
 const Fixture = require('util.fixture');
 
-test.after.always(t => {
-	console.log('final cleanup: test_db_create');
+test.after.always((t: TestContext) => {
+	console.log('final cleanup: test_artifacts');
 	let directories = Fixture.cleanup();
-	directories.forEach((directory) => {
+	directories.forEach((directory: string) => {
 		t.false(fs.existsSync(directory));
 	});
 });
 
-test('Testing artifact with factory all creation', t => {
+test('Testing artifact with factory all creation', (t: TestContext) => {
 	let artifact = Artifact.factory('all', {
 		filename: 'filename',
 		notebook: 'notebook',
@@ -25,41 +26,41 @@ test('Testing artifact with factory all creation', t => {
 	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
 });
 
-test('Testing artifact with factory treeitem creation', t => {
+test('Testing artifact with factory treeitem creation', (t: TestContext) => {
 	let treeitem = `section${path.sep}notebook${path.sep}filename`;
 	let artifact = Artifact.factory('treeitem', treeitem);
 
 	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
 });
 
-test('Testing artifact with factory treeitem section only creation', t => {
+test('Testing artifact with factory treeitem section only creation', (t: TestContext) => {
 	let treeitem = `section`;
 	let artifact = Artifact.factory('treeitem', treeitem);
 
 	validateArtifact(artifact, 'section', 'Default', '', t);
 });
 
-test('Testing artifact with factory treeitem section & notebook only creation', t => {
+test('Testing artifact with factory treeitem section & notebook only creation', (t: TestContext) => {
 	let treeitem = `section${path.sep}notebook${path.sep}`;
 	let artifact = Artifact.factory('treeitem', treeitem);
 
 	validateArtifact(artifact, 'section', 'notebook', '', t);
 });
 
-test('Testing artifact with factory treeitem too many items on creation', t => {
+test('Testing artifact with factory treeitem too many items on creation', (t: TestContext) => {
 	let treeitem = `section${path.sep}notebook${path.sep}filename${path.sep}blah1${path.sep}blah2`;
 	let artifact = Artifact.factory('treeitem', treeitem);
 
 	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
 });
 
-test('Test with an unknown mode sent to factory', t => {
+test('Test with an unknown mode sent to factory', (t: TestContext) => {
 	let artifact = Artifact.factory('blahblahblah');
 
 	validateArtifact(artifact, 'Default', 'Default', '', t);
 });
 
-test('Testing the dirty flag', t => {
+test('Testing the dirty flag', (t: TestContext) => {
 	let artifact = Artifact.factory('all', {
 		filename: 'filename',
 		notebook: 'notebook',
@@ -73,7 +74,7 @@ test('Testing the dirty flag', t => {
 	t.false(artifact.isDirty());
 });
 
-test('Testing has functions', t => {
+test('Testing has functions', (t: TestContext) => {
 	let artifact = new Artifact();
 
 	t.true(artifact.hasSection());
