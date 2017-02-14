@@ -2,7 +2,46 @@
 
 > A text file notes database
 
-This is a placeholder for a future module
+This is a placeholder for a future module and a work in progress.
+
+The text database is just a datastructure and a set of functions to manipulate a structured directory.  The "database" is refered to as a binder.  The binder contains sections.  Each of the sections contain notebooks.  Each notebook contains artifacts (files).  The general structure of the binder is:
+ 
+      {binder}/
+          {section}/
+              {notebook 1}/
+                  - {artifact 1}
+                  - {artifact 2}
+                  - {artifact N}
+                {notebook 2}/
+                  - {artifact 1}
+                  - {artifact 2}
+                  - {artifact N}
+           {section N}/
+               ...
+ 
+ The main component is the artifact.  These are the text files.  The others are basic file directory strutures.
+
+#### Features
+
+- TODO
+
+
+## Installation
+
+To install as a global package and cli:
+```
+$ npm install --global notesdb
+```
+
+To install as an application dependency with cli:
+```
+$ npm install --save-dev notesdb
+```
+
+
+## Usage
+
+- TODO
 
 
 ## API
