@@ -88,7 +88,9 @@ export class NotesDB extends EventEmitter {
 	private _ignore: string[] = [];
 	private _initialized: boolean = false;
 	private _reID: RegExp = new RegExp(`^[${validNameChars}]+$`);
+	private _fnSaveInterval: any;
 	private _schema: ISchema = {};
+	private _timedSave: boolean = false;
 
 	/**
 	 * Creates the instance of the class and loads or defines the initial
@@ -111,17 +113,18 @@ export class NotesDB extends EventEmitter {
 		super();
 
 		let self = this;
+		const defIgnoreList = ['.DS_Store', '.placeholder'];
 
 		opts = objectAssign({
 			binderName: 'adb',
 			configFile: home(path.join('~/', '.notesdb', 'config.json')),
 			env: process.env,
-			ignore: ['.DS_Store', '.placeholder'],
+			ignore: defIgnoreList,
 			root: home(path.join('~/', '.notesdb')),
 			saveInterval: 5000
 		}, opts);
 
-		self._ignore = opts.ignore || [];
+		self._ignore = opts.ignore || defIgnoreList;
 
 		if (fs.existsSync(opts.configFile)) {
 			// Opens an existing configuration file
@@ -149,11 +152,10 @@ export class NotesDB extends EventEmitter {
 		self.log = log4js.getLogger('notesdb');
 
 		self.load();
-		let saveInterval = Object.prototype.hasOwnProperty
-			.call(self.config, 'saveInterval') ? self.config.saveInterval : opts.saveInterval;
-		setInterval(() => {
-			self.save();
-		}, saveInterval);
+		self._fnSaveInterval = setInterval(() => {
+			self.saveBinder();
+			self._timedSave = true;
+		}, opts.saveInterval);
 	}
 
 	/**
@@ -165,15 +167,11 @@ export class NotesDB extends EventEmitter {
 	 */
 	public add(artifact: Artifact, self = this) {
 		return new Promise((resolve, reject) => {
-			if (artifact instanceof Artifact) {
-				try {
-					self.addArtifact(artifact);
-					resolve(self);
-				} catch (err) {
-					reject(err.message);
-				}
-			} else {
-				reject('Not a valid Artifact object for add().');
+			try {
+				self.addArtifact(artifact);
+				resolve(self);
+			} catch (err) {
+				reject(err.message);
 			}
 		});
 	}
@@ -186,16 +184,14 @@ export class NotesDB extends EventEmitter {
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public create(schema: any, self = this) {
+	public create(schema: string[] | string, self = this) {
 		return new Promise((resolve, reject) => {
 			if (typeof schema === 'string') {
 				schema = [schema];
-			} else if (schema instanceof Array) {
-				if (schema.length < 1) {
-					schema.push('Default');
-				}
-			} else {
-				reject('Schema must be an array of section names.');
+			}
+
+			if (schema.length < 1) {
+				schema.push('Default');
 			}
 
 			try {
@@ -216,7 +212,7 @@ export class NotesDB extends EventEmitter {
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {boolean} true if the artifact is found, otherwise false
 	 */
-	public hasArtifact(artifact: Artifact, self = this) {
+	public hasArtifact(artifact: Artifact, self = this): boolean {
 		return Object.prototype.hasOwnProperty
 			.call(self.schema[artifact.section][artifact.notebook], artifact.filename);
 	}
@@ -228,7 +224,7 @@ export class NotesDB extends EventEmitter {
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {boolean} true if the notebook is found, otherwise false
 	 */
-	public hasNotebook(notebookName: string, sectionName: string, self = this) {
+	public hasNotebook(notebookName: string, sectionName: string, self = this): boolean {
 		return Object.prototype.hasOwnProperty
 			.call(self.schema[sectionName], notebookName);
 	}
@@ -240,7 +236,7 @@ export class NotesDB extends EventEmitter {
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @return {boolean} true if the section is found, otherwise false.
 	 */
-	public hasSection(sectionName: string, self = this) {
+	public hasSection(sectionName: string, self = this): boolean {
 		return Object.prototype.hasOwnProperty
 			.call(self.schema, sectionName);
 	}
@@ -252,7 +248,7 @@ export class NotesDB extends EventEmitter {
 	 * are located.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 */
-	public notebooks(sectionName: string, self = this) {
+	public notebooks(sectionName: string, self = this): string[] {
 		let notebooks: string[] = [];
 
 		if (!self.initialized) {
@@ -272,11 +268,26 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
+	 * User requested save function.
+	 * @param self {NotesDB} a reference to the notes database instance
+	 */
+	public save(self = this) {
+		return new Promise((resolve, reject) => {
+			try {
+				self.saveBinder();
+				resolve(self);
+			} catch (err) {
+				reject(err.message);
+			}
+		})
+	}
+
+	/**
 	 * Enumerates the list of sections from the schema.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Array} a future promise to return the list
 	 */
-	public sections(self = this) {
+	public sections(self = this): string[] {
 		let sections: string[] = [];
 
 		if (!self.initialized) {
@@ -289,6 +300,17 @@ export class NotesDB extends EventEmitter {
 		});
 
 		return (sections);
+	}
+
+	/**
+	 * Called when the database is no longer needed.  This will cleanup
+	 * operations and shutdown the intervals.
+	 * @param self
+	 */
+	public shutdown(self = this) {
+		self.saveBinder();
+		clearInterval(self._fnSaveInterval);
+		self.initialized = false;
 	}
 
 	/**
@@ -322,12 +344,8 @@ export class NotesDB extends EventEmitter {
 		return this._initialized;
 	}
 
-	set initialized(val) {
-		if (typeof val === 'boolean') {
-			this._initialized = val;
-		} else {
-			this._initialized = false;
-		}
+	set initialized(val: boolean) {
+		this._initialized = val;
 	}
 
 	get reID() {
@@ -336,6 +354,10 @@ export class NotesDB extends EventEmitter {
 
 	get schema() {
 		return this._schema;
+	}
+
+	get timedSave() {
+		return this._timedSave;
 	}
 
 	/**
@@ -490,9 +512,7 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private load(self = this) {
-		if (self.initialized) {
-			self.save();
-		} else {
+		if (!self.initialized) {
 			self.validate();
 			self.loadBinder();
 			self.save();
@@ -520,14 +540,10 @@ export class NotesDB extends EventEmitter {
 	 * Saves the internal state of the binder
 	 * @private
 	 */
-	private save(self = this) {
+	private saveBinder(self = this) {
 		self.log.debug(`Saving configuration: ${self.config.configFile}`);
 		let data = JSON.stringify(self.config, null, '\t');
-		fs.writeFile(self.config.configFile, data, (err: Error) => {
-			if (err) {
-				throw new Error(`Can't write configuration: ${self.config.configFile}: ${err.message}`);
-			}
-		});
+		fs.writeFileSync(self.config.configFile, data);
 	}
 
 	/**

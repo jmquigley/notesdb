@@ -31,6 +31,7 @@
     "lodash": "^4.17.4",
     "log4js": "^1.1.0",
     "object-assign": "^4.1.1",
+    "randombytes": "^2.0.3",
     "util.fixture": "0.0.27",
     "util.pkgwrap": "^0.0.6",
     "util.promise": "0.0.4",
