@@ -118,7 +118,7 @@ export class NotesDB extends EventEmitter {
 			env: process.env,
 			ignore: ['.DS_Store', '.placeholder'],
 			root: home(path.join('~/', '.notesdb')),
-			saveInterval: 5000,
+			saveInterval: 5000
 		}, opts);
 
 		self._ignore = opts.ignore || [];
@@ -300,7 +300,7 @@ export class NotesDB extends EventEmitter {
 	public toString(self = this) {
 		let obj = {
 			config: self.config,
-			schema: self.schema,
+			schema: self.schema
 		};
 
 		return JSON.stringify(obj, null, '\t');
@@ -405,12 +405,12 @@ export class NotesDB extends EventEmitter {
 					{
 						category: 'notesdb',
 						filename: path.join(path.dirname(opts.configFile || ''), 'notesdb.log'),
-						type: 'file',
-					},
-				],
+						type: 'file'
+					}
+				]
 			},
 			root: opts.root || '',
-			saveInterval: 5000,
+			saveInterval: 5000
 		};
 	}
 
@@ -511,7 +511,7 @@ export class NotesDB extends EventEmitter {
 	 */
 	private loadBinder(self = this) {
 		self.tree().forEach((it: string) => {
-			let artifact = Artifact.factory('treeitem', it);
+			let artifact = Artifact.factory('treeitem', {treeitem: it});
 			self.addArtifact(artifact);
 		});
 	}

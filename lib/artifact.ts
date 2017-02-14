@@ -1,9 +1,11 @@
 import * as path from 'path';
 
-interface IArtifactOpts {
-	section: string;
-	notebook: string;
-	filename: string;
+export interface IArtifactOpts {
+	root?: string;
+	treeitem?: string;
+	section?: string;
+	notebook?: string;
+	filename?: string;
 }
 
 /**
@@ -28,33 +30,36 @@ export class Artifact {
 	 * the object.
 	 * @returns {Artifact} a newly constructed artifact object.
 	 */
-	public static factory(mode: string = 'empty', opts: any = {}): Artifact {
+	public static factory(mode: string = 'empty', opts: IArtifactOpts = {}): Artifact {
 		let artifact = new Artifact();
 		let a: string[] = [];
 
+		artifact.root = opts.root || process.cwd();
+
 		switch (mode) {
 			case 'treeitem':
-				a = opts.split(path.sep);
+				if (Object.prototype.hasOwnProperty.call(opts, 'treeitem')) {
+					let s: string = opts.treeitem || '';
+					a = s.split(path.sep);
 
-				artifact._section = a[0] || 'Default';
-				artifact._notebook = a[1] || 'Default';
-				artifact._filename = a[2] || '';
+					artifact._section = a[0] || 'Default';
+					artifact._notebook = a[1] || 'Default';
+					artifact._filename = a[2] || '';
+				}
 				break;
 
 			case 'all':
-				let args: IArtifactOpts = opts;
-				if (args instanceof Object) {
-					if (Object.prototype.hasOwnProperty.call(args, 'section')) {
-						artifact._section = args.section;
-					}
+				let args: IArtifactOpts = opts || {};
+				if (Object.prototype.hasOwnProperty.call(args, 'section')) {
+					artifact._section = args.section || 'Default';
+				}
 
-					if (Object.prototype.hasOwnProperty.call(args, 'notebook')) {
-						artifact._notebook = args.notebook;
-					}
+				if (Object.prototype.hasOwnProperty.call(args, 'notebook')) {
+					artifact._notebook = args.notebook || 'Default';
+				}
 
-					if (Object.prototype.hasOwnProperty.call(args, 'filename')) {
-						artifact._filename = args.filename;
-					}
+				if (Object.prototype.hasOwnProperty.call(args, 'filename')) {
+					artifact._filename = args.filename || '';
 				}
 				break;
 
@@ -70,6 +75,7 @@ export class Artifact {
 	private _section: string = 'Default';
 	private _notebook: string = 'Default';
 	private _filename: string = '';
+	private _root: string = '';
 	private _type: string = '';
 	private _loaded: boolean = false;
 	private _dirty: boolean = false;
@@ -81,28 +87,24 @@ export class Artifact {
 
 	constructor() {}
 
-	public hasFilename() {
+	public hasFilename(): boolean {
 		return this.filename !== '';
 	}
 
-	public hasNotebook() {
+	public hasNotebook(): boolean {
 		return this.notebook !== '';
 	}
 
-	public hasSection() {
+	public hasSection(): boolean {
 		return this.section !== '';
 	}
 
-	public info() {
+	public info(): string {
 		return `${this.section}|${this.notebook}|${this.filename}`;
 	}
 
-	public isDirty() {
+	public isDirty(): boolean {
 		return this._dirty;
-	}
-
-	public isEmpty() {
-		return (this.section === '' && this.notebook === '' && this.filename === '');
 	}
 
 	public makeClean() {
@@ -113,11 +115,11 @@ export class Artifact {
 		this._dirty = true;
 	}
 
-	public path() {
+	public path(): string {
 		return path.join(this.section, this.notebook, this.filename);
 	}
 
-	public toString() {
+	public toString(): string {
 		return JSON.stringify(this, null, 2);
 	}
 
@@ -125,7 +127,7 @@ export class Artifact {
 	// Properties
 	//
 
-	get buffer() {
+	get buffer(): Buffer {
 		return Buffer.from(this._buf);
 	}
 
@@ -141,12 +143,24 @@ export class Artifact {
 		return this._layout;
 	}
 
+	get loaded() {
+		return this._loaded;
+	}
+
 	set loaded(val: boolean) {
 		this._loaded = val;
 	}
 
 	get notebook() {
 		return this._notebook;
+	}
+
+	get root() {
+		return this._root;
+	}
+
+	set root(val) {
+		this._root = val;
 	}
 
 	get section() {
