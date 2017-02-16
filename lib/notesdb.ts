@@ -31,7 +31,7 @@ import * as _ from 'lodash';
 import * as log4js from 'log4js';
 import * as objectAssign from 'object-assign';
 import * as path from 'path';
-import {Artifact, ArtifactType} from './artifact';
+import {Artifact, ArtifactType, IArtifactSearch} from './artifact';
 
 const walk = require('klaw-sync');
 const home = require('expand-home-dir');
@@ -78,6 +78,7 @@ export interface IConfigDB {
 	log4js: IAppenderList;
 	root: string;
 	saveInterval: number;
+	bufSize: number;
 }
 
 /** Creates an instance of the text database class */
@@ -228,16 +229,62 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
+	 * Retrieves an artifact from the schema.  If it exists, then it is returned
+	 * by the promise.  If it is not found, then an error will be thrown.  If
+	 * the artifact has never been loaded before, then it is read from the
+	 * filesystem when this request is made.
+	 * @param opts {IArtifactSearch} the section/notebook/filename to search
+	 * for within the schema.
+	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object.
+	 */
+	public get(opts: IArtifactSearch, self = this) {
+		return new Promise((resolve, reject) => {
+			if (this.hasArtifact(opts)) {
+				let artifact = self._schema[opts.section][opts.notebook][opts.filename];
+				artifact.root = self.config.dbdir;
+				let absolute = artifact.absolute();
+
+				if (fs.existsSync(absolute) && !artifact.loaded) {
+					let inp = fs.createReadStream(absolute);
+
+					inp.on('close', function() {
+						artifact.loaded = true;
+						resolve(artifact);
+					});
+
+					inp.on('error', (err: Error) => {
+						reject(err.message);
+					});
+
+					inp.on('data', function(chunk: string) {
+						artifact.buf += chunk;
+					});
+
+
+				} else {
+					resolve(artifact);
+				}
+			} else {
+				reject(`Artifact doesn't exist: ${opts.section}|${opts.notebook}|${opts.filename}`);
+			}
+		});
+	}
+
+	/**
 	 * Checks to see if a document is in the repository by name, notebook and
 	 * section.
 	 * @param artifact {Artifact} the document artifact to find
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {boolean} true if the artifact is found, otherwise false
 	 */
-	public hasArtifact(artifact: Artifact, self = this): boolean {
-		artifact.root = self.config.dbdir;
-		return Object.prototype.hasOwnProperty
-			.call(self.schema[artifact.section][artifact.notebook], artifact.filename);
+	public hasArtifact(artifact: IArtifactSearch, self = this): boolean {
+		if (self.hasSection(artifact.section) && self.hasNotebook(artifact.notebook, artifact.section)) {
+			return Object.prototype.hasOwnProperty
+				.call(self.schema[artifact.section][artifact.notebook], artifact.filename);
+		}
+
+		return false;
 	}
 
 	/**
@@ -415,9 +462,9 @@ export class NotesDB extends EventEmitter {
 			} else {
 				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
-		} else {
-			resolve(self);
 		}
+
+		resolve(self);
 	}
 
 	/**
@@ -463,7 +510,8 @@ export class NotesDB extends EventEmitter {
 				]
 			},
 			root: opts.root || '',
-			saveInterval: 5000
+			saveInterval: 5000,
+			bufSize: (64 * 1024)
 		};
 	}
 

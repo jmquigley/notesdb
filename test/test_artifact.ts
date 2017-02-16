@@ -37,6 +37,7 @@ test('Testing artifact with empty creation', (t: any) => {
 	t.true(artifact.loaded);
 	t.truthy(artifact.tags);
 	t.true(artifact.tags instanceof Array);
+	t.is(artifact.absolute(), path.join(fixture.dir, artifact.path()));
 });
 
 test('Testing artifact creation type bitmasking', (t: any) => {
@@ -166,4 +167,17 @@ test('Test bad root on artifact (negative test)', (t: any) => {
 		t.is(err.message, `Invalid root path for artifact: ${root}`);
 		t.pass(err.message);
 	}
+});
+
+test('Test artifact data append', (t: any) => {
+	let artifact = new Artifact();
+
+	t.true(artifact && artifact instanceof Artifact);
+	t.is(artifact.buf, '');
+
+	artifact.buf += 'Foo';
+	t.is(artifact.buf, 'Foo');
+
+	artifact.buf += 'Bar';
+	t.is(artifact.buf, 'FooBar');
 });

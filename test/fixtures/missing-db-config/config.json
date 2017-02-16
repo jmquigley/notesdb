@@ -13,5 +13,6 @@
 			}
 		]
 	},
-	"saveInterval": 5000
+	"saveInterval": 5000,
+	"bufSize": 65535
 }

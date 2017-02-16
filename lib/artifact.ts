@@ -1,6 +1,12 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 
+export interface IArtifactSearch {
+	section: string;
+	notebook: string;
+	filename: string;
+}
+
 export interface IArtifactOpts {
 	root?: string;
 	treeitem?: string;
@@ -110,13 +116,17 @@ export class Artifact {
 	private _type: ArtifactType = ArtifactType.Unk;
 	private _loaded: boolean = false;
 	private _dirty: boolean = false;
-	private _buf: any = [];
+	private _buf: string = '';
 	private _created: string = '';
 	private _updated: string = '';
 	private _tags: string[] = [];
 	private _layout: any = {};
 
 	constructor() {}
+
+	public absolute(): string {
+		return path.join(this.root, this.path());
+	}
 
 	public hasFilename(): boolean {
 		return this.filename !== '';
@@ -162,8 +172,20 @@ export class Artifact {
 	// Properties
 	//
 
+	get buf(): string {
+		return this._buf;
+	}
+
+	set buf(val: string) {
+		this._buf = val;
+	}
+
+	/**
+	 * Takes the current input "buf", converts it to a buffer, and returns it
+	 * @returns {Buffer} a new instance of the input data as a buffer.
+	 */
 	get buffer(): Buffer {
-		return Buffer.from(this._buf);
+		return Buffer.from(this.buf);
 	}
 
 	get created() {
