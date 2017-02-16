@@ -165,6 +165,7 @@ export class NotesDB extends EventEmitter {
 	 * empty, then it is ignored.
 	 * @param artifact {Artifact} the artifact object to create (see above)
 	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object
 	 */
 	public add(artifact: Artifact, self = this) {
 		return new Promise((resolve, reject) => {
@@ -227,6 +228,39 @@ export class NotesDB extends EventEmitter {
 			}
 		});
 	}
+
+	// /**
+	//  * Moves an artifact from it's current directory to the "Trash" folder.  It
+	//  * is not removed until the emptyTrash() method is called.
+	//  * @param opts {IArtifactSearch} the section/notebook/filename to remove
+	//  * for within the schema.
+	//  * @param self {NotesDB} a reference to the notes database instance
+	//  */
+	// public delete(opts: IArtifactSearch, self = this) {
+	// 	// TODO: add delete function
+	// }
+	//
+	// /**
+	//  * Removes the current contents of the 'Trash' folder/section from the
+	//  * current DB.
+	//  * @param self {NotesDB} a reference to the notes database instance
+	//  */
+	// public emptyTrash(self = this) {
+	// 	// TODO: add empty trash fucnction
+	// }
+	//
+	// /**
+	//  * Performs a text search against all artifacts within the repository.
+	//  * This will return a list of all artifacts tha contain the requested
+	//  * string.
+	//  * @param lookup {string} the regex string to used as the search criteria.
+	//  * @param self {NotesDB} a reference to the notes database instance
+	//  * @returns {Array} a list of artifacts that match the search string
+	//  */
+	// public find(lookup: string, self = this): Array<Artifact> {
+	// 	// TODO: add search functionality
+	// 	return [];
+	// }
 
 	/**
 	 * Retrieves an artifact from the schema.  If it exists, then it is returned
@@ -338,8 +372,28 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
+	 * Scans the current repository directory to rebuild the schema.  This
+	 * only needs to be done if a file/artifact is added to the directory
+	 * structure after the instance has been loaded.
+	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object.
+	 */
+	public reload(self = this) {
+		return new Promise((resolve, reject) => {
+			self.initialized = false;
+			try {
+				self.load();
+				resolve(self);
+			} catch(err) {
+				reject(err.message);
+			}
+		});
+	}
+
+	/**
 	 * User requested save function.
 	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object
 	 */
 	public save(self = this) {
 		return new Promise((resolve, reject) => {
@@ -376,11 +430,19 @@ export class NotesDB extends EventEmitter {
 	 * Called when the database is no longer needed.  This will cleanup
 	 * operations and shutdown the intervals.
 	 * @param self
+	 * @returns {Promise} a javascript promise object
 	 */
 	public shutdown(self = this) {
-		self.saveBinder();
-		clearInterval(self._fnSaveInterval);
-		self.initialized = false;
+		return new Promise((resolve, reject) => {
+			try {
+				self.saveBinder();
+				clearInterval(self._fnSaveInterval);
+				self.initialized = false;
+				resolve('The database is shutdown.');
+			} catch (err) {
+				reject(err.message);
+			};
+		});
 	}
 
 	/**
@@ -635,6 +697,8 @@ export class NotesDB extends EventEmitter {
 		self.log.debug(`Saving configuration: ${self.config.configFile}`);
 		let data = JSON.stringify(self.config, null, '\t');
 		fs.writeFileSync(self.config.configFile, data);
+
+		// TODO add code to scan the open list for dirty files to save
 	}
 
 	/**

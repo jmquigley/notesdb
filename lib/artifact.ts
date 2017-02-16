@@ -2,17 +2,14 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 
 export interface IArtifactSearch {
-	section: string;
-	notebook: string;
-	filename: string;
-}
-
-export interface IArtifactOpts {
-	root?: string;
-	treeitem?: string;
 	section?: string;
 	notebook?: string;
 	filename?: string;
+}
+
+export interface IArtifactOpts extends IArtifactSearch{
+	root?: string;
+	treeitem?: string;
 }
 
 export const enum ArtifactType {

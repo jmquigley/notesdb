@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import * as uuid from 'uuid';
-import {Artifact} from '../lib/artifact';
+import {Artifact, IArtifactSearch} from '../lib/artifact';
 import {NotesDB} from '../lib/notesdb';
 import {validateDB} from './helpers';
 
@@ -267,7 +267,7 @@ test('Test trying to save a bad configuration file', async (t: any) => {
 		});
 });
 
-test.cb('Test the timed save facility', (t: any) => {
+test('Test the timed save facility', (t: any) => {
 
 	// This is a really ugly timed save facility test.  It wastes time by
 	// creating N files async.  When the N files are complete it checks a
@@ -301,8 +301,13 @@ test.cb('Test the timed save facility', (t: any) => {
 
 			if (counter++ >= numFiles-1) {
 				t.true(notesDB.timedSave);
-				notesDB.shutdown();
-				t.end();
+				notesDB.shutdown()
+				.then((msg: string ) => {
+					t.is(msg, 'The database is shutdown.');
+				})
+				.catch((err: string) => {
+					t.fail(err);
+				});
 			}
 		});
 	};
@@ -310,4 +315,38 @@ test.cb('Test the timed save facility', (t: any) => {
 	for (let i=0; i<numFiles; i++) {
 		fn();
 	}
+});
+
+test('Test the reload function', async (t: any) => {
+	let fixture = new Fixture('simple-db');
+	let configFile = path.join(fixture.dir, 'config.json');
+	let adb = new NotesDB({
+		configFile: configFile,
+	});
+
+	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	let filename = 'outside.txt';
+	let data = 'Test outside data file';
+	let lookup: IArtifactSearch = {
+		section: 'Default',
+		notebook: 'Default',
+		filename: filename
+	};
+
+	t.true(adb.initialized);
+	t.false(adb.hasArtifact(lookup));
+
+	fs.writeFileSync(path.join(adb.config.dbdir, 'Default', 'Default', filename), data);
+
+	await adb.reload()
+		.then((adb: NotesDB) => {
+			t.true(adb.hasArtifact(lookup));
+			return adb.get(lookup)
+		})
+		.then((artifact: Artifact) => {
+			t.is(artifact.buf, data);
+		})
+		.catch((err: string) => {
+			t.fail(`${t.title}: ${err}`);
+		});
 });
