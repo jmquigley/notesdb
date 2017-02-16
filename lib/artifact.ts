@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as fs from 'fs-extra';
 
 export interface IArtifactOpts {
 	root?: string;
@@ -6,6 +7,13 @@ export interface IArtifactOpts {
 	section?: string;
 	notebook?: string;
 	filename?: string;
+}
+
+export const enum ArtifactType {
+	Unk = 0,  // 0000b - Unknown type
+	S   = 1,  // 0001b - Section only
+	SN  = 3,  // 0011b - Section and notebook
+	SNA = 7,  // 0111b - Section, notebook, and artifact
 }
 
 /**
@@ -30,11 +38,13 @@ export class Artifact {
 	 * the object.
 	 * @returns {Artifact} a newly constructed artifact object.
 	 */
-	public static factory(mode: string = 'empty', opts: IArtifactOpts = {}): Artifact {
+	public static factory(mode?: string, opts: IArtifactOpts = {}): Artifact {
 		let artifact = new Artifact();
 		let a: string[] = [];
 
-		artifact.root = opts.root || process.cwd();
+		if (mode == null) {
+			mode = 'empty';
+		}
 
 		switch (mode) {
 			case 'treeitem':
@@ -42,25 +52,34 @@ export class Artifact {
 					let s: string = opts.treeitem || '';
 					a = s.split(path.sep);
 
-					artifact._section = a[0] || 'Default';
-					artifact._notebook = a[1] || 'Default';
-					artifact._filename = a[2] || '';
+					artifact.section = a[0] || 'Default';
+					artifact.notebook = a[1] || 'Default';
+					artifact.filename = a[2] || '';
+				}
+
+				if (Object.prototype.hasOwnProperty.call(opts, 'root')) {
+					artifact.root = opts.root;
 				}
 				break;
 
 			case 'all':
 				let args: IArtifactOpts = opts || {};
 				if (Object.prototype.hasOwnProperty.call(args, 'section')) {
-					artifact._section = args.section || 'Default';
+					artifact.section = args.section || 'Default';
 				}
 
 				if (Object.prototype.hasOwnProperty.call(args, 'notebook')) {
-					artifact._notebook = args.notebook || 'Default';
+					artifact.notebook = args.notebook || 'Default';
 				}
 
 				if (Object.prototype.hasOwnProperty.call(args, 'filename')) {
-					artifact._filename = args.filename || '';
+					artifact.filename = args.filename || '';
 				}
+
+				if (Object.prototype.hasOwnProperty.call(args, 'root')) {
+					artifact.root = args.root;
+				}
+
 				break;
 
 			case 'empty':
@@ -69,14 +88,26 @@ export class Artifact {
 				break;
 		}
 
+		if (artifact.section !== '') {
+			artifact.type |= 1;  // Set section bit of type
+		}
+
+		if (artifact.notebook !== '') {
+			artifact.type |= 2;  // set notebook bit of type
+		}
+
+		if (artifact.filename !== '') {
+			artifact.type |= 4;  // set filename bit of type
+		}
+
 		return artifact;
 	}
 
-	private _section: string = 'Default';
-	private _notebook: string = 'Default';
+	private _section: string = '';
+	private _notebook: string = '';
 	private _filename: string = '';
 	private _root: string = '';
-	private _type: string = '';
+	private _type: ArtifactType = ArtifactType.Unk;
 	private _loaded: boolean = false;
 	private _dirty: boolean = false;
 	private _buf: any = [];
@@ -107,6 +138,10 @@ export class Artifact {
 		return this._dirty;
 	}
 
+	public isEmtpy(): boolean {
+		return this._section === '' && this._notebook === '' && this._filename === '';
+	}
+
 	public makeClean() {
 		this._dirty = false;
 	}
@@ -135,15 +170,19 @@ export class Artifact {
 		return this._created;
 	}
 
-	get filename() {
+	get filename(): string {
 		return this._filename;
+	}
+
+	set filename(val: string) {
+		this._filename = val;
 	}
 
 	get layout() {
 		return this._layout;
 	}
 
-	get loaded() {
+	get loaded(): boolean {
 		return this._loaded;
 	}
 
@@ -151,8 +190,12 @@ export class Artifact {
 		this._loaded = val;
 	}
 
-	get notebook() {
+	get notebook(): string {
 		return this._notebook;
+	}
+
+	set notebook(val: string) {
+		this._notebook = val;
 	}
 
 	get root() {
@@ -160,19 +203,31 @@ export class Artifact {
 	}
 
 	set root(val) {
-		this._root = val;
+		if (fs.existsSync(val)) {
+			this._root = val;
+		} else {
+			throw new Error(`Invalid root path for artifact: ${val}`);
+		}
 	}
 
-	get section() {
+	get section(): string {
 		return this._section;
+	}
+
+	set section(val: string) {
+		this._section = val;
 	}
 
 	get tags() {
 		return this._tags;
 	}
 
-	get type() {
+	get type(): ArtifactType {
 		return this._type;
+	}
+
+	set type(val: ArtifactType) {
+		this._type = val;
 	}
 
 	get updated() {
