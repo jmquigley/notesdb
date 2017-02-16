@@ -26,13 +26,13 @@
 'use strict';
 
 import {EventEmitter} from 'events';
+import * as fs from 'fs-extra';
+import * as _ from 'lodash';
 import * as log4js from 'log4js';
+import * as objectAssign from 'object-assign';
 import * as path from 'path';
 import {Artifact, ArtifactType} from './artifact';
 
-const _ = require('lodash');
-const fs = require('fs-extra');
-const objectAssign = require('object-assign');
 const walk = require('klaw-sync');
 const home = require('expand-home-dir');
 const util = require('./util');
@@ -128,7 +128,7 @@ export class NotesDB extends EventEmitter {
 
 		if (fs.existsSync(opts.configFile)) {
 			// Opens an existing configuration file
-			self._config = JSON.parse(fs.readFileSync(opts.configFile));
+			self._config = JSON.parse(fs.readFileSync(opts.configFile).toString());
 		} else {
 			// Creates a new database
 			self._config = self.createInitialConfig(opts);

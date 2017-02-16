@@ -13,7 +13,7 @@ export const enum ArtifactType {
 	Unk = 0,  // 0000b - Unknown type
 	S   = 1,  // 0001b - Section only
 	SN  = 3,  // 0011b - Section and notebook
-	SNA = 7,  // 0111b - Section, notebook, and artifact
+	SNA = 7   // 0111b - Section, notebook, and artifact
 }
 
 /**

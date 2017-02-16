@@ -8,8 +8,9 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as uuid from 'uuid';
 import {IAppender, IAppenderList} from './notesdb';
-const uuidV4 = require('uuid/v4');
+
 const pkg = require('../package.json');
 
 /**
@@ -50,8 +51,8 @@ export function getDirectories(src: string): string[] {
  */
 export function getUUID(nodash = false): string {
 	if (nodash) {
-		return uuidV4().replace(/-/g, '');
+		return uuid.v4().replace(/-/g, '');
 	}
 
-	return uuidV4();
+	return uuid.v4();
 }
