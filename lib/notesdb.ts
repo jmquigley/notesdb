@@ -28,7 +28,7 @@
 import {EventEmitter} from 'events';
 import * as log4js from 'log4js';
 import * as path from 'path';
-import {Artifact} from './artifact';
+import {Artifact, ArtifactType} from './artifact';
 
 const _ = require('lodash');
 const fs = require('fs-extra');
@@ -37,7 +37,7 @@ const walk = require('klaw-sync');
 const home = require('expand-home-dir');
 const util = require('./util');
 
-const validNameChars = `-\\.+@_0-9a-zA-Z `; // regex [] pattern
+const validNameChars = `-\\.+@_!$&0-9a-zA-Z `; // regex [] pattern
 
 export interface INotebook {
 	[name: string]: Artifact;
@@ -167,9 +167,23 @@ export class NotesDB extends EventEmitter {
 	 */
 	public add(artifact: Artifact, self = this) {
 		return new Promise((resolve, reject) => {
+			artifact.root = self.config.dbdir;
+
 			try {
-				self.addArtifact(artifact);
-				resolve(self);
+				if (artifact.type === ArtifactType.SNA) {
+					self.createSection(artifact);
+					self.createNotebook(artifact);
+					self.createArtifact(artifact, resolve, reject);
+				} else if (artifact.type === ArtifactType.SN) {
+					self.createSection(artifact);
+					self.createNotebook(artifact);
+					resolve(self);
+				} else if (artifact.type === ArtifactType.S) {
+					self.createSection(artifact);
+					resolve(self);
+				} else {
+					reject('Trying to add invalid artifact to DB');
+				}
 			} catch (err) {
 				reject(err.message);
 			}
@@ -177,7 +191,7 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
-	 * Creates nes sections within a binder.
+	 * Creates new sections within a binder.
 	 * @param schema {Array|string} a list of directories (sections) under this
 	 * binder location.  Each of these directories will be created under this
 	 * binder unless they already exist.
@@ -194,9 +208,17 @@ export class NotesDB extends EventEmitter {
 				schema.push('Default');
 			}
 
+			if (schema.indexOf('Trash') <= -1) {
+				schema.push('Trash');
+			}
+
 			try {
 				schema.forEach((it: string) => {
-					self.createSection(it);
+					let artifact = Artifact.factory('all', {
+						section: it,
+						root: self.config.dbdir
+					});
+					self.createSection(artifact);
 				}, self);
 				resolve(self);
 			} catch (err) {
@@ -213,6 +235,7 @@ export class NotesDB extends EventEmitter {
 	 * @returns {boolean} true if the artifact is found, otherwise false
 	 */
 	public hasArtifact(artifact: Artifact, self = this): boolean {
+		artifact.root = self.config.dbdir;
 		return Object.prototype.hasOwnProperty
 			.call(self.schema[artifact.section][artifact.notebook], artifact.filename);
 	}
@@ -361,52 +384,60 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
-	 * Adds a single artifact item to the schema
+	 * Creates a new artifact (file) within the schema.  This call is an async
+	 * write of the file.  It expects to be called from a promise with the
+	 * proper resolve/reject callbacks.
+	 * @param artifact {Artifact} a structure that holds the details for the file
+	 * that will be created.
+	 * @param resolve {Function} a promise resolve function that can be called
+	 * if this function is successful.
+	 * @param reject {Function} a promise reject function that can be called
+	 * if this function fails.
 	 * @param self {NotesDB} a reference to the NotesDB instance
-	 * @param artifact {Artifact} the object to add to the schema.
 	 * @private
 	 */
-	private addArtifact(artifact: Artifact, self = this) {
-		if (!self.hasSection(artifact.section)) {
-			self.createSection(artifact.section);
-		}
-
-		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact.notebook, artifact.section)) {
-			self.createNotebook(artifact.notebook, artifact.section);
-		}
-
+	private createArtifact(artifact: Artifact, resolve: Function, reject: Function, self = this) {
 		if (artifact.hasSection() && artifact.hasNotebook() && artifact.hasFilename() && !self.hasArtifact(artifact)) {
-			self.createArtifact(artifact);
+			if (self.isValidName(artifact.filename)) {
+				let dst = path.join(self.config.dbdir, artifact.path());
+				if (!fs.existsSync(dst)) {
+					fs.writeFile(dst, artifact.buffer, (err: Error) => {
+						if (err) {
+							reject('Cannot create file: ${dst}');
+						}
+						artifact.loaded = true;
+						self.log.info(`Added artifact: ${artifact.filename}`);
+						resolve(self);
+					});
+				}
+
+				self.schema[artifact.section][artifact.notebook][artifact.filename] = artifact;
+			} else {
+				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
+			}
+		} else {
+			resolve(self);
 		}
 	}
 
 	/**
-	 * Creates a new artifact (file) within the schema.
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * Creates a new artifact (file) within the schema.  This call is a
+	 * synchronous write of the file.
 	 * @param artifact {Artifact} a structure that holds the details for the file
 	 * that will be created.
+	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
-	private createArtifact(artifact: Artifact, self = this) {
-		if (self.isValidName(artifact.filename)) {
-			let dst = path.join(self.config.dbdir, artifact.path());
-			if (!fs.existsSync(dst)) {
-				self.log.debug(`Writing artifact: ${dst}`);
-
-				let out = fs.createWriteStream(dst);
-				let inp = fs.createReadStream(artifact.buffer);
-
-				inp.pipe(out);
-				out.on('close', () => {
-					artifact.loaded = true;
-				});
-				self.log.debug(`Added artifact: ${artifact.filename}`);
+	private addArtifact(artifact: Artifact, self = this) {
+		if (artifact.hasSection() && artifact.hasNotebook() && artifact.hasFilename() && !self.hasArtifact(artifact)) {
+			if (self.isValidName(artifact.filename)) {
+				self.schema[artifact.section][artifact.notebook][artifact.filename] = artifact;
+			} else {
+				throw new Error(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
-
-			self.schema[artifact.section][artifact.notebook][artifact.filename] = artifact;
-		} else {
-			throw new Error(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 		}
+
+		return self;
 	}
 
 	/**
@@ -439,56 +470,63 @@ export class NotesDB extends EventEmitter {
 	/**
 	 * Creates a new notebook within a section.
 	 * @param self {NotesDB} a reference to the NotesDB instance
-	 * @param notebookName {string} the name of the notebook to create
-	 * @param sectionName {string} the name of the section where the notebook
-	 * will be created.
+	 * @param artifact {Artifact} the name of the notebook to create
 	 * @returns {NotesDB} a reference to the changed DB instance
 	 * @private
 	 */
-	private createNotebook(notebookName: string, sectionName: string, self = this) {
-		if (self.isValidName(notebookName)) {
-			let dst = path.join(self.config.dbdir, sectionName, notebookName);
+	private createNotebook(artifact: Artifact, self = this) {
 
-			if (!fs.existsSync(dst)) {
-				self.log.debug(`Creating notebook: ${notebookName} in section ${sectionName}`);
-				fs.mkdirs(dst);
+		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact.notebook, artifact.section)) {
+			if (self.isValidName(artifact.notebook)) {
+				let dst = path.join(self.config.dbdir, artifact.section, artifact.notebook);
+
+				if (!fs.existsSync(dst)) {
+					self.log.debug(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
+					fs.mkdirs(dst);
+				}
+
+				if (!self.hasNotebook(artifact.notebook, artifact.section)) {
+					self.schema[artifact.section][artifact.notebook] = {};
+				}
+
+				return (self);
+			} else { // eslint-disable-line no-else-return
+				throw new Error(`Invalid notebook name '${artifact.notebook}'.  Can only use '${validNameChars}'.`);
 			}
-
-			if (!self.hasNotebook(notebookName, sectionName)) {
-				self.schema[sectionName][notebookName] = {};
-			}
-
-			return (self);
-		} else { // eslint-disable-line no-else-return
-			throw new Error(`Invalid notebook name '${notebookName}'.  Can only use '${validNameChars}'.`);
 		}
+
+		return self;
 	}
 
 	/**
 	 * Creates a new section (directory) within the database.  If the section
 	 * already exists, then the call is ignored.
 	 * @param self {NotesDB} a reference to the NotesDB instance
-	 * @param sectionName {string} the name of the section to create.
+	 * @param artifact {Artifact} the name of the section to create.
 	 * @returns {NotesDB} a reference to the changed DB instance
 	 * @private
 	 */
-	private createSection(sectionName: string, self = this) {
-		if (self.isValidName(sectionName)) {
-			let dst = path.join(self.config.dbdir, sectionName);
+	private createSection(artifact: Artifact, self = this) {
+		if (!self.hasSection(artifact.section)) {
+			if (self.isValidName(artifact.section)) {
+				let dst = path.join(self.config.dbdir, artifact.section);
 
-			if (!fs.existsSync(dst)) {
-				self.log.info(`Creating section: ${sectionName}`);
-				fs.mkdirs(dst);
+				if (!fs.existsSync(dst)) {
+					self.log.info(`Creating section: ${artifact.section}`);
+					fs.mkdirs(dst);
+				}
+
+				if (!self.hasSection(artifact.section)) {
+					self.schema[artifact.section] = {};
+				}
+
+				return self;
+			} else { // eslint-disable-line no-else-return
+				throw new Error(`Invalid section name '${artifact.section}'.  Can only use '${validNameChars}'.`);
 			}
-
-			if (!self.hasSection(sectionName)) {
-				self.schema[sectionName] = {};
-			}
-
-			return self;
-		} else { // eslint-disable-line no-else-return
-			throw new Error(`Invalid section name '${sectionName}'.  Can only use '${validNameChars}'.`);
 		}
+
+		return self;
 	}
 
 	/**
@@ -515,7 +553,7 @@ export class NotesDB extends EventEmitter {
 		if (!self.initialized) {
 			self.validate();
 			self.loadBinder();
-			self.save();
+			self.saveBinder();
 
 			self.log.info(`Loaded database '${self.config.binderName}'.`);
 			self.initialized = true;
@@ -531,7 +569,12 @@ export class NotesDB extends EventEmitter {
 	 */
 	private loadBinder(self = this) {
 		self.tree().forEach((it: string) => {
-			let artifact = Artifact.factory('treeitem', {treeitem: it});
+			let artifact = Artifact.factory('treeitem', {
+				treeitem: it,
+				root: self.config.dbdir
+			});
+			self.createSection(artifact);
+			self.createNotebook(artifact);
 			self.addArtifact(artifact);
 		});
 	}
@@ -579,10 +622,3 @@ export class NotesDB extends EventEmitter {
 		}
 	}
 }
-
-// // // function readSection(section) {
-// // // 	//txtdb[section] = {};
-// // // }
-// // //
-// // // function deleteSection(section) {}
-// // //
