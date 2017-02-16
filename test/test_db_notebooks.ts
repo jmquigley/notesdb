@@ -1,6 +1,6 @@
 'use strict';
 
-import {CallbackTestContext, test, TestContext} from 'ava';
+import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Artifact} from '../lib/artifact';
@@ -9,7 +9,7 @@ import {NotesDB} from '../lib/notesdb';
 import {validateDB} from './helpers';
 // import {validateDB} from './helpers';
 
-test.after.always((t: TestContext) => {
+test.after.always((t: any) => {
 	console.log('final cleanup: test_db_notebooks');
 	let directories = Fixture.cleanup();
 	directories.forEach((directory: string) => {
@@ -17,7 +17,7 @@ test.after.always((t: TestContext) => {
 	});
 });
 
-test.cb('Get the list of notebooks from a database', (t: CallbackTestContext) => {
+test.cb('Get the list of notebooks from a database', (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
@@ -37,7 +37,7 @@ test.cb('Get the list of notebooks from a database', (t: CallbackTestContext) =>
 	t.end();
 });
 
-test.cb('Try to get a notebook from an uninitialized database', (t: CallbackTestContext) => {
+test.cb('Try to get a notebook from an uninitialized database', (t: any) => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
@@ -57,7 +57,7 @@ test.cb('Try to get a notebook from an uninitialized database', (t: CallbackTest
 	t.end();
 });
 
-test.cb('Try to get a notebook from a section that does not exist', (t: CallbackTestContext) => {
+test.cb('Try to get a notebook from a section that does not exist', (t: any) => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
@@ -76,7 +76,7 @@ test.cb('Try to get a notebook from a section that does not exist', (t: Callback
 	t.end();
 });
 
-test('Create a notebook within an existing database', async (t: TestContext) => {
+test('Create a notebook within an existing database', async (t: any) => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -123,7 +123,7 @@ test('Create a notebook within an existing database', async (t: TestContext) => 
 		});
 });
 
-test('Try to create a notebook that already exists', async (t: TestContext) => {
+test('Try to create a notebook that already exists', async (t: any) => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -146,7 +146,7 @@ test('Try to create a notebook that already exists', async (t: TestContext) => {
 		});
 });
 
-test('Trying to create notebook with a bad name', async (t: TestContext) => {
+test('Trying to create notebook with a bad name', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -165,7 +165,7 @@ test('Trying to create notebook with a bad name', async (t: TestContext) => {
 			t.fail(adb.toString());
 		})
 		.catch(err => {
-			t.is(err, `Invalid notebook name '${notebookName}'.  Can only use '-\\.+@_0-9a-zA-Z '.`);
+			t.is(err, `Invalid notebook name '${notebookName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
 			t.pass(err);
 		});
 });

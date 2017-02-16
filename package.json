@@ -33,7 +33,6 @@
     "object-assign": "^4.1.1",
     "randombytes": "^2.0.3",
     "util.fixture": "0.0.27",
-    "util.pkgwrap": "^0.0.6",
     "util.promise": "0.0.4",
     "util.rstrip": "^0.0.7",
     "util.timestamp": "^0.0.13",
@@ -44,6 +43,7 @@
     "ava": "^0.18.1",
     "coveralls": "^2.11.15",
     "nyc": "^10.1.2",
+    "util.pkgwrap": "^0.0.6",
     "tslint": "^4.4.2",
     "typescript": "^2.1.6",
     "xo": "^0.17.1"

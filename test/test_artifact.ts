@@ -1,13 +1,13 @@
 'use strict';
 
-import {test, TestContext} from 'ava';
+import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact} from '../lib/artifact';
+import {Artifact, ArtifactType} from '../lib/artifact';
 import {validateArtifact} from './helpers';
 
-test.after.always((t: TestContext) => {
+test.after.always((t: any) => {
 	console.log('final cleanup: test_artifacts');
 	let directories = Fixture.cleanup();
 	directories.forEach((directory: string) => {
@@ -15,22 +15,22 @@ test.after.always((t: TestContext) => {
 	});
 });
 
-test('Testing artifact with empty creation', (t: TestContext) => {
+test('Testing artifact with empty creation', (t: any) => {
 	let fixture = new Fixture();
-	let artifact = Artifact.factory('empty', {
-		root: fixture.dir
-	});
+	let artifact = Artifact.factory();
+	artifact.root = fixture.dir;
 
-	validateArtifact(artifact, 'Default', 'Default', '', t);
+	validateArtifact(artifact, '', '', '', t);
 
-	t.is(artifact.info(), 'Default|Default|');
+	t.is(artifact.info(), '||');
 	t.true(typeof artifact.toString() === 'string');
 	t.true(artifact.buffer instanceof Buffer);
 	t.is(artifact.root, fixture.dir);
-	t.is(artifact.path(), 'Default/Default');
+	t.is(artifact.path(), '.');
 	t.is(artifact.created, '');
 	t.is(artifact.updated, '');
-	t.is(artifact.type, '');
+	t.is(artifact.type, ArtifactType.Unk);
+	t.true(artifact.isEmtpy());
 	t.truthy(artifact.layout);
 	t.false(artifact.loaded);
 	artifact.loaded = true;
@@ -39,7 +39,35 @@ test('Testing artifact with empty creation', (t: TestContext) => {
 	t.true(artifact.tags instanceof Array);
 });
 
-test('Testing artifact with factory all creation', (t: TestContext) => {
+test('Testing artifact creation type bitmasking', (t: any) => {
+	let a7 = Artifact.factory('all', {
+		section: 'section',
+		notebook: 'notebook',
+		filename: 'filename'
+	});
+	validateArtifact(a7, 'section', 'notebook', 'filename', t);
+	t.is(a7.type, ArtifactType.SNA);
+
+	let a3 = Artifact.factory('all', {
+		section: 'section',
+		notebook: 'notebook'
+	});
+	validateArtifact(a3, 'section', 'notebook', '', t);
+	t.is(a3.type, ArtifactType.SN);
+
+	let a1 = Artifact.factory('all', {
+		section: 'section'
+	});
+	validateArtifact(a1, 'section', '', '', t);
+	t.is(a1.type, ArtifactType.S);
+
+	let a0 = Artifact.factory('empty');
+	validateArtifact(a0, '', '', '', t);
+	t.is(a0.type, ArtifactType.Unk);
+	t.true(a0.isEmtpy());
+});
+
+test('Testing artifact with factory all creation', (t: any) => {
 	let fixture = new Fixture();
 	let artifact = Artifact.factory('all', {
 		root: fixture.dir,
@@ -57,7 +85,7 @@ test('Testing artifact with factory all creation', (t: TestContext) => {
 	t.true(artifact.hasFilename());
 });
 
-test('Testing artifact with factory treeitem creation', (t: TestContext) => {
+test('Testing artifact with factory treeitem creation', (t: any) => {
 	let fixture = new Fixture();
 	let artifact = Artifact.factory('treeitem', {
 		treeitem: `section${path.sep}notebook${path.sep}filename`,
@@ -69,7 +97,7 @@ test('Testing artifact with factory treeitem creation', (t: TestContext) => {
 	t.is(artifact.root, fixture.dir);
 });
 
-test('Testing artifact with factory treeitem section only creation', (t: TestContext) => {
+test('Testing artifact with factory treeitem section only creation', (t: any) => {
 	let fixture = new Fixture();
 	let artifact = Artifact.factory('treeitem', {
 		treeitem: 'section',
@@ -81,7 +109,7 @@ test('Testing artifact with factory treeitem section only creation', (t: TestCon
 	t.is(artifact.root, fixture.dir);
 });
 
-test('Testing artifact with factory treeitem section & notebook only creation', (t: TestContext) => {
+test('Testing artifact with factory treeitem section & notebook only creation', (t: any) => {
 	let fixture = new Fixture();
 	let artifact = Artifact.factory('treeitem', {
 		treeitem: `section${path.sep}notebook${path.sep}`,
@@ -91,7 +119,7 @@ test('Testing artifact with factory treeitem section & notebook only creation', 
 	validateArtifact(artifact, 'section', 'notebook', '', t);
 });
 
-test('Testing artifact with factory treeitem too many items on creation', (t: TestContext) => {
+test('Testing artifact with factory treeitem too many items on creation', (t: any) => {
 	let fixture = new Fixture();
 	let artifact = Artifact.factory('treeitem', {
 		treeitem: `section${path.sep}notebook${path.sep}filename${path.sep}blah1${path.sep}blah2`,
@@ -101,13 +129,13 @@ test('Testing artifact with factory treeitem too many items on creation', (t: Te
 	validateArtifact(artifact, 'section', 'notebook', 'filename', t);
 });
 
-test('Test with an unknown mode sent to factory', (t: TestContext) => {
+test('Test with an unknown mode sent to factory', (t: any) => {
 	let artifact = Artifact.factory('blahblahblah');
 
-	validateArtifact(artifact, 'Default', 'Default', '', t);
+	validateArtifact(artifact, '', '', '', t);
 });
 
-test('Testing the dirty flag', (t: TestContext) => {
+test('Testing the dirty flag', (t: any) => {
 	let artifact = Artifact.factory('all', {
 		filename: 'filename',
 		notebook: 'notebook',
@@ -121,10 +149,21 @@ test('Testing the dirty flag', (t: TestContext) => {
 	t.false(artifact.isDirty());
 });
 
-test('Testing has functions', (t: TestContext) => {
+test('Testing has functions', (t: any) => {
 	let artifact = new Artifact();
-
-	t.true(artifact.hasSection());
-	t.true(artifact.hasNotebook());
+	t.false(artifact.hasSection());
+	t.false(artifact.hasNotebook());
 	t.false(artifact.hasFilename());
+});
+
+test('Test bad root on artifact (negative test)', (t: any) => {
+	let artifact = new Artifact();
+	let root = 'aksjdflkasjdflskjdf';
+	try {
+		artifact.root = root;
+		t.fail()
+	} catch (err) {
+		t.is(err.message, `Invalid root path for artifact: ${root}`);
+		t.pass(err.message);
+	}
 });

@@ -1,6 +1,6 @@
 'use strict';
 
-import {CallbackTestContext, test, TestContext} from 'ava';
+import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
@@ -12,7 +12,7 @@ import {validateDB} from './helpers';
 const randomBytes = require('randombytes');
 const pkg = require('../package.json');
 
-test.after.always((t: TestContext) => {
+test.after.always((t: any) => {
 	console.log('final cleanup: test_db_create');
 	let directories = Fixture.cleanup();
 	directories.forEach((directory: string) => {
@@ -20,7 +20,7 @@ test.after.always((t: TestContext) => {
 	});
 });
 
-test.cb('The database toString() function', (t: CallbackTestContext) => {
+test.cb('The database toString() function', (t: any) => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -41,7 +41,7 @@ test.cb('The database toString() function', (t: CallbackTestContext) => {
 	t.end();
 });
 
-test.cb('Create a new database with a custom configuration', (t: CallbackTestContext) => {
+test.cb('Create a new database with a custom configuration', (t: any) => {
 	let fixture = new Fixture();
 	let dir = path.join(fixture.dir, uuid.v4());
 	let configFile = path.join(dir, 'config.json');
@@ -55,7 +55,7 @@ test.cb('Create a new database with a custom configuration', (t: CallbackTestCon
 	t.end();
 });
 
-test('Create an initial binder', async (t: TestContext) => {
+test('Create an initial binder', async (t: any) => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
@@ -73,9 +73,11 @@ test('Create an initial binder', async (t: TestContext) => {
 			let l = [
 				'Default',
 				'Test1',
-				'Test2'
+				'Test2',
+				'Trash'
 			];
 
+			t.is(sections.length, 4);
 			sections.forEach((section: string) => {
 				t.true(l.indexOf(section) > -1);
 			});
@@ -83,11 +85,11 @@ test('Create an initial binder', async (t: TestContext) => {
 			notesDB.shutdown();
 		})
 		.catch((err: string) => {
-			t.fail(`${this.name}: ${err}`);
+			t.fail(`${t.title}: ${err}`);
 		});
 });
 
-test('Create an initial binder with empty schema', async (t: TestContext) => {
+test('Create an initial binder with empty schema', async (t: any) => {
 	let fixture = new Fixture('empty-db');
 
 	let configFile = path.join(fixture.dir, 'config.json');
@@ -102,11 +104,11 @@ test('Create an initial binder with empty schema', async (t: TestContext) => {
 			notesDB.shutdown();
 		})
 		.catch((err: string) => {
-			t.fail(`${this.name}: ${err}`);
+			t.fail(`${t.title}: ${err}`);
 		});
 });
 
-test.cb('Try to create a binder with a bad name (negative test)', (t: CallbackTestContext) => {
+test.cb('Try to create a binder with a bad name (negative test)', (t: any) => {
 	let fixture = new Fixture('tmpdir');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let binderName:string = '////testdb';
@@ -118,13 +120,13 @@ test.cb('Try to create a binder with a bad name (negative test)', (t: CallbackTe
 		});
 		t.fail(adb.toString());
 	} catch (err) {
-		t.is(err.message, `Invalid binder name '${binderName}'.  Can only use '-\\.+@_0-9a-zA-Z '.`);
+		t.is(err.message, `Invalid binder name '${binderName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
 		t.pass(err.message);
 	}
 	t.end();
 });
 
-test('Create a binder with a bad initial section name', async (t: TestContext) => {
+test('Create a binder with a bad initial section name', async (t: any) => {
 	let fixture = new Fixture('empty-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
@@ -139,12 +141,12 @@ test('Create a binder with a bad initial section name', async (t: TestContext) =
 			t.fail(adb.toString());
 		})
 		.catch((err: string) => {
-			t.is(err, `Invalid section name '${binderName}'.  Can only use '-\\.+@_0-9a-zA-Z '.`);
+			t.is(err, `Invalid section name '${binderName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
 			t.pass(err);
 		});
 });
 
-test.cb('Open existing database with defaultConfigFile location', (t: CallbackTestContext) => {
+test.cb('Open existing database with defaultConfigFile location', (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -197,7 +199,7 @@ test.cb('Open existing database with defaultConfigFile location', (t: CallbackTe
 	t.end();
 });
 
-test.cb('Try to load existing database with missing config file', (t: CallbackTestContext) => {
+test.cb('Try to load existing database with missing config file', (t: any) => {
 	let fixture = new Fixture('missing-db-config');
 	let configFile = path.join(fixture.dir, 'config.json');
 
@@ -213,7 +215,7 @@ test.cb('Try to load existing database with missing config file', (t: CallbackTe
 	t.end();
 });
 
-test.cb('Try to load existing database with missing root directory', (t: CallbackTestContext) => {
+test.cb('Try to load existing database with missing root directory', (t: any) => {
 	let fixture = new Fixture('missing-db-root');
 	let configFile = path.join(fixture.dir, 'config.json');
 
@@ -229,7 +231,7 @@ test.cb('Try to load existing database with missing root directory', (t: Callbac
 	t.end();
 });
 
-test.cb('Try to create a database with a missing dbdir in the config', (t: CallbackTestContext) => {
+test.cb('Try to create a database with a missing dbdir in the config', (t: any) => {
 	let fixture = new Fixture('missing-db-dbdir');
 	let configFile = path.join(fixture.dir, 'config.json');
 
@@ -245,7 +247,7 @@ test.cb('Try to create a database with a missing dbdir in the config', (t: Callb
 	t.end();
 });
 
-test('Test trying to save a bad configuration file', async (t: TestContext) => {
+test('Test trying to save a bad configuration file', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -265,7 +267,7 @@ test('Test trying to save a bad configuration file', async (t: TestContext) => {
 		});
 });
 
-test.cb('Test the timed save facility', (t: CallbackTestContext) => {
+test.cb('Test the timed save facility', (t: any) => {
 
 	// This is a really ugly timed save facility test.  It wastes time by
 	// creating N files async.  When the N files are complete it checks a

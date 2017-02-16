@@ -1,6 +1,6 @@
 'use strict';
 
-import {test, TestContext} from 'ava';
+import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
 import * as log4js from 'log4js';
@@ -12,7 +12,7 @@ const uuidV4 = require('uuid/v4');
 const util = require('../lib/util');
 const pkg = require('../package.json');
 
-test.after.always((t: TestContext) => {
+test.after.always((t: any) => {
 	console.log('final cleanup: test_util');
 	let directories = Fixture.cleanup();
 	directories.forEach((directory: string) => {
@@ -20,7 +20,7 @@ test.after.always((t: TestContext) => {
 	});
 });
 
-test('Adding console logger to log4js', (t: TestContext) => {
+test('Adding console logger to log4js', (t: any) => {
 	let logger = _.cloneDeep(log4js);
 	t.truthy(logger);
 
@@ -43,7 +43,7 @@ test('Adding console logger to log4js', (t: TestContext) => {
 	});
 });
 
-test('Directory retrieval process', (t: TestContext) => {
+test('Directory retrieval process', (t: any) => {
 	let fixture = new Fixture('tmpdir');
 	let root: string = path.join(fixture.dir, uuidV4());
 	let dirs: string[] = [];
@@ -59,7 +59,7 @@ test('Directory retrieval process', (t: TestContext) => {
 	});
 });
 
-test('Get UUID with no dashes', (t: TestContext) => {
+test('Get UUID with no dashes', (t: any) => {
 	let uuid = util.getUUID(true);
 
 	t.true(uuid && typeof uuid === 'string');
@@ -67,7 +67,7 @@ test('Get UUID with no dashes', (t: TestContext) => {
 	t.true(uuid.length === 32);
 });
 
-test('Get UUID with dashes', (t: TestContext) => {
+test('Get UUID with dashes', (t: any) => {
 	let uuid = util.getUUID();
 
 	t.true(uuid && typeof uuid === 'string');
