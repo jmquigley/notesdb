@@ -4,7 +4,7 @@
   "author": "jmquigley <jmquigley@outlook.com>",
   "description": "Text file database (WIP)",
   "private": true,
-  "debug": true,
+  "debug": false,
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -33,10 +33,10 @@
     "log4js": "^1.1.0",
     "object-assign": "^4.1.1",
     "randombytes": "^2.0.3",
-    "util.fixture": "0.0.27",
+    "util.fixture": "0.0.28",
     "util.promise": "0.0.4",
     "util.rstrip": "^0.0.7",
-    "util.timestamp": "^0.0.13",
+    "util.timestamp": "^0.0.16",
     "uuid": "^3.0.1",
     "yargs": "^6.6.0"
   },

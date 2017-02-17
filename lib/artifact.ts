@@ -65,7 +65,7 @@ export class Artifact {
 	 * the object.
 	 * @returns {Artifact} a newly constructed artifact object.
 	 */
-	public static factory(mode?: string, opts: IArtifactOpts = {}): Artifact {
+	public static factory(mode?: string, opts?: IArtifactOpts): Artifact {
 		let artifact = new Artifact();
 		let a: string[] = [];
 
@@ -90,7 +90,8 @@ export class Artifact {
 				break;
 
 			case 'all':
-				let args: IArtifactOpts = opts || {};
+				let args: IArtifactOpts = opts;
+
 				if (Object.prototype.hasOwnProperty.call(args, 'section')) {
 					artifact.section = args.section || 'Default';
 				}

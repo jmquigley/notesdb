@@ -16,6 +16,8 @@
  *                 - {artifact N}
  *          {section N}/
  *              ...
+ *          Trash/
+ *              ...
  *
  * The main component is the artifact.  These are the text files.  The others
  * are basic file directory strutures.
@@ -31,6 +33,7 @@ import * as _ from 'lodash';
 import * as log4js from 'log4js';
 import * as objectAssign from 'object-assign';
 import * as path from 'path';
+import {timestamp} from 'util.timestamp';
 import {Artifact, ArtifactType, IArtifactSearch} from './artifact';
 
 const walk = require('klaw-sync');
@@ -38,17 +41,19 @@ const home = require('expand-home-dir');
 const util = require('./util');
 
 const validNameChars = `-\\.+@_!$&0-9a-zA-Z `; // regex [] pattern
+let defIgnoreList = ['.DS_Store', '.placeholder', 'Trash'];
 
 export interface INotebook {
-	[name: string]: Artifact;
+	[key: string]: Artifact;
 }
 
 export interface ISection {
-	[name: string]: INotebook;
+	[key: string]: INotebook;
 }
 
 export interface ISchema {
-	[name: string]: ISection;
+	notes: {[key: string]: ISection};
+	trash: {[key: string]: ISection};
 }
 
 export interface INotesDBOpts {
@@ -75,11 +80,22 @@ export interface IConfigDB {
 	configFile: string;
 	configRoot: string;
 	dbdir: string;
+	trash: string;
 	log4js: IAppenderList;
 	root: string;
 	saveInterval: number;
 	bufSize: number;
 }
+
+export interface INamespace {
+	notes: string;
+	trash: string;
+}
+
+export const NS: INamespace = {
+	notes: 'notes',
+	trash: 'trash'
+};
 
 /** Creates an instance of the text database class */
 export class NotesDB extends EventEmitter {
@@ -90,7 +106,10 @@ export class NotesDB extends EventEmitter {
 	private _initialized: boolean = false;
 	private _reID: RegExp = new RegExp(`^[${validNameChars}]+$`);
 	private _fnSaveInterval: any;
-	private _schema: ISchema = {};
+	private _schema: ISchema = {
+		notes: {},
+		trash: {},
+	};
 	private _timedSave: boolean = false;
 
 	/**
@@ -114,7 +133,6 @@ export class NotesDB extends EventEmitter {
 		super();
 
 		let self = this;
-		const defIgnoreList = ['.DS_Store', '.placeholder', 'Trash'];
 
 		opts = objectAssign({
 			binderName: 'adb',
@@ -146,13 +164,18 @@ export class NotesDB extends EventEmitter {
 			if (!fs.existsSync(self.config.dbdir)) {
 				fs.mkdirsSync(self.config.dbdir);
 			}
+
+			if (!fs.existsSync(self.config.trash)) {
+				fs.mkdirsSync(self.config.trash);
+			}
 		}
 
 		util.addConsole(self.config.log4js);
 		log4js.configure(self.config.log4js);
 		self.log = log4js.getLogger('notesdb');
 
-		self.load();
+		self.load('notes');
+		self.load('trash');
 		self._fnSaveInterval = setInterval(() => {
 			self.saveBinder();
 			self._timedSave = true;
@@ -164,24 +187,26 @@ export class NotesDB extends EventEmitter {
 	 * to create each section, notebook, and document given.  If the item is
 	 * empty, then it is ignored.
 	 * @param artifact {Artifact} the artifact object to create (see above)
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public add(artifact: Artifact, self = this) {
+	public add(artifact: Artifact, area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
 			artifact.root = self.config.dbdir;
 
 			try {
 				if (artifact.type === ArtifactType.SNA) {
-					self.createSection(artifact);
-					self.createNotebook(artifact);
-					self.createArtifact(artifact, resolve, reject);
+					self.createSection(artifact, area);
+					self.createNotebook(artifact, area);
+					self.createArtifact(artifact, resolve, reject, area);
 				} else if (artifact.type === ArtifactType.SN) {
-					self.createSection(artifact);
-					self.createNotebook(artifact);
+					self.createSection(artifact, area);
+					self.createNotebook(artifact, area);
 					resolve(self);
 				} else if (artifact.type === ArtifactType.S) {
-					self.createSection(artifact);
+					self.createSection(artifact, area);
 					resolve(self);
 				} else {
 					reject('Trying to add invalid artifact to DB');
@@ -197,10 +222,12 @@ export class NotesDB extends EventEmitter {
 	 * @param schema {Array|string} a list of directories (sections) under this
 	 * binder location.  Each of these directories will be created under this
 	 * binder unless they already exist.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public create(schema: string[] | string, self = this) {
+	public create(schema: string[] | string, area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
 			if (typeof schema === 'string') {
 				schema = [schema];
@@ -220,7 +247,7 @@ export class NotesDB extends EventEmitter {
 						section: it,
 						root: self.config.dbdir
 					});
-					self.createSection(artifact);
+					self.createSection(artifact, area);
 				}, self);
 				resolve(self);
 			} catch (err) {
@@ -262,15 +289,17 @@ export class NotesDB extends EventEmitter {
 	 *
 	 * @param opts {IArtifactSearch} the section/notebook/filename to search
 	 * for within the schema.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
-	public get(opts: IArtifactSearch, self = this) {
+	public get(opts: IArtifactSearch, area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
 			let type: ArtifactType = Artifact.isType(opts);
 
 			if (type === ArtifactType.SNA && self.hasArtifact(opts)) {
-				let artifact = self._schema[opts.section][opts.notebook][opts.filename];
+				let artifact = self._schema[area][opts.section][opts.notebook][opts.filename];
 				let absolute = artifact.absolute();
 
 				if (fs.existsSync(absolute) && !artifact.loaded) {
@@ -291,8 +320,8 @@ export class NotesDB extends EventEmitter {
 				} else {
 					resolve(artifact);
 				}
-			} else if ((type === ArtifactType.SN && self.hasNotebook(opts)) ||
-				       (type === ArtifactType.S && self.hasSection(opts))) {
+			} else if ((type === ArtifactType.SN && self.hasNotebook(opts, area)) ||
+				(type === ArtifactType.S && self.hasSection(opts, area))) {
 				let artifact = Artifact.factory('all', opts);
 				artifact.root = self.config.dbdir;
 				resolve(artifact);
@@ -307,13 +336,15 @@ export class NotesDB extends EventEmitter {
 	 * section.
 	 * @param search {IArtifactSearch} an object that represents the item to
 	 * find in the schema.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {boolean} true if the artifact is found, otherwise false
 	 */
-	public hasArtifact(search: IArtifactSearch, self = this): boolean {
-		if (self.hasSection(search) && self.hasNotebook(search)) {
+	public hasArtifact(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
+		if (self.hasSection(search, area) && self.hasNotebook(search, area)) {
 			return Object.prototype.hasOwnProperty
-				.call(self.schema[search.section][search.notebook], search.filename);
+				.call(self.schema[area][search.section][search.notebook], search.filename);
 		}
 
 		return false;
@@ -323,23 +354,27 @@ export class NotesDB extends EventEmitter {
 	 * Checks the given section for the existence of a notebook by name.
 	 * @param search {IArtifactSearch} an object that represents the item to
 	 * find in the schema.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {boolean} true if the notebook is found, otherwise false
 	 */
-	public hasNotebook(search: IArtifactSearch, self = this): boolean {
+	public hasNotebook(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
 		return Object.prototype.hasOwnProperty
-			.call(self.schema[search.section], search.notebook);
+			.call(self.schema[area][search.section], search.notebook);
 	}
 
 	/**
 	 * Checks the current schema for the existence of a section.
 	 * @param search {IArtifactSearch} an object that represents the item to
 	 * find in the schema.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @return {boolean} true if the section is found, otherwise false.
 	 */
-	public hasSection(search: IArtifactSearch, self = this): boolean {
-		return Object.prototype.hasOwnProperty.call(self.schema, search.section);
+	public hasSection(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
+		return Object.prototype.hasOwnProperty.call(self.schema[area], search.section);
 	}
 
 	/**
@@ -347,17 +382,19 @@ export class NotesDB extends EventEmitter {
 	 * returns {Array} a list of the notebooks for a section
 	 * @param sectionName {string} the name of the section where the notebooks
 	 * are located.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 */
-	public notebooks(sectionName: string, self = this): string[] {
+	public notebooks(sectionName: string, area: string = NS.notes, self = this): string[] {
 		let notebooks: string[] = [];
 
 		if (!self.initialized) {
 			throw new Error('Trying to retrieve notebooks from an unitialized database.');
 		}
 
-		if (self.hasSection({section: sectionName})) {
-			_.forOwn(self.schema[sectionName], (value: any, key: string) => {
+		if (self.hasSection({section: sectionName}, area)) {
+			_.forOwn(self.schema[area][sectionName], (value: any, key: string) => {
 				value.toString();
 				notebooks.push(key);
 			});
@@ -372,16 +409,18 @@ export class NotesDB extends EventEmitter {
 	 * Scans the current repository directory to rebuild the schema.  This
 	 * only needs to be done if a file/artifact is added to the directory
 	 * structure after the instance has been loaded.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
-	public reload(self = this) {
+	public reload(area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
 			self.initialized = false;
 			try {
-				self.load();
+				self.load(area);
 				resolve(self);
-			} catch(err) {
+			} catch (err) {
 				reject(err.message);
 			}
 		});
@@ -392,14 +431,19 @@ export class NotesDB extends EventEmitter {
 	 * is not removed until the emptyTrash() method is called.
 	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
 	 * for within the schema.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 */
-	public remove(opts: IArtifactSearch, self = this) {
+	public remove(opts: IArtifactSearch, area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
 			self.get(opts)
 				.then((artifact: Artifact) => {
-					let src = path.join(self.config.dbdir, artifact.path());
-					let dst = path.join(self.config.dbdir, 'Trash', artifact.path());
+					let src: string = path.join(self.config.dbdir, artifact.path());
+					let dst: string = path.join(self.config.dbdir, 'Trash', artifact.path());
+					if (fs.existsSync(dst)) {
+						dst = path.join(self.config.dbdir, 'Trash', self.makeUnique(artifact).path());
+					}
 
 					fs.move(src, dst, (err: Error) => {
 						if (err) {
@@ -408,15 +452,15 @@ export class NotesDB extends EventEmitter {
 
 						switch (artifact.type) {
 							case ArtifactType.SNA:
-								delete self.schema[artifact.section][artifact.notebook][artifact.filename];
+								delete self.schema[area][artifact.section][artifact.notebook][artifact.filename];
 								break;
 
 							case ArtifactType.SN:
-								delete self.schema[artifact.section][artifact.notebook];
+								delete self.schema[area][artifact.section][artifact.notebook];
 								break;
 
 							case ArtifactType.S:
-								delete self.schema[artifact.section];
+								delete self.schema[area][artifact.section];
 								break;
 						}
 
@@ -426,6 +470,45 @@ export class NotesDB extends EventEmitter {
 				.catch((err: string) => {
 					reject(err);
 				});
+		});
+	}
+
+	/**
+	 * Takes an item from the trash and puts it back into the schema.  If the
+	 * item is already in the schema, then it appends a timestamp to the name
+	 * of the item that is being restored.
+	 * @param opts {IArtifactSearch} The section/notebook/filename to restore
+	 * @param self {NotesDB} a reference to the notes database instance
+	 */
+	public restore(opts: IArtifactSearch, self = this) {
+		return new Promise((resolve, reject) => {
+			let artifact: Artifact = Artifact.factory('all', opts);
+			artifact.root = self.config.dbdir;
+
+			let src: string = path.join(self.config.dbdir, 'Trash', artifact.path());
+			if (!fs.existsSync(src)) {
+				reject(`This artifact doesn't exist in Trash and can't be restored: ${artifact.info()}`);
+			}
+
+			let dst: string = path.join(self.config.dbdir, artifact.path());
+			if (fs.existsSync(dst)) {
+				dst = path.join(self.config.dbdir, self.makeUnique(artifact).path());
+			}
+
+			fs.move(src, dst, (err: Error) => {
+				if (err) {
+					reject(err.message);
+				}
+
+				fs.removeSync(src);  // remove item in the trash
+				self.reload()
+					.then((adb: NotesDB) => {
+						resolve(adb);
+					})
+					.catch((err: string) => {
+						reject(err);
+					});
+			});
 		});
 	}
 
@@ -447,17 +530,19 @@ export class NotesDB extends EventEmitter {
 
 	/**
 	 * Enumerates the list of sections from the schema.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Array} a future promise to return the list
 	 */
-	public sections(self = this): string[] {
+	public sections(area: string = NS.notes, self = this): string[] {
 		let sections: string[] = [];
 
 		if (!self.initialized) {
 			throw new Error('Trying to retrieve sections from an unitialized database.');
 		}
 
-		_.forOwn(self.schema, (value: any, key: string) => {
+		_.forOwn(self.schema[area], (value: any, key: string) => {
 			value.toString();
 			sections.push(key);
 		});
@@ -480,7 +565,7 @@ export class NotesDB extends EventEmitter {
 				resolve('The database is shutdown.');
 			} catch (err) {
 				reject(err.message);
-			};
+			}
 		});
 	}
 
@@ -509,6 +594,10 @@ export class NotesDB extends EventEmitter {
 
 	get ignore() {
 		return this._ignore;
+	}
+
+	set ignore(val: string[]) {
+		this._ignore = val;
 	}
 
 	get initialized() {
@@ -541,10 +630,12 @@ export class NotesDB extends EventEmitter {
 	 * if this function is successful.
 	 * @param reject {Function} a promise reject function that can be called
 	 * if this function fails.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
-	private createArtifact(artifact: Artifact, resolve: Function, reject: Function, self = this) {
+	private createArtifact(artifact: Artifact, resolve: Function, reject: Function, area: string = NS.notes, self = this) {
 		if (artifact.hasSection() && artifact.hasNotebook() && artifact.hasFilename() && !self.hasArtifact(artifact)) {
 			if (self.isValidName(artifact.filename)) {
 				let dst = path.join(self.config.dbdir, artifact.path());
@@ -559,7 +650,7 @@ export class NotesDB extends EventEmitter {
 					});
 				}
 
-				self.schema[artifact.section][artifact.notebook][artifact.filename] = artifact;
+				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
 			} else {
 				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
@@ -573,13 +664,15 @@ export class NotesDB extends EventEmitter {
 	 * synchronous write of the file.
 	 * @param artifact {Artifact} a structure that holds the details for the file
 	 * that will be created.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
-	private addArtifact(artifact: Artifact, self = this) {
-		if (artifact.hasSection() && artifact.hasNotebook() && artifact.hasFilename() && !self.hasArtifact(artifact)) {
+	private addArtifact(artifact: Artifact, area: string = NS.notes, self = this) {
+		if (artifact.hasSection() && artifact.hasNotebook() && artifact.hasFilename() && !self.hasArtifact(artifact, area)) {
 			if (self.isValidName(artifact.filename)) {
-				self.schema[artifact.section][artifact.notebook][artifact.filename] = artifact;
+				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
 			} else {
 				throw new Error(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
@@ -601,6 +694,7 @@ export class NotesDB extends EventEmitter {
 			configFile: opts.configFile || '',
 			configRoot: path.dirname(opts.configFile || ''),
 			dbdir: path.join(opts.root || '', opts.binderName || ''),
+			trash: path.join(opts.root || '', opts.binderName || '', 'Trash'),
 			log4js: {
 				appenders: [
 					{
@@ -618,14 +712,16 @@ export class NotesDB extends EventEmitter {
 
 	/**
 	 * Creates a new notebook within a section.
-	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @param artifact {Artifact} the name of the notebook to create
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
+	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @returns {NotesDB} a reference to the changed DB instance
 	 * @private
 	 */
-	private createNotebook(artifact: Artifact, self = this) {
+	private createNotebook(artifact: Artifact, area: string = NS.notes, self = this) {
 
-		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact)) {
+		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact, area)) {
 			if (self.isValidName(artifact.notebook)) {
 				let dst = path.join(self.config.dbdir, artifact.section, artifact.notebook);
 
@@ -634,8 +730,8 @@ export class NotesDB extends EventEmitter {
 					fs.mkdirs(dst);
 				}
 
-				if (!self.hasNotebook(artifact)) {
-					self.schema[artifact.section][artifact.notebook] = {};
+				if (!self.hasNotebook(artifact, area)) {
+					self.schema[area][artifact.section][artifact.notebook] = {};
 				}
 
 				return (self);
@@ -650,13 +746,15 @@ export class NotesDB extends EventEmitter {
 	/**
 	 * Creates a new section (directory) within the database.  If the section
 	 * already exists, then the call is ignored.
-	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @param artifact {Artifact} the name of the section to create.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
+	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @returns {NotesDB} a reference to the changed DB instance
 	 * @private
 	 */
-	private createSection(artifact: Artifact, self = this) {
-		if (!self.hasSection(artifact)) {
+	private createSection(artifact: Artifact, area: string = NS.notes, self = this) {
+		if (!self.hasSection(artifact, area)) {
 			if (self.isValidName(artifact.section)) {
 				let dst = path.join(self.config.dbdir, artifact.section);
 
@@ -665,8 +763,8 @@ export class NotesDB extends EventEmitter {
 					fs.mkdirs(dst);
 				}
 
-				if (!self.hasSection(artifact)) {
-					self.schema[artifact.section] = {};
+				if (!self.hasSection(artifact, area)) {
+					self.schema[area][artifact.section] = {};
 				}
 
 				return self;
@@ -695,41 +793,74 @@ export class NotesDB extends EventEmitter {
 	 * async call that precedes all other calls.  This ensures that it is
 	 * asynchronously loaded before it is used.  Once initialized, it is not
 	 * reloaded.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
-	private load(self = this) {
-		if (!self.initialized) {
-			self.validate();
-			self.loadBinder();
-			self.saveBinder();
+	private load(area: string = NS.notes, self = this) {
+		self.validate();
+		self.loadBinder(area);
+		self.saveBinder();
 
-			self.log.info(`Loaded database '${self.config.binderName}'.`);
-			self.initialized = true;
-		}
+		self.log.info(`Loaded database '${self.config.binderName}'.`);
+		self.initialized = true;
 	}
 
 	/**
 	 * Loads an existing text DB from the file system.  It finds the database by
 	 * reading the configuration stored in self.  If there is no configuration
 	 * information when this is called, then it does nothing.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
-	private loadBinder(self = this) {
-		self.tree().forEach((it: string) => {
+	private loadBinder(area: string = NS.notes, self = this) {
+		let directory = '';
+		if (area === 'trash') {
+			directory = 'Trash';
+			self.ignore = ['.DS_Store', '.placeholder'];
+		} else {
+			self.ignore = defIgnoreList;
+		}
+
+		self.tree(directory).forEach((it: string) => {
 			let artifact = Artifact.factory('treeitem', {
 				treeitem: it,
 				root: self.config.dbdir
 			});
-			self.createSection(artifact);
-			self.createNotebook(artifact);
-			self.addArtifact(artifact);
+			self.createSection(artifact, area);
+			self.createNotebook(artifact, area);
+			self.addArtifact(artifact, area);
 		});
 	}
 
 	/**
+	 * Takes an artifact and appends a timestamp to the last part of its path
+	 * @param artifact {Artifact} the artifact to change
+	 * @returns {Artifact} the modified artifact with a timestamp attached to
+	 * the last element of the path.
+	 * @private
+	 */
+	private makeUnique(artifact: Artifact): Artifact {
+		artifact = _.cloneDeep(artifact);
+
+		let ts: string = `.${timestamp()}`;
+		if (artifact.type === ArtifactType.SNA) {
+			artifact.filename += ts;
+		} else if (artifact.type === ArtifactType.SN) {
+			artifact.notebook += ts;
+		} else if (artifact.type === ArtifactType.S) {
+			artifact.section += ts;
+		}
+
+		return artifact;
+	}
+
+	/**
 	 * Saves the internal state of the binder
+	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
 	private saveBinder(self = this) {
@@ -743,14 +874,18 @@ export class NotesDB extends EventEmitter {
 	/**
 	 * Returns an array that represents a "treeview" of the current notes
 	 * database.  These represent relative paths from the root of the database.
+	 * @param directory {string} the directory where the tree will be retrieved
+	 * It is a relative path from the root of the schema.
+	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @returns {Array} a list of nodes/directories in the database tree.
 	 */
-	private tree(self = this) {
+	private tree(directory: string = '', self = this) {
+		directory = (directory === '') ? self.config.dbdir : path.join(self.config.dbdir, directory);
 		let l: string[] = [];
-		let files = walk(self.config.dbdir, {ignore: self.ignore});
+		let files = walk(directory, {ignore: self.ignore});
 
 		files.forEach((file: any) => {
-			l.push(file.path.replace(`${self.config.dbdir}${path.sep}`, ''));
+			l.push(file.path.replace(`${directory}${path.sep}`, ''));
 		}, self);
 
 		return l;
@@ -758,6 +893,7 @@ export class NotesDB extends EventEmitter {
 
 	/**
 	 * Checks the binder configuration to ensure that it is valid
+	 * @param self {NotesDB} a reference to the NotesDB instance
 	 */
 	private validate(self = this) {
 		if (!fs.existsSync(self.config.configFile)) {

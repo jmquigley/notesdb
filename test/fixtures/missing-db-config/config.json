@@ -4,6 +4,7 @@
 	"dbdir": "{DIR}sampledb",
 	"configFile": "badconfigfile",
 	"configRoot": "{DIR}",
+	"trash": "{DIR}sampledb/Trash",
 	"log4js": {
 		"appenders": [
 			{

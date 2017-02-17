@@ -1,8 +1,10 @@
 {
 	"root": "",
 	"binderName": "",
+	"dbdir": "",
 	"configFile": "{DIR}config.json",
 	"configRoot": "{DIR}",
+	"trash": "",
 	"log4js": {
 		"appenders": [
 			{

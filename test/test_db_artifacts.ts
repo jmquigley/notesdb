@@ -180,7 +180,7 @@ test(`Try to retrieve an artifact that doesn't exist`, async (t: any) => {
 		});
 });
 
-test('Try to remove an artifact from the database', async (t: any) => {
+test('Try to remove an artifact from the database and then restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -196,18 +196,25 @@ test('Try to remove an artifact from the database', async (t: any) => {
 		notebook: 'Default',
 		filename: 'test4.txt'
 	};
+	let filename: string = path.join(adb.config.dbdir, 'Trash', 'Test2', 'Default', 'test4.txt');
 
 	await adb.remove(lookup)
 		.then((adb: NotesDB) => {
 			t.false(adb.hasArtifact(lookup));
-			t.true(fs.existsSync(path.join(adb.config.dbdir, 'Trash', 'Test2', 'Default', 'test4.txt')));
+			t.true(fs.existsSync(filename));
+
+			return adb.restore(lookup);
+		})
+		.then((adb: NotesDB) => {
+			t.true(adb.hasArtifact(lookup));
+			t.false(fs.existsSync(filename));
 		})
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
 });
 
-test('Try to remove a notebook from the binder', async (t: any) => {
+test('Try to remove a notebook from the binder and then restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -222,18 +229,25 @@ test('Try to remove a notebook from the binder', async (t: any) => {
 		section: 'Test2',
 		notebook: 'Default'
 	};
+	let notebookName: string = path.join(adb.config.dbdir, 'Trash', 'Test2', 'Default');
 
 	await adb.remove(lookup)
 		.then((adb: NotesDB) => {
 			t.false(adb.hasNotebook({notebook: 'Default', section: 'Test2'}));
-			t.true(fs.existsSync(path.join(adb.config.dbdir, 'Trash', 'Test2', 'Default')));
+			t.true(fs.existsSync(notebookName));
+
+			return adb.restore(lookup);
+		})
+		.then((adb: NotesDB) => {
+			t.true(adb.hasNotebook({notebook: 'Default', section: 'Test2'}));
+			t.false(fs.existsSync(notebookName));
 		})
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
 });
 
-test('Try to remove a section from the binder', async (t: any) => {
+test('Try to remove a section from the binder and restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
@@ -247,11 +261,18 @@ test('Try to remove a section from the binder', async (t: any) => {
 	let lookup: IArtifactSearch = {
 		section: 'Test2'
 	};
+	let sectionName = path.join(adb.config.dbdir, 'Trash', 'Test2');
 
 	await adb.remove(lookup)
 		.then((adb: NotesDB) => {
 			t.false(adb.hasSection({section: 'Test2'}));
-			t.true(fs.existsSync(path.join(adb.config.dbdir, 'Trash', 'Test2')));
+			t.true(fs.existsSync(sectionName));
+
+			return adb.restore(lookup)
+		})
+		.then((adb: NotesDB) => {
+			t.true(adb.hasSection({section: 'Test2'}));
+			t.false(fs.existsSync(sectionName));
 		})
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);

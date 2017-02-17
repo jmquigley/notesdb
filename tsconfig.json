@@ -9,6 +9,7 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strictNullChecks": false,
+		"suppressImplicitAnyIndexErrors": true,
 		"module": "commonjs",
 		"target": "es6"
 	}

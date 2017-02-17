@@ -293,8 +293,6 @@ test.cb('Test the timed save facility', (t: any) => {
 				t.fail(err.message);
 			}
 
-			console.log(`Done[${counter}]: ${out}`);
-
 			if (counter++ >= numFiles-1) {
 				t.true(notesDB.timedSave);
 				notesDB.shutdown()

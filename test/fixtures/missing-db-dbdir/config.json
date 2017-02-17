@@ -3,6 +3,7 @@
 	"binderName": "sampledb",
 	"configFile": "{DIR}config.json",
 	"configRoot": "{DIR}",
+	"trash": "{DIR}sampledb/Trash",
 	"log4js": {
 		"appenders": [
 			{
