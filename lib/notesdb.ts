@@ -114,7 +114,7 @@ export class NotesDB extends EventEmitter {
 		super();
 
 		let self = this;
-		const defIgnoreList = ['.DS_Store', '.placeholder'];
+		const defIgnoreList = ['.DS_Store', '.placeholder', 'Trash'];
 
 		opts = objectAssign({
 			binderName: 'adb',
@@ -230,17 +230,6 @@ export class NotesDB extends EventEmitter {
 	}
 
 	// /**
-	//  * Moves an artifact from it's current directory to the "Trash" folder.  It
-	//  * is not removed until the emptyTrash() method is called.
-	//  * @param opts {IArtifactSearch} the section/notebook/filename to remove
-	//  * for within the schema.
-	//  * @param self {NotesDB} a reference to the notes database instance
-	//  */
-	// public delete(opts: IArtifactSearch, self = this) {
-	// 	// TODO: add delete function
-	// }
-	//
-	// /**
 	//  * Removes the current contents of the 'Trash' folder/section from the
 	//  * current DB.
 	//  * @param self {NotesDB} a reference to the notes database instance
@@ -267,6 +256,10 @@ export class NotesDB extends EventEmitter {
 	 * by the promise.  If it is not found, then an error will be thrown.  If
 	 * the artifact has never been loaded before, then it is read from the
 	 * filesystem when this request is made.
+	 *
+	 * When the request is a section or notebook a temporary artifact object
+	 * is created and returned.
+	 *
 	 * @param opts {IArtifactSearch} the section/notebook/filename to search
 	 * for within the schema.
 	 * @param self {NotesDB} a reference to the notes database instance
@@ -274,15 +267,16 @@ export class NotesDB extends EventEmitter {
 	 */
 	public get(opts: IArtifactSearch, self = this) {
 		return new Promise((resolve, reject) => {
-			if (this.hasArtifact(opts)) {
+			let type: ArtifactType = Artifact.isType(opts);
+
+			if (type === ArtifactType.SNA && self.hasArtifact(opts)) {
 				let artifact = self._schema[opts.section][opts.notebook][opts.filename];
-				artifact.root = self.config.dbdir;
 				let absolute = artifact.absolute();
 
 				if (fs.existsSync(absolute) && !artifact.loaded) {
 					let inp = fs.createReadStream(absolute);
 
-					inp.on('close', function() {
+					inp.on('close', function () {
 						artifact.loaded = true;
 						resolve(artifact);
 					});
@@ -291,14 +285,17 @@ export class NotesDB extends EventEmitter {
 						reject(err.message);
 					});
 
-					inp.on('data', function(chunk: string) {
+					inp.on('data', function (chunk: string) {
 						artifact.buf += chunk;
 					});
-
-
 				} else {
 					resolve(artifact);
 				}
+			} else if ((type === ArtifactType.SN && self.hasNotebook(opts)) ||
+				       (type === ArtifactType.S && self.hasSection(opts))) {
+				let artifact = Artifact.factory('all', opts);
+				artifact.root = self.config.dbdir;
+				resolve(artifact);
 			} else {
 				reject(`Artifact doesn't exist: ${opts.section}|${opts.notebook}|${opts.filename}`);
 			}
@@ -308,14 +305,15 @@ export class NotesDB extends EventEmitter {
 	/**
 	 * Checks to see if a document is in the repository by name, notebook and
 	 * section.
-	 * @param artifact {Artifact} the document artifact to find
+	 * @param search {IArtifactSearch} an object that represents the item to
+	 * find in the schema.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {boolean} true if the artifact is found, otherwise false
 	 */
-	public hasArtifact(artifact: IArtifactSearch, self = this): boolean {
-		if (self.hasSection(artifact.section) && self.hasNotebook(artifact.notebook, artifact.section)) {
+	public hasArtifact(search: IArtifactSearch, self = this): boolean {
+		if (self.hasSection(search) && self.hasNotebook(search)) {
 			return Object.prototype.hasOwnProperty
-				.call(self.schema[artifact.section][artifact.notebook], artifact.filename);
+				.call(self.schema[search.section][search.notebook], search.filename);
 		}
 
 		return false;
@@ -323,26 +321,25 @@ export class NotesDB extends EventEmitter {
 
 	/**
 	 * Checks the given section for the existence of a notebook by name.
-	 * @param notebookName {string} the name of the notebook in the section
-	 * @param sectionName {string} the name of the section in the schema
+	 * @param search {IArtifactSearch} an object that represents the item to
+	 * find in the schema.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {boolean} true if the notebook is found, otherwise false
 	 */
-	public hasNotebook(notebookName: string, sectionName: string, self = this): boolean {
+	public hasNotebook(search: IArtifactSearch, self = this): boolean {
 		return Object.prototype.hasOwnProperty
-			.call(self.schema[sectionName], notebookName);
+			.call(self.schema[search.section], search.notebook);
 	}
 
 	/**
 	 * Checks the current schema for the existence of a section.
-	 * @param sectionName {string} the name of the section to search for in
-	 * the schema.
+	 * @param search {IArtifactSearch} an object that represents the item to
+	 * find in the schema.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @return {boolean} true if the section is found, otherwise false.
 	 */
-	public hasSection(sectionName: string, self = this): boolean {
-		return Object.prototype.hasOwnProperty
-			.call(self.schema, sectionName);
+	public hasSection(search: IArtifactSearch, self = this): boolean {
+		return Object.prototype.hasOwnProperty.call(self.schema, search.section);
 	}
 
 	/**
@@ -359,7 +356,7 @@ export class NotesDB extends EventEmitter {
 			throw new Error('Trying to retrieve notebooks from an unitialized database.');
 		}
 
-		if (self.hasSection(sectionName)) {
+		if (self.hasSection({section: sectionName})) {
 			_.forOwn(self.schema[sectionName], (value: any, key: string) => {
 				value.toString();
 				notebooks.push(key);
@@ -387,6 +384,48 @@ export class NotesDB extends EventEmitter {
 			} catch(err) {
 				reject(err.message);
 			}
+		});
+	}
+
+	/**
+	 * Moves an artifact from it's current directory to the "Trash" folder.  It
+	 * is not removed until the emptyTrash() method is called.
+	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
+	 * for within the schema.
+	 * @param self {NotesDB} a reference to the notes database instance
+	 */
+	public remove(opts: IArtifactSearch, self = this) {
+		return new Promise((resolve, reject) => {
+			self.get(opts)
+				.then((artifact: Artifact) => {
+					let src = path.join(self.config.dbdir, artifact.path());
+					let dst = path.join(self.config.dbdir, 'Trash', artifact.path());
+
+					fs.move(src, dst, (err: Error) => {
+						if (err) {
+							reject(err.message);
+						}
+
+						switch (artifact.type) {
+							case ArtifactType.SNA:
+								delete self.schema[artifact.section][artifact.notebook][artifact.filename];
+								break;
+
+							case ArtifactType.SN:
+								delete self.schema[artifact.section][artifact.notebook];
+								break;
+
+							case ArtifactType.S:
+								delete self.schema[artifact.section];
+								break;
+						}
+
+						resolve(self)
+					});
+				})
+				.catch((err: string) => {
+					reject(err);
+				});
 		});
 	}
 
@@ -586,7 +625,7 @@ export class NotesDB extends EventEmitter {
 	 */
 	private createNotebook(artifact: Artifact, self = this) {
 
-		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact.notebook, artifact.section)) {
+		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact)) {
 			if (self.isValidName(artifact.notebook)) {
 				let dst = path.join(self.config.dbdir, artifact.section, artifact.notebook);
 
@@ -595,7 +634,7 @@ export class NotesDB extends EventEmitter {
 					fs.mkdirs(dst);
 				}
 
-				if (!self.hasNotebook(artifact.notebook, artifact.section)) {
+				if (!self.hasNotebook(artifact)) {
 					self.schema[artifact.section][artifact.notebook] = {};
 				}
 
@@ -617,7 +656,7 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createSection(artifact: Artifact, self = this) {
-		if (!self.hasSection(artifact.section)) {
+		if (!self.hasSection(artifact)) {
 			if (self.isValidName(artifact.section)) {
 				let dst = path.join(self.config.dbdir, artifact.section);
 
@@ -626,7 +665,7 @@ export class NotesDB extends EventEmitter {
 					fs.mkdirs(dst);
 				}
 
-				if (!self.hasSection(artifact.section)) {
+				if (!self.hasSection(artifact)) {
 					self.schema[artifact.section] = {};
 				}
 

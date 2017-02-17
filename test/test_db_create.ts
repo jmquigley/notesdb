@@ -37,7 +37,6 @@ test.cb('The database toString() function', (t: any) => {
 	if (pkg.debug) {
 		console.log(s);
 	}
-	adb.shutdown();
 	t.end();
 });
 
@@ -51,7 +50,6 @@ test.cb('Create a new database with a custom configuration', (t: any) => {
 	});
 
 	validateDB(adb, configFile, 'adb', dir, adb.initialized, t);
-	adb.shutdown();
 	t.end();
 });
 
@@ -64,10 +62,7 @@ test('Create an initial binder', async (t: any) => {
 
 	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
 
-	await notesDB.create([
-		'Test1',
-		'Test2'
-	])
+	await notesDB.create(['Test1', 'Test2'])
 		.then((adb: NotesDB) => {
 			let sections = adb.sections();
 			let l = [
@@ -82,8 +77,9 @@ test('Create an initial binder', async (t: any) => {
 				t.true(l.indexOf(section) > -1);
 			});
 
-			notesDB.shutdown();
+			return adb;
 		})
+		.then(notesDB.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -100,9 +96,10 @@ test('Create an initial binder with empty schema', async (t: any) => {
 	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
 	await notesDB.create([])
 		.then((adb: NotesDB) => {
-			t.true(adb.hasSection('Default'));
-			notesDB.shutdown();
+			t.true(adb.hasSection({section: 'Default'}));
+			return adb;
 		})
+		.then(notesDB.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -156,15 +153,15 @@ test.cb('Open existing database with defaultConfigFile location', (t: any) => {
 	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
 
 	// Check for sections
-	t.true(adb.hasSection('Default'));
-	t.true(adb.hasSection('Test1'));
-	t.true(adb.hasSection('Test2'));
+	t.true(adb.hasSection({section: 'Default'}));
+	t.true(adb.hasSection({section: 'Test1'}));
+	t.true(adb.hasSection({section: 'Test2'}));
 
 	// Check for notebooks
-	t.true(adb.hasNotebook('Default', 'Default'));
-	t.true(adb.hasNotebook('notebook1', 'Default'));
-	t.true(adb.hasNotebook('Default', 'Test1'));
-	t.true(adb.hasNotebook('Default', 'Test2'));
+	t.true(adb.hasNotebook({notebook: 'Default', section: 'Default'}));
+	t.true(adb.hasNotebook({notebook: 'notebook1', section: 'Default'}));
+	t.true(adb.hasNotebook({notebook: 'Default', section: 'Test1'}));
+	t.true(adb.hasNotebook({notebook: 'Default', section: 'Test2'}));
 
 	// Check for artifacts within notebooks
 	let artifact = Artifact.factory('all', {
@@ -195,7 +192,6 @@ test.cb('Open existing database with defaultConfigFile location', (t: any) => {
 	});
 	t.true(adb.hasArtifact(artifact));
 
-	adb.shutdown();
 	t.end();
 });
 
@@ -267,7 +263,7 @@ test('Test trying to save a bad configuration file', async (t: any) => {
 		});
 });
 
-test('Test the timed save facility', (t: any) => {
+test.cb('Test the timed save facility', (t: any) => {
 
 	// This is a really ugly timed save facility test.  It wastes time by
 	// creating N files async.  When the N files are complete it checks a
@@ -304,6 +300,7 @@ test('Test the timed save facility', (t: any) => {
 				notesDB.shutdown()
 				.then((msg: string ) => {
 					t.is(msg, 'The database is shutdown.');
+					t.end();
 				})
 				.catch((err: string) => {
 					t.fail(err);

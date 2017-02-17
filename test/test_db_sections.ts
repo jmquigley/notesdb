@@ -51,18 +51,17 @@ test('Create a new section within an existing database', async (t: any) => {
 		.then((adb: NotesDB) => {
 			let sections = adb.sections();
 			t.true(sections instanceof Array);
-			t.is(sections.length, 5);
+			t.is(sections.length, 4);
 
 			let l = [
 				'Default',
 				'Test1',
 				'Test2',
-				'Test3',
-				'Trash'
+				'Test3'
 			];
 
 			l.forEach((name: string) => {
-				t.true(adb.hasSection(name));
+				t.true(adb.hasSection({section: name}));
 			});
 
 			t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test3')));

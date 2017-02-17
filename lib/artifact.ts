@@ -26,6 +26,30 @@ export const enum ArtifactType {
 export class Artifact {
 
 	/**
+	 * Takes artifact search information and builds the type id
+	 * @param search {IArtifactSearch} an object that contains the current
+	 * Artifact parameters used to build the type id.
+	 * @returns {ArtifactType} the id associated with this search.
+	 */
+	public static isType(search: IArtifactSearch): ArtifactType {
+		let n: ArtifactType = ArtifactType.Unk;
+
+		if (search.section != null && search.section !== '') {
+			n |= 1;  // Set section bit of type
+		}
+
+		if (search.notebook != null && search.notebook !== '') {
+			n |= 2;  // set notebook bit of type
+		}
+
+		if (search.filename != null && search.filename !== '') {
+			n |= 4;  // set filename bit of type
+		}
+
+		return n;
+	}
+
+	/**
 	 * A factory method for creating different types of artifacts.  The mode
 	 * determines what type of Artifact object will be factory and returned.
 	 * The types include:
@@ -91,17 +115,11 @@ export class Artifact {
 				break;
 		}
 
-		if (artifact.section !== '') {
-			artifact.type |= 1;  // Set section bit of type
-		}
-
-		if (artifact.notebook !== '') {
-			artifact.type |= 2;  // set notebook bit of type
-		}
-
-		if (artifact.filename !== '') {
-			artifact.type |= 4;  // set filename bit of type
-		}
+		artifact.type = Artifact.isType({
+			section: artifact.section,
+			notebook: artifact.notebook,
+			filename: artifact.filename
+		});
 
 		return artifact;
 	}

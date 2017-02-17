@@ -115,7 +115,7 @@ test('Create a notebook within an existing database', async (t: any) => {
 			});
 
 			notebooks.forEach((notebookName: string) => {
-				t.true(adb.hasNotebook(notebookName, sectionName));
+				t.true(adb.hasNotebook({notebook: notebookName, section: sectionName}));
 			});
 		})
 		.catch((err: string) => {
@@ -139,7 +139,7 @@ test('Try to create a notebook that already exists', async (t: any) => {
 		notebook: notebookName
 	}))
 		.then((adb: NotesDB) => {
-			t.true(adb.hasNotebook(notebookName, sectionName));
+			t.true(adb.hasNotebook({notebook: notebookName, section: sectionName}));
 		})
 		.catch((err: string) => {
 			t.fail(`${this.name}: ${err}`);
