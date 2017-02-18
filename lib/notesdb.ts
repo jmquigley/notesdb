@@ -82,6 +82,7 @@ export const NS: INamespace = {
 export class NotesDB extends EventEmitter {
 
 	private log: log4js.Logger;
+	private _artifacts: any = new Map();
 	private _config: IConfigDB;
 	private _ignore: string[] = [];
 	private _initialized: boolean = false;
@@ -276,7 +277,7 @@ export class NotesDB extends EventEmitter {
 					}
 
 					self.schema.trash = {};
-					fs.mkdirs(self.config.trash);
+					fs.mkdirsSync(self.config.trash);
 					resolve(self);
 				})
 			} else {
@@ -363,6 +364,7 @@ export class NotesDB extends EventEmitter {
 	 */
 	public hasArtifact(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
 		if (self.hasSection(search, area) && self.hasNotebook(search, area)) {
+
 			return Object.prototype.hasOwnProperty
 				.call(self.schema[area][search.section][search.notebook], search.filename);
 		}
@@ -380,8 +382,14 @@ export class NotesDB extends EventEmitter {
 	 * @returns {boolean} true if the notebook is found, otherwise false
 	 */
 	public hasNotebook(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
-		return Object.prototype.hasOwnProperty
-			.call(self.schema[area][search.section], search.notebook);
+		if (self.schema.hasOwnProperty(area)) {
+			if (self.schema[area].hasOwnProperty(search.section)) {
+				return Object.prototype.hasOwnProperty
+					.call(self.schema[area][search.section], search.notebook);
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -394,7 +402,11 @@ export class NotesDB extends EventEmitter {
 	 * @return {boolean} true if the section is found, otherwise false.
 	 */
 	public hasSection(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
-		return Object.prototype.hasOwnProperty.call(self.schema[area], search.section);
+		if (self.schema.hasOwnProperty(area)) {
+			return Object.prototype.hasOwnProperty.call(self.schema[area], search.section);
+		}
+
+		return false;
 	}
 
 	/**
@@ -476,6 +488,7 @@ export class NotesDB extends EventEmitter {
 
 						switch (artifact.type) {
 							case ArtifactType.SNA:
+								self._artifacts.delete(artifact.path());
 								delete self.schema[area][artifact.section][artifact.notebook][artifact.filename];
 								break;
 
@@ -684,6 +697,7 @@ export class NotesDB extends EventEmitter {
 				if (area === NS.trash) {
 					dst = path.join(self.config.dbdir, 'Trash', artifact.path());
 				}
+
 				if (!fs.existsSync(dst)) {
 					fs.writeFile(dst, artifact.buffer, (err: Error) => {
 						if (err) {
@@ -696,6 +710,7 @@ export class NotesDB extends EventEmitter {
 				}
 
 				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
+				self._artifacts.set(artifact.path(), artifact);
 			} else {
 				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
@@ -770,7 +785,7 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createNotebook(artifact: Artifact, area: string = NS.notes, self = this) {
-		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact, area)) {
+		if (artifact.hasSection() && artifact.hasNotebook() && self.hasSection(artifact, area) && !self.hasNotebook(artifact, area)) {
 			if (self.isValidName(artifact.notebook)) {
 				let dst = path.join(self.config.dbdir, artifact.section, artifact.notebook);
 				if (area === NS.trash) {
@@ -779,10 +794,10 @@ export class NotesDB extends EventEmitter {
 
 				if (!fs.existsSync(dst)) {
 					self.log.debug(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
-					fs.mkdirs(dst);
+					fs.mkdirsSync(dst);
 				}
 
-				if (!self.hasNotebook(artifact, area)) {
+				if (!self.hasNotebook(artifact, area) && fs.existsSync(dst) && fs.lstatSync(dst).isDirectory()) {
 					self.schema[area][artifact.section][artifact.notebook] = {};
 				}
 
@@ -815,10 +830,10 @@ export class NotesDB extends EventEmitter {
 
 				if (!fs.existsSync(dst)) {
 					self.log.info(`Creating section: ${artifact.section}`);
-					fs.mkdirs(dst);
+					fs.mkdirsSync(dst);
 				}
 
-				if (!self.hasSection(artifact, area)) {
+				if (!self.hasSection(artifact, area) && fs.existsSync(dst) && fs.lstatSync(dst).isDirectory()) {
 					self.schema[area][artifact.section] = {};
 				}
 

@@ -350,3 +350,26 @@ test('Try to add an empty item to an existing database', (t: any) => {
 			t.fail(`${t.title}: ${err}`);
 		});
 });
+
+test('Test has functions for NotesDB', (t: any) => {
+	let fixture = new Fixture('simple-db');
+
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	// Successful tests
+	t.true(adb.hasSection({section: 'Test1'}));
+	t.true(adb.hasNotebook({section: 'Test1', notebook: 'Default'}));
+	t.true(adb.hasArtifact({section: 'Test1', notebook: 'Default', filename: 'test3.txt'}));
+
+	// Failure tests
+	t.false(adb.hasSection({section: 'blah'}));
+	t.false(adb.hasNotebook({section: 'Test1', notebook: 'blah'}));
+	t.false(adb.hasNotebook({section: 'blah', notebook: 'blah'}));
+	t.false(adb.hasArtifact({section: 'Test1', notebook: 'Default', filename: 'blah.txt'}));
+	t.false(adb.hasArtifact({section: 'Test1', notebook: 'blah', filename: 'blah.txt'}));
+	t.false(adb.hasArtifact({section: 'blah', notebook: 'blah', filename: 'blah.txt'}));
+});

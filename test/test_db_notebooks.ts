@@ -2,11 +2,11 @@
 
 import {test} from 'ava';
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import {Artifact} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
 import {NotesDB} from '../lib/notesdb';
 import {validateDB} from './helpers';
-// import {validateDB} from './helpers';
 
 test.after.always((t: any) => {
 	console.log('final cleanup: test_db_notebooks');
@@ -14,6 +14,34 @@ test.after.always((t: any) => {
 	directories.forEach((directory: string) => {
 		t.false(fs.existsSync(directory));
 	});
+});
+
+test.cb('Load a database with file in the sections directory', (t: any) => {
+	let fixture = new Fixture('invalid-section');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	// This will show that the file in the section area is ignored
+	t.false(adb.hasSection({section: 'somefile.txt'}));
+	t.true(fs.existsSync(path.join(adb.config.dbdir, 'somefile.txt')));
+	t.end();
+});
+
+test.cb('Load a database with file in the notebooks directory', (t: any) => {
+	let fixture = new Fixture('invalid-notebook');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	// This will show that the file in the notebook area is ignored
+	t.false(adb.hasNotebook({section: 'Default', notebook: 'somefile.txt'}));
+	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Default', 'somefile.txt')));
+	t.end();
 });
 
 test.cb('Get the list of notebooks from a database', (t: any) => {
@@ -72,7 +100,7 @@ test.cb('Try to get a notebook from a section that does not exist', (t: any) => 
 	t.end();
 });
 
-test('Create a notebook within an existing database', async (t: any) => {
+test('Create a notebook within an existing database', async(t: any) => {
 	let fixture = new Fixture('empty-db');
 	let adb = new NotesDB({
 		root: fixture.dir
@@ -93,12 +121,11 @@ test('Create a notebook within an existing database', async (t: any) => {
 		adb.add(Artifact.factory('all', {
 			section: sectionName,
 			notebook: l[1]
-		}))
-	])
+		}))])
 		.then(dbs => {
 			t.true(dbs instanceof Array);
 			t.is(dbs.length, 2);
-			return(dbs[0]);
+			return (dbs[0]);
 		})
 		.then((adb: NotesDB) => {
 			let notebooks: string[] = adb.notebooks(sectionName);
@@ -110,7 +137,10 @@ test('Create a notebook within an existing database', async (t: any) => {
 			});
 
 			notebooks.forEach((notebookName: string) => {
-				t.true(adb.hasNotebook({notebook: notebookName, section: sectionName}));
+				t.true(adb.hasNotebook({
+					notebook: notebookName,
+					section: sectionName
+				}));
 			});
 		})
 		.catch((err: string) => {
@@ -119,7 +149,7 @@ test('Create a notebook within an existing database', async (t: any) => {
 });
 
 test('Try to create a notebook that already exists', async (t: any) => {
-	let fixture = new Fixture('empty-db');
+	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
 		root: fixture.dir
 	});
@@ -128,10 +158,12 @@ test('Try to create a notebook that already exists', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	await adb.add(Artifact.factory('all', {
+	let artifact = Artifact.factory('all', {
 		section: sectionName,
 		notebook: notebookName
-	}))
+	});
+
+	await adb.add(artifact)
 		.then((adb: NotesDB) => {
 			t.true(adb.hasNotebook({notebook: notebookName, section: sectionName}));
 		})
@@ -150,10 +182,12 @@ test('Trying to create notebook with a bad name', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	await adb.add(Artifact.factory('all', {
+	let artifact = Artifact.factory('all', {
 		section: sectionName,
 		notebook: notebookName
-	}))
+	});
+
+	await adb.add(artifact)
 		.then((adb: NotesDB) => {
 			t.fail(adb.toString());
 		})
@@ -161,4 +195,14 @@ test('Trying to create notebook with a bad name', async (t: any) => {
 			t.is(err, `Invalid notebook name '${notebookName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
 			t.pass(err);
 		});
+});
+
+test('Load a database with file in the sections directory', async (t: any) => {
+	let fixture = new Fixture('invalid-notebook');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
 });

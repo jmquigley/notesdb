@@ -1,0 +1,19 @@
+{
+	"root": "{DIR}",
+	"binderName": "sampledb",
+	"dbdir": "{DIR}sampledb",
+	"configFile": "{DIR}config.json",
+	"configRoot": "{DIR}",
+	"trash": "{DIR}sampledb/Trash",
+	"log4js": {
+		"appenders": [
+			{
+				"type": "file",
+				"filename": "{DIR}notesdb.log",
+			    "category": "notesdb"
+			}
+		]
+	},
+	"saveInterval": 5000,
+	"bufSize": 65535
+}
