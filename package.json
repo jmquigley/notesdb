@@ -26,6 +26,7 @@
     "@types/node": "^7.0.5",
     "@types/object-assign": "^4.0.30",
     "@types/uuid": "^2.0.29",
+    "empty-dir": "^0.2.1",
     "expand-home-dir": "0.0.3",
     "fs-extra": "^2.0.0",
     "klaw-sync": "^1.1.2",

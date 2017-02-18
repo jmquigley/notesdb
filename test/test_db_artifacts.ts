@@ -2,11 +2,14 @@
 
 import {test} from 'ava';
 import * as fs from 'fs-extra';
+import * as _ from 'lodash';
 import * as path from 'path';
 import {Artifact, IArtifactSearch} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
 import {NotesDB} from '../lib/notesdb';
 import {validateDB} from './helpers';
+
+const emptyDir = require('empty-dir');
 
 test.after.always((t: any) => {
 	console.log('final cleanup: test_db_artifacts');
@@ -261,7 +264,7 @@ test('Try to remove a section from the binder and restore it', async (t: any) =>
 });
 
 test('Try to restore a deleted item with a duplicate/collision', async (t: any) => {
-	let fixture = new Fixture('duplicate-restore');
+	let fixture = new Fixture('duplicate-trash');
 	let adb = new NotesDB({
 		root: fixture.dir
 	});
@@ -273,7 +276,7 @@ test('Try to restore a deleted item with a duplicate/collision', async (t: any) 
 		notebook: 'Default',
 		filename: 'test4.txt'
 	};
-	let artifactName = path.join(adb.config.dbdir, lookup.section, lookup.notebook, lookup.filename);
+	let artifactName: string = path.join(adb.config.dbdir, lookup.section, lookup.notebook, lookup.filename);
 
 	await adb.restore(lookup)
 		.then((filename: string) => {
@@ -286,5 +289,121 @@ test('Try to restore a deleted item with a duplicate/collision', async (t: any) 
 		})
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
+		});
+});
+
+test('Try to remove an section with duplicate/collision in Trash', async (t: any) => {
+	let fixture = new Fixture('duplicate-trash');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	let lookup: IArtifactSearch = {
+		section: 'Test2'
+	};
+	let artifactName: string = path.join(adb.config.dbdir, 'Trash', lookup.section);
+
+	await adb.remove(lookup)
+		.then((filename: string) => {
+			t.true(filename.startsWith(artifactName));
+		})
+		.catch((err: string) => {
+			t.fail(`${t.title}: ${err}`);
+		});
+});
+
+test('Try to remove an notebook with duplicate/collision in Trash', async (t: any) => {
+	let fixture = new Fixture('duplicate-trash');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	let lookup: IArtifactSearch = {
+		section: 'Test2',
+		notebook: 'Default'
+	};
+	let artifactName: string = path.join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
+
+	await adb.remove(lookup)
+		.then((filename: string) => {
+			t.true(filename.startsWith(artifactName));
+		})
+		.catch((err: string) => {
+			t.fail(`${t.title}: ${err}`);
+		});
+});
+
+test('Test the garbage empty process', async (t: any) => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	await adb.emptyTrash()
+		.then((adb: NotesDB) => {
+			t.true(_.isEmpty(adb.schema.trash));
+			t.true(emptyDir.sync(adb.config.trash));
+
+			return adb.remove({
+				'section': 'Test2'
+			});
+		})
+		.then((filename: string) => {
+			t.true(fs.existsSync(filename));
+			return adb.emptyTrash();
+		})
+		.then((adb: NotesDB) => {
+			t.true(_.isEmpty(adb.schema.trash));
+			t.true(emptyDir.sync(adb.config.trash));
+		})
+		.catch((err: string) => {
+			t.fail(`${t.title}: ${err}`);
+		});
+});
+
+test('Test garbage empty with bad trash directory', async (t: any) => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	adb.config.trash = 'alksjdglaksdjgaaslkdjg';
+
+	await adb.emptyTrash()
+		.then((adb: NotesDB) => {
+			t.fail(adb);
+		})
+		.catch((err: string) => {
+			t.is(err, `Invalid trash directory, no empty: ${adb.config.trash}`);
+			t.pass(err);
+		});
+});
+
+test(`Try to restore artifact that doesn't exists`, async (t: any) => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	let lookup: IArtifactSearch = {
+		section: 'Test2',
+		notebook: 'Default',
+		filename: 'asdfasdgadsgadf'
+	};
+	let info: string = `${lookup.section}|${lookup.notebook}|${lookup.filename}`;
+
+	await adb.restore(lookup)
+		.then((filename: string) => {
+			t.fail(filename);
+		})
+		.catch((err: string) => {
+			t.is(err, `This artifact doesn't exist in Trash and can't be restored: ${info}`);
+			t.pass(err);
 		});
 });

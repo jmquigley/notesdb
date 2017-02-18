@@ -15,6 +15,7 @@ export function validateDB(notesDB: NotesDB, binderName: string , root: string, 
 	t.is(notesDB.config.binderName, binderName);
 	t.is(notesDB.config.root, root);
 	t.is(notesDB.config.dbdir, path.join(root, binderName));
+	t.true(fs.existsSync(notesDB.configFile));
 	t.true(valid);
 	t.true(fs.existsSync(path.join(root, 'notesdb.log')));
 }

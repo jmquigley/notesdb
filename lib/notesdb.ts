@@ -255,15 +255,36 @@ export class NotesDB extends EventEmitter {
 		});
 	}
 
-	// /**
-	//  * Removes the current contents of the 'Trash' folder/section from the
-	//  * current DB.
-	//  * @param self {NotesDB} a reference to the notes database instance
-	//  */
-	// public emptyTrash(self = this) {
-	// 	// TODO: add empty trash fucnction
-	// }
-	//
+	/**
+	 * Removes the current contents of the 'Trash' folder/section from the
+	 * current DB.  It also resets the internal trash namespace to empty.  This
+	 * will check that the directory requested is within the database location
+	 * and has the 'Trash' directory.
+	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object.
+	 */
+	public emptyTrash(self = this) {
+		return new Promise((resolve, reject) => {
+			if (fs.existsSync(self.config.trash) &&
+				self.config.trash.endsWith(`${path.sep}Trash`) &&
+				self.config.trash.startsWith(self.config.dbdir)) {
+				self.log.info('Emptying trash: ${self.config.trash}');
+
+				fs.remove(self.config.trash, (err: Error) => {
+					if (err) {
+						reject(err.message);
+					}
+
+					self.schema.trash = {};
+					fs.mkdirs(self.config.trash);
+					resolve(self);
+				})
+			} else {
+				reject(`Invalid trash directory, no empty: ${self.config.trash}`);
+			}
+		});
+	}
+
 	// /**
 	//  * Performs a text search against all artifacts within the repository.
 	//  * This will return a list of all artifacts tha contain the requested
@@ -500,8 +521,7 @@ export class NotesDB extends EventEmitter {
 
 			let src: string = path.join(self.config.dbdir, 'Trash', artifact.path());
 			if (!fs.existsSync(src)) {
-				reject(`This artifact doesn't exist in Trash and can't be
-				 restored: ${artifact.info()}`);
+				reject(`This artifact doesn't exist in Trash and can't be restored: ${artifact.info()}`);
 			}
 
 			let dst: string = path.join(self.config.dbdir, artifact.path());
@@ -661,6 +681,9 @@ export class NotesDB extends EventEmitter {
 			!self.hasArtifact(artifact)) {
 			if (self.isValidName(artifact.filename)) {
 				let dst = path.join(self.config.dbdir, artifact.path());
+				if (area === NS.trash) {
+					dst = path.join(self.config.dbdir, 'Trash', artifact.path());
+				}
 				if (!fs.existsSync(dst)) {
 					fs.writeFile(dst, artifact.buffer, (err: Error) => {
 						if (err) {
@@ -750,6 +773,9 @@ export class NotesDB extends EventEmitter {
 		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact, area)) {
 			if (self.isValidName(artifact.notebook)) {
 				let dst = path.join(self.config.dbdir, artifact.section, artifact.notebook);
+				if (area === NS.trash) {
+					dst = path.join(self.config.dbdir, 'Trash', artifact.section, artifact.notebook);
+				}
 
 				if (!fs.existsSync(dst)) {
 					self.log.debug(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
@@ -783,6 +809,9 @@ export class NotesDB extends EventEmitter {
 		if (!self.hasSection(artifact, area)) {
 			if (self.isValidName(artifact.section)) {
 				let dst = path.join(self.config.dbdir, artifact.section);
+				if (area === NS.trash) {
+					dst = path.join(self.config.dbdir, 'Trash', artifact.section);
+				}
 
 				if (!fs.existsSync(dst)) {
 					self.log.info(`Creating section: ${artifact.section}`);
@@ -844,7 +873,7 @@ export class NotesDB extends EventEmitter {
 	 */
 	private loadBinder(area: string = NS.notes, self = this) {
 		let directory = '';
-		if (area === 'trash') {
+		if (area === NS.trash) {
 			directory = 'Trash';
 			self.ignore = ['.DS_Store', '.placeholder'];
 		} else {
