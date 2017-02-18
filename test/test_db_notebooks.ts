@@ -2,7 +2,6 @@
 
 import {test} from 'ava';
 import * as fs from 'fs-extra';
-import * as path from 'path';
 import {Artifact} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
 import {NotesDB} from '../lib/notesdb';
@@ -19,12 +18,11 @@ test.after.always((t: any) => {
 
 test.cb('Get the list of notebooks from a database', (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 	let notebooks = notesDB.notebooks('Default');
 	let l = [
 		'Default',
@@ -39,12 +37,11 @@ test.cb('Get the list of notebooks from a database', (t: any) => {
 
 test.cb('Try to get a notebook from an uninitialized database', (t: any) => {
 	let fixture = new Fixture('empty-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 	notesDB.initialized = false;
 
 	try {
@@ -59,12 +56,11 @@ test.cb('Try to get a notebook from an uninitialized database', (t: any) => {
 
 test.cb('Try to get a notebook from a section that does not exist', (t: any) => {
 	let fixture = new Fixture('empty-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 
 	try {
 		let notebooks = notesDB.notebooks('////Test1');
@@ -78,9 +74,8 @@ test.cb('Try to get a notebook from a section that does not exist', (t: any) => 
 
 test('Create a notebook within an existing database', async (t: any) => {
 	let fixture = new Fixture('empty-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 	let sectionName = 'Test1';
 	let l = [
@@ -88,7 +83,7 @@ test('Create a notebook within an existing database', async (t: any) => {
 		'notebook2'
 	];
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	await Promise.all([
 		adb.add(Artifact.factory('all', {
@@ -125,14 +120,13 @@ test('Create a notebook within an existing database', async (t: any) => {
 
 test('Try to create a notebook that already exists', async (t: any) => {
 	let fixture = new Fixture('empty-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 	let sectionName = 'Default';
 	let notebookName = 'notebook1';
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	await adb.add(Artifact.factory('all', {
 		section: sectionName,
@@ -148,14 +142,13 @@ test('Try to create a notebook that already exists', async (t: any) => {
 
 test('Trying to create notebook with a bad name', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 	let sectionName = 'Default';
 	let notebookName = '////notebook1';
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	await adb.add(Artifact.factory('all', {
 		section: sectionName,

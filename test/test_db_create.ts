@@ -22,14 +22,13 @@ test.after.always((t: any) => {
 
 test.cb('The database toString() function', (t: any) => {
 	let fixture = new Fixture('empty-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
+		configRoot: fixture.dir,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let s = adb.toString();
 	t.true(typeof s === 'string');
@@ -43,24 +42,21 @@ test.cb('The database toString() function', (t: any) => {
 test.cb('Create a new database with a custom configuration', (t: any) => {
 	let fixture = new Fixture();
 	let dir = path.join(fixture.dir, uuid.v4());
-	let configFile = path.join(dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile,
 		root: dir
 	});
 
-	validateDB(adb, configFile, 'adb', dir, adb.initialized, t);
+	validateDB(adb, 'adb', dir, adb.initialized, t);
 	t.end();
 });
 
 test('Create an initial binder', async (t: any) => {
 	let fixture = new Fixture('empty-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 
 	await notesDB.create(['Test1', 'Test2'])
 		.then((adb: NotesDB) => {
@@ -87,13 +83,11 @@ test('Create an initial binder', async (t: any) => {
 
 test('Create an initial binder with empty schema', async (t: any) => {
 	let fixture = new Fixture('empty-db');
-
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 	await notesDB.create([])
 		.then((adb: NotesDB) => {
 			t.true(adb.hasSection({section: 'Default'}));
@@ -107,13 +101,12 @@ test('Create an initial binder with empty schema', async (t: any) => {
 
 test.cb('Try to create a binder with a bad name (negative test)', (t: any) => {
 	let fixture = new Fixture('tmpdir');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let binderName:string = '////testdb';
 
 	try {
 		let adb = new NotesDB({
-			configFile: configFile,
-			binderName: binderName
+			binderName: binderName,
+			root: fixture.dir
 		});
 		t.fail(adb.toString());
 	} catch (err) {
@@ -125,13 +118,12 @@ test.cb('Try to create a binder with a bad name (negative test)', (t: any) => {
 
 test('Create a binder with a bad initial section name', async (t: any) => {
 	let fixture = new Fixture('empty-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 	let binderName: string = '////Test1';
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 
 	await notesDB.create(binderName)
 		.then((adb: NotesDB) => {
@@ -145,12 +137,11 @@ test('Create a binder with a bad initial section name', async (t: any) => {
 
 test.cb('Open existing database with defaultConfigFile location', (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	// Check for sections
 	t.true(adb.hasSection({section: 'Default'}));
@@ -197,11 +188,10 @@ test.cb('Open existing database with defaultConfigFile location', (t: any) => {
 
 test.cb('Try to load existing database with missing config file', (t: any) => {
 	let fixture = new Fixture('missing-db-config');
-	let configFile = path.join(fixture.dir, 'config.json');
 
 	try {
 		let adb = new NotesDB({
-			configFile: configFile
+			root: fixture.dir
 		});
 		t.fail(adb.toString());
 	} catch (err) {
@@ -213,11 +203,10 @@ test.cb('Try to load existing database with missing config file', (t: any) => {
 
 test.cb('Try to load existing database with missing root directory', (t: any) => {
 	let fixture = new Fixture('missing-db-root');
-	let configFile = path.join(fixture.dir, 'config.json');
 
 	try {
 		let adb = new NotesDB({
-			configFile: configFile
+			root: fixture.dir
 		});
 		t.fail(adb.toString());
 	} catch (err) {
@@ -229,11 +218,10 @@ test.cb('Try to load existing database with missing root directory', (t: any) =>
 
 test.cb('Try to create a database with a missing dbdir in the config', (t: any) => {
 	let fixture = new Fixture('missing-db-dbdir');
-	let configFile = path.join(fixture.dir, 'config.json');
 
 	try {
 		let adb = new NotesDB({
-			configFile: configFile
+			root: fixture.dir
 		});
 		t.fail(adb.toString());
 	} catch (err) {
@@ -245,13 +233,12 @@ test.cb('Try to create a database with a missing dbdir in the config', (t: any) 
 
 test('Test trying to save a bad configuration file', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
-	adb.config.configFile = '';  // destroy config refernce
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+	adb.config.configFile = '';  // destroy config reference
 
 	await adb.save()
 		.then(adb => {
@@ -275,13 +262,12 @@ test.cb('Test the timed save facility', (t: any) => {
 	// files within the fixture.
 
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile,
+		root: fixture.dir,
 		saveInterval: 100
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 
 	let numFiles = 20;
 	let counter = 0;
@@ -314,12 +300,11 @@ test.cb('Test the timed save facility', (t: any) => {
 
 test('Test the reload function', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile,
+		root: fixture.dir,
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 	let filename = 'outside.txt';
 	let data = 'Test outside data file';
 	let lookup: IArtifactSearch = {

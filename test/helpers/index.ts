@@ -10,9 +10,8 @@ import * as path from 'path';
 import {Artifact} from '../../lib/artifact';
 import {NotesDB} from '../../lib/notesdb';
 
-export function validateDB(notesDB: NotesDB, configFile: string, binderName: string , root: string, valid: boolean, t: TestContext) {  // eslint-disable-line max-params
+export function validateDB(notesDB: NotesDB, binderName: string , root: string, valid: boolean, t: TestContext) {  // eslint-disable-line max-params
 	t.true(notesDB && typeof notesDB !== 'undefined' && notesDB instanceof NotesDB);
-	t.is(notesDB.config.configFile, configFile);
 	t.is(notesDB.config.binderName, binderName);
 	t.is(notesDB.config.root, root);
 	t.is(notesDB.config.dbdir, path.join(root, binderName));

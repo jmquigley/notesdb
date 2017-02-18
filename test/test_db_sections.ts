@@ -18,9 +18,8 @@ test.after.always((t: any) => {
 
 test.cb('Try to get sections from an unitialized database', (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
 	adb.initialized = false;
@@ -37,12 +36,11 @@ test.cb('Try to get sections from an unitialized database', (t: any) => {
 
 test('Create a new section within an existing database', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 
 	let artifact = Artifact.factory('all', {section: 'Test3'});
 	t.true(artifact instanceof Artifact);
@@ -73,12 +71,11 @@ test('Create a new section within an existing database', async (t: any) => {
 
 test('Try to create a section that already exists within a database (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 
 	let artifact = Artifact.factory('all', {
 		section: 'Test1'
@@ -96,12 +93,11 @@ test('Try to create a section that already exists within a database (negative te
 
 test('Try to create an artifact with bad section name (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let notesDB = new NotesDB({
-		configFile: configFile
+		root: fixture.dir
 	});
 
-	validateDB(notesDB, configFile, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 
 	let badSectionName = '////badSectionName';
 	let artifact = Artifact.factory('all', {

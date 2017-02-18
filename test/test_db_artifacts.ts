@@ -18,14 +18,12 @@ test.after.always((t: any) => {
 
 test('Create a new artifact file within the database', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let artifact = Artifact.factory('all', {
 		section: 'Test3',
@@ -49,14 +47,12 @@ test('Create a new artifact file within the database', async (t: any) => {
 
 test('Try to add an artifact with a bad name to the database (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let badFileName = '////badfilename';
 	let artifact = Artifact.factory('all', {
@@ -77,14 +73,12 @@ test('Try to add an artifact with a bad name to the database (negative test)', a
 
 test('Try to add a bad artifact to the database (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let artifact = new Artifact();
 	await adb.add(artifact)
@@ -100,13 +94,11 @@ test('Try to add a bad artifact to the database (negative test)', async (t: any)
 
 test.cb('Try to load a binder with a bad artifact name (negative test)', (t: any) => {
 	let fixture = new Fixture('bad-db-artifact');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let badFileName = '%%%%badfile.txt';
 
 	try {
 		let adb = new NotesDB({
 			binderName: 'sampledb',
-			configFile: configFile,
 			root: fixture.dir
 		});
 		t.fail(adb.toString());
@@ -120,14 +112,12 @@ test.cb('Try to load a binder with a bad artifact name (negative test)', (t: any
 
 test('Get an existing artifact from the schema', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let lookup: IArtifactSearch = {
 		section: 'Default',
@@ -155,14 +145,12 @@ test('Get an existing artifact from the schema', async (t: any) => {
 
 test(`Try to retrieve an artifact that doesn't exist`, async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let lookup: IArtifactSearch = {
 		section: 'Missing',
@@ -182,14 +170,12 @@ test(`Try to retrieve an artifact that doesn't exist`, async (t: any) => {
 
 test('Try to remove an artifact from the database and then restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let lookup: IArtifactSearch = {
 		section: 'Test2',
@@ -216,14 +202,12 @@ test('Try to remove an artifact from the database and then restore it', async (t
 
 test('Try to remove a notebook from the binder and then restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let lookup: IArtifactSearch = {
 		section: 'Test2',
@@ -249,14 +233,12 @@ test('Try to remove a notebook from the binder and then restore it', async (t: a
 
 test('Try to remove a section from the binder and restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let configFile = path.join(fixture.dir, 'config.json');
 	let adb = new NotesDB({
 		binderName: 'sampledb',
-		configFile: configFile,
 		root: fixture.dir
 	});
 
-	validateDB(adb, configFile, 'sampledb', fixture.dir, adb.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let lookup: IArtifactSearch = {
 		section: 'Test2'

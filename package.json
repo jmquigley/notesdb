@@ -14,7 +14,7 @@
     "url": "https://github.com/jmquigley/notesdb/issues"
   },
   "engines": {
-    "node": ">=7.4"
+    "node": ">=7.5"
   },
   "bin": {
     "notesdb": "./cli.js"
@@ -28,12 +28,11 @@
     "@types/uuid": "^2.0.29",
     "expand-home-dir": "0.0.3",
     "fs-extra": "^2.0.0",
-    "klaw-sync": "^1.1.0",
+    "klaw-sync": "^1.1.2",
     "lodash": "^4.17.4",
     "log4js": "^1.1.0",
     "object-assign": "^4.1.1",
     "randombytes": "^2.0.3",
-    "util.fixture": "0.0.28",
     "util.promise": "0.0.4",
     "util.rstrip": "^0.0.7",
     "util.timestamp": "^0.0.16",
@@ -42,45 +41,27 @@
   },
   "devDependencies": {
     "ava": "^0.18.1",
-    "coveralls": "^2.11.15",
+    "coveralls": "^2.11.16",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-cli": "^1.2.2",
+    "gulp-jsdoc3": "^1.0.1",
+    "jsdoc": "^3.4.3",
     "nyc": "^10.1.2",
-    "util.pkgwrap": "^0.0.6",
     "tslint": "^4.4.2",
     "typescript": "^2.1.6",
+    "util.fixture": "0.0.28",
+    "util.pkgwrap": "^0.0.6",
     "xo": "^0.17.1"
   },
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "build": "./node_modules/.bin/pkgwrap --build",
+    "build": "./node_modules/.bin/pkgwrap --build && npm run docs",
+    "coverage": "./node_modules/.bin/pkgwrap --coverage",
+    "docs": "./node_modules/.bin/gulp docs",
     "postinstall": "./node_modules/.bin/pkgwrap --postinstall",
-    "test": "./node_modules/.bin/pkgwrap --testing",
     "report": "./node_modules/.bin/pkgwrap --reporting",
-    "coverage": "./node_modules/.bin/pkgwrap --coverage"
-  },
-  "xo": {
-    "env": {
-      "browser": true,
-      "node": true,
-      "es6": true
-    },
-    "global": [
-      "window",
-      "JSON"
-    ],
-    "rules": {
-      "space-before-function-paren": "off",
-      "unicorn/filename-case": [
-        "error",
-        {
-          "case": "snakeCase"
-        }
-      ],
-      "arrow-parens": [
-        "error",
-        "as-needed"
-      ]
-    }
+    "test": "./node_modules/.bin/pkgwrap --testing"
   },
   "ava": {
     "concurrency": 5

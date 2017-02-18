@@ -1,26 +1,6 @@
 /**
- * This module contains all of the code to create an manipulate the application
- * database (text) structure.  The text database is just a directory structure.
- * The "database" is refered to as a binder.  The binder contains sections.
- * Each of the sections contain notebooks.  Each notebook contains artifacts.
- *
- *     {binder}/
- *         {section}/
- *             {notebook 1}/
- *                 - {artifact 1}
- *                 - {artifact 2}
- *                 - {artifact N}
- *               {notebook 2}/
- *                 - {artifact 1}
- *                 - {artifact 2}
- *                 - {artifact N}
- *          {section N}/
- *              ...
- *          Trash/
- *              ...
- *
- * The main component is the artifact.  These are the text files.  The others
- * are basic file directory strutures.
+ * This module contains all of the code to create and manipulate the application
+ * database (text) structure.
  *
  * @module notesdb
  */
@@ -40,7 +20,9 @@ const walk = require('klaw-sync');
 const home = require('expand-home-dir');
 const util = require('./util');
 
+const defRoot = home(path.join('~/', '.notesdb'));
 const validNameChars = `-\\.+@_!$&0-9a-zA-Z `; // regex [] pattern
+
 let defIgnoreList = ['.DS_Store', '.placeholder', 'Trash'];
 
 export interface INotebook {
@@ -58,7 +40,7 @@ export interface ISchema {
 
 export interface INotesDBOpts {
 	binderName?: string;
-	configFile?: string;
+	configRoot?: string;
 	env?: Object;
 	ignore?: string[];
 	root?: string;
@@ -119,35 +101,49 @@ export class NotesDB extends EventEmitter {
 	 * @extends EventEmitter
 	 * @param [opts] {object} optional parameters
 	 *
-	 *     - defaultConfigFile: an override for the default location of the
-	 *     database configuration.  It is in ~/.notesdb/config.json by default.
-	 *     - saveInterval: determines how often a save check is performed.  It
-	 *     is 1000 ms by default.
-	 *     - env: a copy of the current runtime environment variables.  This
-	 *     allows for the environment to be changed before instantiating the
-	 *     class (for multiple instances).
-	 *     - ignore: the list of file names that this database will ignore
-	 *     when parsing/processing artifacts.
+	 *     - `binderName {string} default='adb'`: The name of the binder when a
+	 *     new database is being created.  This is optional.  When loading an
+	 *     existing database the name of the binder is retrieved as part of the
+	 *     configuration.
+	 *     - `configRoot {string} default='~/.notesdb'`: The name of the
+	 *     configuration directory where the configuration and log files are
+	 *     located.
+	 *     - `env {object}`: a copy of the current runtime environment
+	 *     variables.  This allows for the environment to be changed before
+	 *     instantiating the class (for multiple instances and testing).
+	 *     - `ignore {Array}`: the list of file names that this database will
+	 *     ignore when parsing/processing artifacts.
+	 *     - `root {string} default='~/.notesdb'`: The path location to the
+	 *     database.  This is optional and only needed when creating a new
+	 *     database.
+	 *     - `saveInterval {number} default='5000'`: determines how often a
+	 *     save check is performed.  The schema is scanned and saved very N
+	 *     millis.
 	 */
-	constructor(opts: INotesDBOpts) {
+	constructor(opts?: INotesDBOpts) {
 		super();
 
 		let self = this;
 
 		opts = objectAssign({
 			binderName: 'adb',
-			configFile: home(path.join('~/', '.notesdb', 'config.json')),
+			configRoot: '',
 			env: process.env,
 			ignore: defIgnoreList,
-			root: home(path.join('~/', '.notesdb')),
+			root: defRoot,
 			saveInterval: 5000
 		}, opts);
 
+		if (opts.configRoot === '') {
+			opts.configRoot = opts.root;
+		}
+
+		let configFile = path.join(opts.configRoot, 'config.json');
 		self._ignore = opts.ignore || defIgnoreList;
 
-		if (fs.existsSync(opts.configFile)) {
+		if (fs.existsSync(configFile)) {
 			// Opens an existing configuration file
-			self._config = JSON.parse(fs.readFileSync(opts.configFile).toString());
+			self._config = JSON.parse(fs.readFileSync(configFile).toString());
 		} else {
 			// Creates a new database
 			self._config = self.createInitialConfig(opts);
@@ -464,7 +460,13 @@ export class NotesDB extends EventEmitter {
 								break;
 						}
 
-						resolve(self)
+						self.reload('trash')
+							.then((adb: NotesDB) => {
+								resolve(adb);
+							})
+							.catch((err: string) => {
+								reject(err);
+							});
 					});
 				})
 				.catch((err: string) => {
@@ -487,7 +489,8 @@ export class NotesDB extends EventEmitter {
 
 			let src: string = path.join(self.config.dbdir, 'Trash', artifact.path());
 			if (!fs.existsSync(src)) {
-				reject(`This artifact doesn't exist in Trash and can't be restored: ${artifact.info()}`);
+				reject(`This artifact doesn't exist in Trash and can't be
+				 restored: ${artifact.info()}`);
 			}
 
 			let dst: string = path.join(self.config.dbdir, artifact.path());
@@ -539,7 +542,8 @@ export class NotesDB extends EventEmitter {
 		let sections: string[] = [];
 
 		if (!self.initialized) {
-			throw new Error('Trying to retrieve sections from an unitialized database.');
+			throw new Error('Trying to retrieve sections from an ' +
+				'unitialized database.');
 		}
 
 		_.forOwn(self.schema[area], (value: any, key: string) => {
@@ -592,6 +596,10 @@ export class NotesDB extends EventEmitter {
 		return this._config;
 	}
 
+	get configFile() {
+		return this._config.configFile;
+	}
+
 	get ignore() {
 		return this._ignore;
 	}
@@ -636,7 +644,10 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createArtifact(artifact: Artifact, resolve: Function, reject: Function, area: string = NS.notes, self = this) {
-		if (artifact.hasSection() && artifact.hasNotebook() && artifact.hasFilename() && !self.hasArtifact(artifact)) {
+		if (artifact.hasSection() &&
+			artifact.hasNotebook() &&
+			artifact.hasFilename() &&
+			!self.hasArtifact(artifact)) {
 			if (self.isValidName(artifact.filename)) {
 				let dst = path.join(self.config.dbdir, artifact.path());
 				if (!fs.existsSync(dst)) {
@@ -670,7 +681,10 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private addArtifact(artifact: Artifact, area: string = NS.notes, self = this) {
-		if (artifact.hasSection() && artifact.hasNotebook() && artifact.hasFilename() && !self.hasArtifact(artifact, area)) {
+		if (artifact.hasSection() &&
+			artifact.hasNotebook() &&
+			artifact.hasFilename() &&
+			!self.hasArtifact(artifact, area)) {
 			if (self.isValidName(artifact.filename)) {
 				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
 			} else {
@@ -689,17 +703,19 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createInitialConfig(opts: INotesDBOpts): IConfigDB {
+		let configFile: string = path.join(opts.configRoot || '', 'config.json');
+
 		return {
 			binderName: opts.binderName || '',
-			configFile: opts.configFile || '',
-			configRoot: path.dirname(opts.configFile || ''),
+			configFile: configFile,
+			configRoot: opts.configRoot,
 			dbdir: path.join(opts.root || '', opts.binderName || ''),
 			trash: path.join(opts.root || '', opts.binderName || '', 'Trash'),
 			log4js: {
 				appenders: [
 					{
 						category: 'notesdb',
-						filename: path.join(path.dirname(opts.configFile || ''), 'notesdb.log'),
+						filename: path.join(path.dirname(configFile || ''), 'notesdb.log'),
 						type: 'file'
 					}
 				]
@@ -720,7 +736,6 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createNotebook(artifact: Artifact, area: string = NS.notes, self = this) {
-
 		if (artifact.hasSection() && artifact.hasNotebook() && !self.hasNotebook(artifact, area)) {
 			if (self.isValidName(artifact.notebook)) {
 				let dst = path.join(self.config.dbdir, artifact.section, artifact.notebook);
@@ -803,7 +818,7 @@ export class NotesDB extends EventEmitter {
 		self.loadBinder(area);
 		self.saveBinder();
 
-		self.log.info(`Loaded database '${self.config.binderName}'.`);
+		self.log.debug(`Loaded database '${self.config.binderName}' for ${area}.`);
 		self.initialized = true;
 	}
 
