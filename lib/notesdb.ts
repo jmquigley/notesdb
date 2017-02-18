@@ -2,7 +2,6 @@
  * This module contains all of the code to create and manipulate the application
  * database (text) structure.
  *
- * @module notesdb
  */
 
 'use strict';
@@ -95,30 +94,32 @@ export class NotesDB extends EventEmitter {
 	private _timedSave: boolean = false;
 
 	/**
-	 * Creates the instance of the class and loads or defines the initial
-	 * configuration parameters.
+	 * Creates the instance of the NotesDB class and loads or defines the
+	 * initial configuration parameters.  If the schema already exists, then
+	 * it will be loaded.
+	 *
 	 * @constructor
 	 * @extends EventEmitter
 	 * @param [opts] {object} optional parameters
 	 *
-	 *     - `binderName {string} default='adb'`: The name of the binder when a
-	 *     new database is being created.  This is optional.  When loading an
-	 *     existing database the name of the binder is retrieved as part of the
-	 *     configuration.
-	 *     - `configRoot {string} default='~/.notesdb'`: The name of the
-	 *     configuration directory where the configuration and log files are
-	 *     located.
-	 *     - `env {object}`: a copy of the current runtime environment
-	 *     variables.  This allows for the environment to be changed before
-	 *     instantiating the class (for multiple instances and testing).
-	 *     - `ignore {Array}`: the list of file names that this database will
-	 *     ignore when parsing/processing artifacts.
-	 *     - `root {string} default='~/.notesdb'`: The path location to the
-	 *     database.  This is optional and only needed when creating a new
-	 *     database.
-	 *     - `saveInterval {number} default='5000'`: determines how often a
-	 *     save check is performed.  The schema is scanned and saved very N
-	 *     millis.
+	 * - `binderName {string} default='adb'`: The name of the binder when a
+	 * new database is being created.  This is optional.  When loading an
+	 * existing database the name of the binder is retrieved as part of the
+	 * configuration.
+	 * - `configRoot {string} default='~/.notesdb'`: The name of the
+	 * configuration directory where the configuration and log files are
+	 * located.
+	 * - `env {object}`: a copy of the current runtime environment
+	 * variables.  This allows for the environment to be changed before
+	 * instantiating the class (for multiple instances and testing).
+	 * - `ignore {Array}`: the list of file names that this database will
+	 * ignore when parsing/processing artifacts.
+	 * - `root {string} default='~/.notesdb'`: The path location to the
+	 * database.  This is optional and only needed when creating a new
+	 * database.
+	 * - `saveInterval {number} default='5000'`: determines how often a
+	 * save check is performed.  The schema is scanned and saved very N
+	 * millis.
 	 */
 	constructor(opts?: INotesDBOpts) {
 		super();
@@ -179,7 +180,7 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
-	 * Creates the requested artifact within the database.  This will attempt
+	 * Creates the requested artifact within the schema.  This will attempt
 	 * to create each section, notebook, and document given.  If the item is
 	 * empty, then it is ignored.
 	 * @param artifact {Artifact} the artifact object to create (see above)
@@ -203,6 +204,8 @@ export class NotesDB extends EventEmitter {
 					resolve(self);
 				} else if (artifact.type === ArtifactType.S) {
 					self.createSection(artifact, area);
+					resolve(self);
+				} else if (artifact.type === ArtifactType.Unk) {
 					resolve(self);
 				} else {
 					reject('Trying to add invalid artifact to DB');
@@ -427,9 +430,13 @@ export class NotesDB extends EventEmitter {
 	 * is not removed until the emptyTrash() method is called.
 	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
 	 * for within the schema.
+	 *
+	 * The thenable resolves to the path of the removed artifact.
+	 *
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object.
 	 */
 	public remove(opts: IArtifactSearch, area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
@@ -461,8 +468,8 @@ export class NotesDB extends EventEmitter {
 						}
 
 						self.reload('trash')
-							.then((adb: NotesDB) => {
-								resolve(adb);
+							.then(() => {
+								resolve(dst);
 							})
 							.catch((err: string) => {
 								reject(err);
@@ -479,8 +486,12 @@ export class NotesDB extends EventEmitter {
 	 * Takes an item from the trash and puts it back into the schema.  If the
 	 * item is already in the schema, then it appends a timestamp to the name
 	 * of the item that is being restored.
+	 *
+	 * The thenable resolves to the path of the restored artifact.
+	 *
 	 * @param opts {IArtifactSearch} The section/notebook/filename to restore
 	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object.
 	 */
 	public restore(opts: IArtifactSearch, self = this) {
 		return new Promise((resolve, reject) => {
@@ -505,8 +516,8 @@ export class NotesDB extends EventEmitter {
 
 				fs.removeSync(src);  // remove item in the trash
 				self.reload()
-					.then((adb: NotesDB) => {
-						resolve(adb);
+					.then(() => {
+						resolve(dst);
 					})
 					.catch((err: string) => {
 						reject(err);

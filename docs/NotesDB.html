@@ -33,14 +33,14 @@
 			<li class="dropdown">
 				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="module-notesdb.html">notesdb</a></li><li><a href="module-util.html">util</a></li>
+					<li><a href="module-util.html">util</a></li>
 				</ul>
 			</li>
 			
 			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="Artifact.html">Artifact</a></li><li><a href="module-notesdb-NotesDB.html">notesdb~NotesDB</a></li>
+					<li><a href="Artifact.html">Artifact</a></li><li><a href="NotesDB.html">NotesDB</a></li>
 				</ul>
 			</li>
 			
@@ -78,8 +78,6 @@
 <header>
     
         <h2>
-            <span class="ancestors"><a href="module-notesdb.html">notesdb</a>~</span>
-        
         NotesDB
         </h2>
         
@@ -103,8 +101,9 @@
 
     
     <div class="description">
-        <p>Creates the instance of the class and loads or defines the initial
-configuration parameters.</p>
+        <p>Creates the instance of the NotesDB class and loads or defines the
+initial configuration parameters.  If the schema already exists, then
+it will be loaded.</p>
     </div>
     
 
@@ -169,24 +168,26 @@ configuration parameters.</p>
             
 
             <td class="description last"><p>optional parameters</p>
-<pre class="prettyprint source"><code>- `binderName {string} default='adb'`: The name of the binder when a
+<ul>
+<li><code>binderName {string} default='adb'</code>: The name of the binder when a
 new database is being created.  This is optional.  When loading an
 existing database the name of the binder is retrieved as part of the
-configuration.
-- `configRoot {string} default='~/.notesdb'`: The name of the
+configuration.</li>
+<li><code>configRoot {string} default='~/.notesdb'</code>: The name of the
 configuration directory where the configuration and log files are
-located.
-- `env {object}`: a copy of the current runtime environment
+located.</li>
+<li><code>env {object}</code>: a copy of the current runtime environment
 variables.  This allows for the environment to be changed before
-instantiating the class (for multiple instances and testing).
-- `ignore {Array}`: the list of file names that this database will
-ignore when parsing/processing artifacts.
-- `root {string} default='~/.notesdb'`: The path location to the
+instantiating the class (for multiple instances and testing).</li>
+<li><code>ignore {Array}</code>: the list of file names that this database will
+ignore when parsing/processing artifacts.</li>
+<li><code>root {string} default='~/.notesdb'</code>: The path location to the
 database.  This is optional and only needed when creating a new
-database.
-- `saveInterval {number} default='5000'`: determines how often a
+database.</li>
+<li><code>saveInterval {number} default='5000'</code>: determines how often a
 save check is performed.  The schema is scanned and saved very N
-millis.</code></pre></td>
+millis.</li>
+</ul></td>
         </tr>
 
     
@@ -280,7 +281,7 @@ millis.</code></pre></td>
 
     
     <div class="description">
-        <p>Creates the requested artifact within the database.  This will attempt
+        <p>Creates the requested artifact within the schema.  This will attempt
 to create each section, notebook, and document given.  If the item is
 empty, then it is ignored.</p>
     </div>
@@ -372,7 +373,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -578,7 +579,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -785,7 +786,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -988,7 +989,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -1190,7 +1191,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -1392,7 +1393,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -1595,7 +1596,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -1750,7 +1751,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -1915,7 +1916,8 @@ is not removed until the emptyTrash() method is called.</p>
             
 
             <td class="description last"><p>the section/notebook/filename to remove
-for within the schema.</p></td>
+for within the schema.</p>
+<p>The thenable resolves to the path of the removed artifact.</p></td>
         </tr>
 
     
@@ -1953,7 +1955,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -2024,6 +2026,30 @@ search.  There are two areas: notes &amp; trash.</p></td>
     
 
     
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a javascript promise object.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+
+    </dd>
+</dl>
+
+
+        
 
     
 </dd>
@@ -2043,6 +2069,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
         <p>Takes an item from the trash and puts it back into the schema.  If the
 item is already in the schema, then it appends a timestamp to the name
 of the item that is being restored.</p>
+<p>The thenable resolves to the path of the restored artifact.</p>
     </div>
     
 
@@ -2107,7 +2134,7 @@ of the item that is being restored.</p>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -2178,6 +2205,30 @@ of the item that is being restored.</p>
     
 
     
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a javascript promise object.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+
+    </dd>
+</dl>
+
+
+        
 
     
 </dd>
@@ -2235,7 +2286,7 @@ of the item that is being restored.</p>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -2412,7 +2463,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -2711,7 +2762,7 @@ operations and shutdown the intervals.</p>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -2890,7 +2941,7 @@ It is a relative path from the root of the schema.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -3042,7 +3093,7 @@ It is a relative path from the root of the schema.</p></td>
             <td class="type">
             
                 
-<span class="param-type">NotesDB</span>
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
 
 
 
@@ -3167,7 +3218,7 @@ It is a relative path from the root of the schema.</p></td>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on February 17th 2017, 8:46:44 pm
+		on February 18th 2017, 9:40:16 am
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

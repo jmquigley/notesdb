@@ -19,7 +19,6 @@ test.after.always((t: any) => {
 test('Create a new artifact file within the database', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
-		binderName: 'sampledb',
 		root: fixture.dir
 	});
 
@@ -48,7 +47,6 @@ test('Create a new artifact file within the database', async (t: any) => {
 test('Try to add an artifact with a bad name to the database (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
-		binderName: 'sampledb',
 		root: fixture.dir
 	});
 
@@ -74,13 +72,14 @@ test('Try to add an artifact with a bad name to the database (negative test)', a
 test('Try to add a bad artifact to the database (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
-		binderName: 'sampledb',
 		root: fixture.dir
 	});
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	let artifact = new Artifact();
+	let artifact = Artifact.factory();
+	artifact.type = 99;  // set an invalid type to force failure
+
 	await adb.add(artifact)
 		.then((adb: NotesDB) => {
 			t.fail(adb.toString());
@@ -89,7 +88,6 @@ test('Try to add a bad artifact to the database (negative test)', async (t: any)
 			t.is(err, 'Trying to add invalid artifact to DB');
 			t.pass(err);
 		});
-
 });
 
 test.cb('Try to load a binder with a bad artifact name (negative test)', (t: any) => {
@@ -113,7 +111,6 @@ test.cb('Try to load a binder with a bad artifact name (negative test)', (t: any
 test('Get an existing artifact from the schema', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
-		binderName: 'sampledb',
 		root: fixture.dir
 	});
 
@@ -146,7 +143,6 @@ test('Get an existing artifact from the schema', async (t: any) => {
 test(`Try to retrieve an artifact that doesn't exist`, async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
-		binderName: 'sampledb',
 		root: fixture.dir
 	});
 
@@ -171,7 +167,6 @@ test(`Try to retrieve an artifact that doesn't exist`, async (t: any) => {
 test('Try to remove an artifact from the database and then restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
-		binderName: 'sampledb',
 		root: fixture.dir
 	});
 
@@ -182,18 +177,20 @@ test('Try to remove an artifact from the database and then restore it', async (t
 		notebook: 'Default',
 		filename: 'test4.txt'
 	};
-	let filename: string = path.join(adb.config.dbdir, 'Trash', 'Test2', 'Default', 'test4.txt');
+	let artifactName: string = path.join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook, lookup.filename);
 
 	await adb.remove(lookup)
-		.then((adb: NotesDB) => {
+		.then((filename: string) => {
 			t.false(adb.hasArtifact(lookup));
 			t.true(fs.existsSync(filename));
+			t.is(artifactName, filename);
 
 			return adb.restore(lookup);
 		})
-		.then((adb: NotesDB) => {
+		.then((filename: string) => {
 			t.true(adb.hasArtifact(lookup));
-			t.false(fs.existsSync(filename));
+			t.false(fs.existsSync(artifactName));
+			t.true(fs.existsSync(filename));
 		})
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
@@ -203,7 +200,6 @@ test('Try to remove an artifact from the database and then restore it', async (t
 test('Try to remove a notebook from the binder and then restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
-		binderName: 'sampledb',
 		root: fixture.dir
 	});
 
@@ -213,18 +209,20 @@ test('Try to remove a notebook from the binder and then restore it', async (t: a
 		section: 'Test2',
 		notebook: 'Default'
 	};
-	let notebookName: string = path.join(adb.config.dbdir, 'Trash', 'Test2', 'Default');
+	let notebookName: string = path.join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
 
 	await adb.remove(lookup)
-		.then((adb: NotesDB) => {
-			t.false(adb.hasNotebook({notebook: 'Default', section: 'Test2'}));
-			t.true(fs.existsSync(notebookName));
+		.then((filename: string) => {
+			t.false(adb.hasNotebook({notebook: lookup.notebook, section: lookup.section}));
+			t.true(fs.existsSync(filename));
+			t.is(notebookName, filename);
 
 			return adb.restore(lookup);
 		})
-		.then((adb: NotesDB) => {
-			t.true(adb.hasNotebook({notebook: 'Default', section: 'Test2'}));
+		.then((filename: string) => {
+			t.true(adb.hasNotebook({notebook: lookup.notebook, section: lookup.section}));
 			t.false(fs.existsSync(notebookName));
+			t.true(fs.existsSync(filename));
 		})
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
@@ -234,7 +232,6 @@ test('Try to remove a notebook from the binder and then restore it', async (t: a
 test('Try to remove a section from the binder and restore it', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
-		binderName: 'sampledb',
 		root: fixture.dir
 	});
 
@@ -243,18 +240,49 @@ test('Try to remove a section from the binder and restore it', async (t: any) =>
 	let lookup: IArtifactSearch = {
 		section: 'Test2'
 	};
-	let sectionName = path.join(adb.config.dbdir, 'Trash', 'Test2');
+	let sectionName = path.join(adb.config.dbdir, 'Trash', lookup.section);
 
 	await adb.remove(lookup)
-		.then((adb: NotesDB) => {
-			t.false(adb.hasSection({section: 'Test2'}));
-			t.true(fs.existsSync(sectionName));
+		.then((filename: string) => {
+			t.false(adb.hasSection({section: lookup.section}));
+			t.true(fs.existsSync(filename));
+			t.is(sectionName, filename);
 
 			return adb.restore(lookup)
 		})
-		.then((adb: NotesDB) => {
-			t.true(adb.hasSection({section: 'Test2'}));
+		.then((filename: string) => {
+			t.true(adb.hasSection({section: lookup.section}));
 			t.false(fs.existsSync(sectionName));
+			t.true(fs.existsSync(filename));
+		})
+		.catch((err: string) => {
+			t.fail(`${t.title}: ${err}`);
+		});
+});
+
+test('Try to restore a deleted item with a duplicate/collision', async (t: any) => {
+	let fixture = new Fixture('duplicate-restore');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	let lookup: IArtifactSearch = {
+		section: 'Test2',
+		notebook: 'Default',
+		filename: 'test4.txt'
+	};
+	let artifactName = path.join(adb.config.dbdir, lookup.section, lookup.notebook, lookup.filename);
+
+	await adb.restore(lookup)
+		.then((filename: string) => {
+			t.true(fs.existsSync(filename));
+
+			// This name will have a timestamp, so we can't look for it
+			// directly.  We find a substring of the base name without the
+			// substring.
+			t.true(filename.includes(artifactName));
 		})
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);

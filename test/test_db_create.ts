@@ -305,6 +305,7 @@ test('Test the reload function', async (t: any) => {
 	});
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
 	let filename = 'outside.txt';
 	let data = 'Test outside data file';
 	let lookup: IArtifactSearch = {
@@ -325,6 +326,25 @@ test('Test the reload function', async (t: any) => {
 		})
 		.then((artifact: Artifact) => {
 			t.is(artifact.buf, data);
+		})
+		.catch((err: string) => {
+			t.fail(`${t.title}: ${err}`);
+		});
+});
+
+test('Try to add an empty item to an existing database', (t: any) => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	let before = adb.toString();
+	adb.add(Artifact.factory())
+		.then((adb: NotesDB) => {
+			let after = adb.toString();
+			t.is(before, after);
 		})
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);

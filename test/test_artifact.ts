@@ -151,14 +151,14 @@ test('Testing the dirty flag', (t: any) => {
 });
 
 test('Testing has functions', (t: any) => {
-	let artifact = new Artifact();
+	let artifact = Artifact.factory();
 	t.false(artifact.hasSection());
 	t.false(artifact.hasNotebook());
 	t.false(artifact.hasFilename());
 });
 
 test('Test bad root on artifact (negative test)', (t: any) => {
-	let artifact = new Artifact();
+	let artifact = Artifact.factory();
 	let root = 'aksjdflkasjdflskjdf';
 	try {
 		artifact.root = root;
@@ -170,7 +170,7 @@ test('Test bad root on artifact (negative test)', (t: any) => {
 });
 
 test('Test artifact data append', (t: any) => {
-	let artifact = new Artifact();
+	let artifact = Artifact.factory();
 
 	t.true(artifact && artifact instanceof Artifact);
 	t.is(artifact.buf, '');

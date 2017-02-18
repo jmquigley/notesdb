@@ -138,7 +138,10 @@ export class Artifact {
 	private _tags: string[] = [];
 	private _layout: any = {};
 
-	constructor() {}
+	/**
+	 * The constructor is private.  Objects must be created with the factory
+	 */
+	private constructor() {}
 
 	public absolute(): string {
 		return path.join(this.root, this.path());
