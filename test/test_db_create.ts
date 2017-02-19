@@ -332,7 +332,7 @@ test('Test the reload function', async (t: any) => {
 		});
 });
 
-test('Try to add an empty item to an existing database', (t: any) => {
+test('Try to add an empty item to an existing database', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
 		root: fixture.dir
@@ -341,7 +341,7 @@ test('Try to add an empty item to an existing database', (t: any) => {
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let before = adb.toString();
-	adb.add(Artifact.factory())
+	await adb.add(Artifact.factory())
 		.then((adb: NotesDB) => {
 			let after = adb.toString();
 			t.is(before, after);
@@ -351,7 +351,7 @@ test('Try to add an empty item to an existing database', (t: any) => {
 		});
 });
 
-test('Test has functions for NotesDB', (t: any) => {
+test.cb('Test has functions for NotesDB', (t: any) => {
 	let fixture = new Fixture('simple-db');
 
 	let adb = new NotesDB({
@@ -372,4 +372,6 @@ test('Test has functions for NotesDB', (t: any) => {
 	t.false(adb.hasArtifact({section: 'Test1', notebook: 'Default', filename: 'blah.txt'}));
 	t.false(adb.hasArtifact({section: 'Test1', notebook: 'blah', filename: 'blah.txt'}));
 	t.false(adb.hasArtifact({section: 'blah', notebook: 'blah', filename: 'blah.txt'}));
+
+	t.end();
 });

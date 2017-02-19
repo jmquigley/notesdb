@@ -41,7 +41,7 @@
     "yargs": "^6.6.0"
   },
   "devDependencies": {
-    "ava": "^0.18.1",
+    "ava": "^0.18.2",
     "coveralls": "^2.11.16",
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-cli": "^1.2.2",
@@ -50,7 +50,7 @@
     "nyc": "^10.1.2",
     "tslint": "^4.4.2",
     "typescript": "^2.1.6",
-    "util.fixture": "0.0.28",
+    "util.fixture": "0.0.30",
     "util.pkgwrap": "^0.0.6",
     "xo": "^0.17.1"
   },

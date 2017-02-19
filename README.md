@@ -1,4 +1,4 @@
-# notesdb [![Build Status](https://travis-ci.org/jmquigley/notesdb.svg?branch=master)](https://travis-ci.org/jmquigley/notesdb) [![NPM](https://img.shields.io/npm/v/notesdb.svg)](https://www.npmjs.com/package/notesdb) [![Coverage Status](https://coveralls.io/repos/github/jmquigley/notesdb/badge.svg?branch=master)](https://coveralls.io/github/jmquigley/notesdb?branch=master)
+# notesdb [![Build Status](https://travis-ci.org/jmquigley/notesdb.svg?branch=master)](https://travis-ci.org/jmquigley/notesdb) [![tslint code style](https://img.shields.io/badge/code_style-TSlint-5ed9c7.svg)](https://palantir.github.io/tslint/) [![NPM](https://img.shields.io/npm/v/notesdb.svg)](https://www.npmjs.com/package/notesdb) [![Coverage Status](https://coveralls.io/repos/github/jmquigley/notesdb/badge.svg?branch=master)](https://coveralls.io/github/jmquigley/notesdb?branch=master)
 
 > A text file notes database
 
@@ -21,7 +21,8 @@ The text "database" is just a data structure (schema) and a set of functions to 
 
 #### Features
 
-- TODO
+- Promised based public API
+-
 
 
 ## Installation
@@ -73,8 +74,6 @@ let adb = new NotesDB({
 ```
 
 This will create the database in `~/mydb/sampledb` and the configuration/logs are stored in `~/mydbconfig`.
-
-#### 
 
 ## API
 

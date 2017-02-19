@@ -90,7 +90,7 @@ export class NotesDB extends EventEmitter {
 	private _fnSaveInterval: any;
 	private _schema: ISchema = {
 		notes: {},
-		trash: {},
+		trash: {}
 	};
 	private _timedSave: boolean = false;
 
@@ -279,25 +279,62 @@ export class NotesDB extends EventEmitter {
 					self.schema.trash = {};
 					fs.mkdirsSync(self.config.trash);
 					resolve(self);
-				})
+				});
 			} else {
 				reject(`Invalid trash directory, no empty: ${self.config.trash}`);
 			}
 		});
 	}
 
-	// /**
-	//  * Performs a text search against all artifacts within the repository.
-	//  * This will return a list of all artifacts tha contain the requested
-	//  * string.
-	//  * @param lookup {string} the regex string to used as the search criteria.
-	//  * @param self {NotesDB} a reference to the notes database instance
-	//  * @returns {Array} a list of artifacts that match the search string
-	//  */
-	// public find(lookup: string, self = this): Array<Artifact> {
-	// 	// TODO: add search functionality
-	// 	return [];
-	// }
+	/**
+	 * Performs a text search against all artifacts within the repository.
+	 * This will return a list of all artifacts tha contain the requested
+	 * string.  The string can be a regex.
+	 *
+	 * The thenable from this call is an Array of Artifacts that meet the
+	 * search criteria.
+	 *
+	 * @param search {string} the regex string to used as the search criteria.
+	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object
+	 */
+	public find(search: string, self = this) {
+		let regex = new RegExp(search);
+
+		function searchArtifact(artifact: Artifact) {
+			return new Promise((resolve, reject) => {
+				let filename: string = path.join(self.config.dbdir, artifact.path());
+				fs.readFile(filename, (err, data) => {
+					if (err) {
+						reject(err.message);
+					}
+
+					if (regex.test(data.toString())) {
+						resolve(artifact);
+					} else {
+						resolve(null);
+					}
+				});
+			});
+		}
+
+		return new Promise((resolve, reject) => {
+			let promise: any[] = [];
+			for (let artifact of self._artifacts.values()) {
+				promise.push(searchArtifact(artifact));
+			}
+
+			Promise.all(promise)
+				.then((artifacts: Artifact[]) => {
+					resolve(artifacts.filter((n) => {
+						return n != null
+					}));
+				})
+				.catch((err: Error) => {
+					reject(err);
+				});
+		});
+	}
 
 	/**
 	 * Retrieves an artifact from the schema.  If it exists, then it is returned
@@ -326,7 +363,7 @@ export class NotesDB extends EventEmitter {
 				if (fs.existsSync(absolute) && !artifact.loaded) {
 					let inp = fs.createReadStream(absolute);
 
-					inp.on('close', function () {
+					inp.on('close', () => {
 						artifact.loaded = true;
 						resolve(artifact);
 					});
@@ -335,7 +372,7 @@ export class NotesDB extends EventEmitter {
 						reject(err.message);
 					});
 
-					inp.on('data', function (chunk: string) {
+					inp.on('data', (chunk: string) => {
 						artifact.buf += chunk;
 					});
 				} else {
@@ -572,7 +609,7 @@ export class NotesDB extends EventEmitter {
 			} catch (err) {
 				reject(err.message);
 			}
-		})
+		});
 	}
 
 	/**
@@ -635,6 +672,10 @@ export class NotesDB extends EventEmitter {
 	//
 	// Properties
 	//
+
+	get artifacts(): Map<string, Artifact> {
+		return this._artifacts;
+	}
 
 	get config() {
 		return this._config;
@@ -710,7 +751,10 @@ export class NotesDB extends EventEmitter {
 				}
 
 				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
-				self._artifacts.set(artifact.path(), artifact);
+
+				if (area !== NS.trash) {
+					self._artifacts.set(artifact.path(), artifact);
+				}
 			} else {
 				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
@@ -736,6 +780,10 @@ export class NotesDB extends EventEmitter {
 			!self.hasArtifact(artifact, area)) {
 			if (self.isValidName(artifact.filename)) {
 				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
+
+				if (area !== NS.trash) {
+					self._artifacts.set(artifact.path(), artifact);
+				}
 			} else {
 				throw new Error(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
@@ -948,6 +996,7 @@ export class NotesDB extends EventEmitter {
 	 * It is a relative path from the root of the schema.
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @returns {Array} a list of nodes/directories in the database tree.
+	 * @private
 	 */
 	private tree(directory: string = '', self = this) {
 		directory = (directory === '') ? self.config.dbdir : path.join(self.config.dbdir, directory);
@@ -964,6 +1013,7 @@ export class NotesDB extends EventEmitter {
 	/**
 	 * Checks the binder configuration to ensure that it is valid
 	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @private
 	 */
 	private validate(self = this) {
 		if (!fs.existsSync(self.config.configFile)) {
