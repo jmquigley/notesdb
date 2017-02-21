@@ -149,7 +149,7 @@ export class NotesDB extends EventEmitter {
 		}
 
 		let configFile = path.join(opts.configRoot, 'config.json');
-		self._ignore = _.union(opts.ignore, defIgnoreList);
+		self.ignore = _.union(opts.ignore, defIgnoreList);
 
 		if (fs.existsSync(configFile)) {
 			// Opens an existing configuration file
@@ -191,8 +191,13 @@ export class NotesDB extends EventEmitter {
 		self.load('trash');
 
 		self._fnSaveInterval = setInterval(() => {
-			self.saveBinder();
-			self._timedSave = true;
+			self.save()
+				.then((adb: NotesDB) => {
+					adb._timedSave = true;
+				})
+				.catch((err: string) => {
+					self.log.error(`Timed save failure: ${err}`);
+				});
 		}, opts.saveInterval);
 
 		// When a recent file is added, and one is "aged" off, then a call
@@ -200,10 +205,10 @@ export class NotesDB extends EventEmitter {
 		self.recents.on('remove', (artifact: Artifact) => {
 			self.saveArtifact(artifact)
 				.then((artifact: Artifact) => {
-					self.log.debug(`Removal save of ${artifact.absolute}`);
+					self.log.debug(`Removal save of ${artifact.absolute()}`);
 				})
 				.catch((err: string) => {
-					self.log.error(`Removal save failed for ${artifact.absolute}: ${err}`);
+					self.log.error(`Removal save failed for ${artifact.absolute()}: ${err}`);
 				});
 		});
 	}
@@ -243,8 +248,6 @@ export class NotesDB extends EventEmitter {
 					resolve(artifact);
 				} else if (artifact.type === ArtifactType.S) {
 					self.createSection(artifact, area);
-					resolve(artifact);
-				} else if (artifact.type === ArtifactType.Unk) {
 					resolve(artifact);
 				} else {
 					reject('Trying to add invalid artifact to DB');

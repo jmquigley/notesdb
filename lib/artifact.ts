@@ -67,6 +67,7 @@ export class Artifact {
 	 */
 	public static factory(mode?: string, opts?: IArtifactOpts): Artifact {
 		let artifact = new Artifact();
+
 		let a: string[] = [];
 
 		if (mode == null) {
@@ -75,39 +76,42 @@ export class Artifact {
 
 		switch (mode) {
 			case 'treeitem':
-				if (Object.prototype.hasOwnProperty.call(opts, 'treeitem')) {
-					let s: string = opts.treeitem || '';
-					a = s.split(path.sep);
+				if (opts != null) {
+					if (Object.prototype.hasOwnProperty.call(opts, 'treeitem')) {
+						let s: string = opts.treeitem || '';
+						a = s.split(path.sep);
 
-					artifact.section = a[0] || 'Default';
-					artifact.notebook = a[1] || 'Default';
-					artifact.filename = a[2] || '';
-				}
+						artifact.section = a[0] || 'Default';
+						artifact.notebook = a[1] || 'Default';
+						artifact.filename = a[2] || '';
+					}
 
-				if (Object.prototype.hasOwnProperty.call(opts, 'root')) {
-					artifact.root = opts.root;
+					if (Object.prototype.hasOwnProperty.call(opts, 'root')) {
+						artifact.root = opts.root;
+					}
 				}
 				break;
 
 			case 'all':
-				let args: IArtifactOpts = opts;
+				if (opts != null) {
+					let args: IArtifactOpts = opts;
 
-				if (Object.prototype.hasOwnProperty.call(args, 'section')) {
-					artifact.section = args.section || 'Default';
+					if (Object.prototype.hasOwnProperty.call(args, 'section')) {
+						artifact.section = args.section || 'Default';
+					}
+
+					if (Object.prototype.hasOwnProperty.call(args, 'notebook')) {
+						artifact.notebook = args.notebook || 'Default';
+					}
+
+					if (Object.prototype.hasOwnProperty.call(args, 'filename')) {
+						artifact.filename = args.filename || '';
+					}
+
+					if (Object.prototype.hasOwnProperty.call(args, 'root')) {
+						artifact.root = args.root;
+					}
 				}
-
-				if (Object.prototype.hasOwnProperty.call(args, 'notebook')) {
-					artifact.notebook = args.notebook || 'Default';
-				}
-
-				if (Object.prototype.hasOwnProperty.call(args, 'filename')) {
-					artifact.filename = args.filename || '';
-				}
-
-				if (Object.prototype.hasOwnProperty.call(args, 'root')) {
-					artifact.root = args.root;
-				}
-
 				break;
 
 			case 'empty':

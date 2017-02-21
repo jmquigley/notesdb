@@ -97,6 +97,24 @@ test('Try to add a bad artifact to the database (negative test)', async (t: any)
 		});
 });
 
+test('Try to create a null artifact (negative test)', async (t: any) => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+
+	await adb.add(null)
+		.then((artifact: Artifact) => {
+			t.fail(artifact.toString());
+		})
+		.catch((err: string) => {
+			t.is(err, 'Trying to add invalid artifact to DB');
+			t.pass(err);
+		});
+});
+
 test.cb('Try to load a binder with a bad artifact name (negative test)', (t: any) => {
 	let fixture = new Fixture('bad-db-artifact');
 	let badFileName = '%%%%badfile.txt';
