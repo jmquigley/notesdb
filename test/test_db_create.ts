@@ -355,7 +355,6 @@ test('Try to add an empty item to an existing database', async (t: any) => {
 
 test.cb('Test has functions for NotesDB', (t: any) => {
 	let fixture = new Fixture('simple-db');
-
 	let adb = new NotesDB({
 		root: fixture.dir
 	});
@@ -375,6 +374,28 @@ test.cb('Test has functions for NotesDB', (t: any) => {
 	t.false(adb.hasArtifact({section: 'Test1', notebook: 'Default', filename: 'blah.txt'}));
 	t.false(adb.hasArtifact({section: 'Test1', notebook: 'blah', filename: 'blah.txt'}));
 	t.false(adb.hasArtifact({section: 'blah', notebook: 'blah', filename: 'blah.txt'}));
+
+	t.end();
+});
+
+test.cb('Test simple database with additional ignored directories', (t: any) => {
+	let fixture = new Fixture('simple-db-with-ignored');
+	let adb = new NotesDB({
+		root: fixture.dir,
+		ignore: ['Attachments', 'Images']
+	});
+	let l: string[] = ['Test1', 'Test2'];
+
+	let sections: string[] = adb.sections();
+	t.is(sections.length, 2);
+	for (let section of sections) {
+		t.true(l.indexOf(section) !== -1);
+	}
+
+	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Attachments')));
+	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Images')));
+	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test1')));
+	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test2')));
 
 	t.end();
 });

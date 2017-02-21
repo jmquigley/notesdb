@@ -137,7 +137,7 @@ export class NotesDB extends EventEmitter {
 			binderName: 'adb',
 			configRoot: '',
 			env: process.env,
-			ignore: defIgnoreList,
+			ignore: [],
 			root: defRoot,
 			bufSize: (64 * 1024),
 			saveInterval: 5000,
@@ -149,7 +149,7 @@ export class NotesDB extends EventEmitter {
 		}
 
 		let configFile = path.join(opts.configRoot, 'config.json');
-		self._ignore = opts.ignore || defIgnoreList;
+		self._ignore = _.union(opts.ignore, defIgnoreList);
 
 		if (fs.existsSync(configFile)) {
 			// Opens an existing configuration file
@@ -1013,11 +1013,17 @@ export class NotesDB extends EventEmitter {
 	 */
 	private loadBinder(area: string = NS.notes, self = this) {
 		let directory = '';
+		let trashIndex = self.ignore.indexOf('Trash');
+
 		if (area === NS.trash) {
 			directory = 'Trash';
-			self.ignore = ['.DS_Store', '.placeholder'];
+			if (trashIndex !== -1) {
+				self.ignore.splice(trashIndex, 1);
+			}
 		} else {
-			self.ignore = defIgnoreList;
+			if (trashIndex === -1) {
+				self.ignore.push('Trash');
+			}
 		}
 
 		self.tree(directory).forEach((it: string) => {

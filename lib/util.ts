@@ -34,7 +34,7 @@ export function addConsole(logger: IAppenderList) {
 }
 
 /**
- * Retrieves a list of directoreis from the given input path.
+ * Retrieves a list of directories from the given input path.
  * @param src {string} the source directory to search for sub directories
  * @returns {Array} a list of directories.
  */
