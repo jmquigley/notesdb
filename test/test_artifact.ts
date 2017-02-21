@@ -4,7 +4,8 @@ import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact, ArtifactType} from '../lib/artifact';
+import {Artifact} from '../index';
+import {ArtifactType} from '../lib/artifact';
 import {validateArtifact} from './helpers';
 
 test.after.always((t: any) => {

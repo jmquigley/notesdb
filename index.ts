@@ -1,4 +1,4 @@
-const NotesDB = require('./lib/notesdb').NotesDB;
-const Artifact = require('./lib/artifact').Artifact;
+import {NotesDB} from './lib/notesdb';
+import {Artifact} from './lib/artifact';
 
 export { Artifact, NotesDB };

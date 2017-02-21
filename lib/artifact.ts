@@ -196,6 +196,7 @@ export class Artifact {
 	}
 
 	set buf(val: string) {
+		this.makeDirty();
 		this._buf = val;
 	}
 

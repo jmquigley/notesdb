@@ -12,6 +12,7 @@ import * as _ from 'lodash';
 import * as log4js from 'log4js';
 import * as objectAssign from 'object-assign';
 import * as path from 'path';
+import {Deque} from 'util.ds';
 import {timestamp} from 'util.timestamp';
 import {Artifact, ArtifactType, IArtifactSearch} from './artifact';
 
@@ -43,7 +44,9 @@ export interface INotesDBOpts {
 	env?: Object;
 	ignore?: string[];
 	root?: string;
+	bufSize?: number;
 	saveInterval?: number;
+	maxRecents?: number;
 }
 
 export interface IAppender {
@@ -66,6 +69,7 @@ export interface IConfigDB {
 	root: string;
 	saveInterval: number;
 	bufSize: number;
+	maxRecents: number;
 }
 
 export interface INamespace {
@@ -93,6 +97,8 @@ export class NotesDB extends EventEmitter {
 		trash: {}
 	};
 	private _timedSave: boolean = false;
+	private _recents: Deque = null;
+
 
 	/**
 	 * Creates the instance of the NotesDB class and loads or defines the
@@ -133,7 +139,9 @@ export class NotesDB extends EventEmitter {
 			env: process.env,
 			ignore: defIgnoreList,
 			root: defRoot,
-			saveInterval: 5000
+			bufSize: (64 * 1024),
+			saveInterval: 5000,
+			maxRecents: 5
 		}, opts);
 
 		if (opts.configRoot === '') {
@@ -146,6 +154,11 @@ export class NotesDB extends EventEmitter {
 		if (fs.existsSync(configFile)) {
 			// Opens an existing configuration file
 			self._config = JSON.parse(fs.readFileSync(configFile).toString());
+
+			// Apply optional overrides to an existing configuration
+			self._config.bufSize = opts.bufSize;
+			self._config.saveInterval = opts.saveInterval;
+			self._config.maxRecents = opts.maxRecents;
 		} else {
 			// Creates a new database
 			self._config = self.createInitialConfig(opts);
@@ -168,30 +181,55 @@ export class NotesDB extends EventEmitter {
 			}
 		}
 
+		self._recents = new Deque(self.config.maxRecents);
+
 		util.addConsole(self.config.log4js);
 		log4js.configure(self.config.log4js);
 		self.log = log4js.getLogger('notesdb');
 
 		self.load('notes');
 		self.load('trash');
+
 		self._fnSaveInterval = setInterval(() => {
 			self.saveBinder();
 			self._timedSave = true;
 		}, opts.saveInterval);
+
+		// When a recent file is added, and one is "aged" off, then a call
+		// the save to make sure it is written before removal.
+		self.recents.on('remove', (artifact: Artifact) => {
+			self.saveArtifact(artifact)
+				.then((artifact: Artifact) => {
+					self.log.debug(`Removal save of ${artifact.absolute}`);
+				})
+				.catch((err: string) => {
+					self.log.error(`Removal save failed for ${artifact.absolute}: ${err}`);
+				});
+		});
 	}
 
 	/**
 	 * Creates the requested artifact within the schema.  This will attempt
 	 * to create each section, notebook, and document given.  If the item is
 	 * empty, then it is ignored.
-	 * @param artifact {Artifact} the artifact object to create (see above)
+	 *
+	 * The thenable return for this call is a reference to the artifact that
+	 * was created.
+	 *
+	 * @param opts {IArtifactSearch} the artifact object to create (see above)
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public add(artifact: Artifact, area: string = NS.notes, self = this) {
+	public add(opts: IArtifactSearch, area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
+			let artifact: Artifact = null;
+			if (opts instanceof Artifact) {
+				artifact = opts;
+			} else {
+				artifact = Artifact.factory('all', opts);
+			}
 			artifact.root = self.config.dbdir;
 
 			try {
@@ -202,12 +240,12 @@ export class NotesDB extends EventEmitter {
 				} else if (artifact.type === ArtifactType.SN) {
 					self.createSection(artifact, area);
 					self.createNotebook(artifact, area);
-					resolve(self);
+					resolve(artifact);
 				} else if (artifact.type === ArtifactType.S) {
 					self.createSection(artifact, area);
-					resolve(self);
+					resolve(artifact);
 				} else if (artifact.type === ArtifactType.Unk) {
-					resolve(self);
+					resolve(artifact);
 				} else {
 					reject('Trying to add invalid artifact to DB');
 				}
@@ -365,6 +403,8 @@ export class NotesDB extends EventEmitter {
 
 					inp.on('close', () => {
 						artifact.loaded = true;
+						artifact.makeClean();
+						self.recents.enqueue(artifact);
 						resolve(artifact);
 					});
 
@@ -376,12 +416,14 @@ export class NotesDB extends EventEmitter {
 						artifact.buf += chunk;
 					});
 				} else {
+					self.recents.enqueue(artifact);
 					resolve(artifact);
 				}
 			} else if ((type === ArtifactType.SN && self.hasNotebook(opts, area)) ||
 				(type === ArtifactType.S && self.hasSection(opts, area))) {
 				let artifact = Artifact.factory('all', opts);
 				artifact.root = self.config.dbdir;
+				self.recents.enqueue(artifact);
 				resolve(artifact);
 			} else {
 				reject(`Artifact doesn't exist: ${opts.section}|${opts.notebook}|${opts.filename}`);
@@ -497,12 +539,13 @@ export class NotesDB extends EventEmitter {
 
 	/**
 	 * Moves an artifact from it's current directory to the "Trash" folder.  It
-	 * is not removed until the emptyTrash() method is called.
-	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
-	 * for within the schema.
+	 * is not removed until the emptyTrash() method is called.  The artifact
+	 * is removed from the schema dictionary and stored in the trash dictionary.
 	 *
 	 * The thenable resolves to the path of the removed artifact.
 	 *
+	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
+	 * for within the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
@@ -597,17 +640,46 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
-	 * User requested save function.
+	 * User requested save function.  If given an artifact, then a single
+	 * save is performed.  If no artifact is specifid, then the binder
+	 * artifact list is scanned for dirty artifacts that need to be saved.
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
 	public save(self = this) {
 		return new Promise((resolve, reject) => {
 			try {
-				self.saveBinder();
-				resolve(self);
+				self.saveBinder((err: Error) => {
+					if (err) {
+						reject(err.message);
+					}
+
+					resolve(self);
+				});
 			} catch (err) {
 				reject(err.message);
+			}
+		});
+	}
+
+	/**
+	 * Performs a save of a single artifact.
+	 * @param artifact {Artifact} the artifact value to save
+	 * @returns {Promise} a javascript promise object
+	 */
+	public saveArtifact(artifact: Artifact) {
+		return new Promise((resolve, reject) => {
+			if (artifact.isDirty()) {
+				fs.writeFile(artifact.absolute(), artifact.buf, (err: Error) => {
+					if (err) {
+						reject(`Error writing artifact: ${err.message}`);
+					}
+
+					artifact.makeClean();
+					resolve(artifact);
+				});
+			} else {
+				resolve(artifact);
 			}
 		});
 	}
@@ -701,6 +773,10 @@ export class NotesDB extends EventEmitter {
 		this._initialized = val;
 	}
 
+	get recents() {
+		return this._recents;
+	}
+
 	get reID() {
 		return this._reID;
 	}
@@ -746,7 +822,7 @@ export class NotesDB extends EventEmitter {
 						}
 						artifact.loaded = true;
 						self.log.info(`Added artifact: ${artifact.filename}`);
-						resolve(self);
+						resolve(artifact);
 					});
 				}
 
@@ -760,7 +836,7 @@ export class NotesDB extends EventEmitter {
 			}
 		}
 
-		resolve(self);
+		resolve(artifact);
 	}
 
 	/**
@@ -800,26 +876,27 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createInitialConfig(opts: INotesDBOpts): IConfigDB {
-		let configFile: string = path.join(opts.configRoot || '', 'config.json');
+		let configFile: string = path.join(opts.configRoot || './', 'config.json');
 
 		return {
-			binderName: opts.binderName || '',
+			binderName: opts.binderName || 'adb',
 			configFile: configFile,
 			configRoot: opts.configRoot,
-			dbdir: path.join(opts.root || '', opts.binderName || ''),
-			trash: path.join(opts.root || '', opts.binderName || '', 'Trash'),
+			dbdir: path.join(opts.root || './', opts.binderName || 'adb'),
+			trash: path.join(opts.root || './', opts.binderName || 'adb', 'Trash'),
 			log4js: {
 				appenders: [
 					{
 						category: 'notesdb',
-						filename: path.join(path.dirname(configFile || ''), 'notesdb.log'),
+						filename: path.join(path.dirname(configFile || './'), 'notesdb.log'),
 						type: 'file'
 					}
 				]
 			},
 			root: opts.root || '',
-			saveInterval: 5000,
-			bufSize: (64 * 1024)
+			saveInterval: opts.saveInterval,
+			bufSize: opts.bufSize,
+			maxRecents: opts.maxRecents
 		};
 	}
 
@@ -978,15 +1055,32 @@ export class NotesDB extends EventEmitter {
 
 	/**
 	 * Saves the internal state of the binder
+	 * @param cb {Function} a callback function that is executed when all
+	 * artifact save promises have resolved.
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
-	private saveBinder(self = this) {
+	private saveBinder(cb: Function = null, self = this) {
 		self.log.debug(`Saving configuration: ${self.config.configFile}`);
 		let data = JSON.stringify(self.config, null, '\t');
 		fs.writeFileSync(self.config.configFile, data);
 
-		// TODO add code to scan the open list for dirty files to save
+		let promises: any = [];
+		for (let artifact of self.artifacts.values()) {
+			promises.push(self.saveArtifact(artifact));
+		}
+
+		Promise.all(promises)
+			.then(() => {
+				if (cb && typeof cb === 'function') {
+					cb(null);
+				}
+			})
+			.catch((err: string) => {
+				if (cb && typeof cb === 'function') {
+					cb(new Error(err));
+				}
+			});
 	}
 
 	/**

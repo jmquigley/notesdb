@@ -4,9 +4,9 @@ import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact} from '../lib/artifact';
-import {NotesDB} from '../lib/notesdb';
-import {validateDB} from './helpers';
+import {Artifact} from '../index';
+import {NotesDB} from '../index';
+import {validateDB, validateArtifact} from './helpers';
 
 test.after.always((t: any) => {
 	console.log('final cleanup: test_db_sections');
@@ -36,17 +36,18 @@ test.cb('Try to get sections from an unitialized database', (t: any) => {
 
 test('Create a new section within an existing database', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let notesDB = new NotesDB({
+	let adb = new NotesDB({
 		root: fixture.dir
 	});
 
-	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let artifact = Artifact.factory('all', {section: 'Test3'});
 	t.true(artifact instanceof Artifact);
 
-	await notesDB.add(artifact)
-		.then((adb: NotesDB) => {
+	await adb.add(artifact)
+		.then((artifact: Artifact) => {
+			validateArtifact(artifact, 'Test3', '', '', t);
 			let sections = adb.sections();
 			t.true(sections instanceof Array);
 			t.is(sections.length, 4);
@@ -71,20 +72,20 @@ test('Create a new section within an existing database', async (t: any) => {
 
 test('Try to create a section that already exists within a database (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let notesDB = new NotesDB({
+	let adb = new NotesDB({
 		root: fixture.dir
 	});
 
-	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let artifact = Artifact.factory('all', {
 		section: 'Test1'
 	});
 	t.true(artifact instanceof Artifact);
 
-	await notesDB.add(artifact)
-		.then((adb: NotesDB) => {
-			t.pass(adb.toString());
+	await adb.add(artifact)
+		.then((artifact: Artifact) => {
+			validateArtifact(artifact, 'Test1', '', '', t);
 		})
 		.catch((err: string) => {
 			t.fail(`${this.name}: ${err}`);
@@ -93,11 +94,11 @@ test('Try to create a section that already exists within a database (negative te
 
 test('Try to create an artifact with bad section name (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let notesDB = new NotesDB({
+	let adb = new NotesDB({
 		root: fixture.dir
 	});
 
-	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let badSectionName = '////badSectionName';
 	let artifact = Artifact.factory('all', {
@@ -105,9 +106,9 @@ test('Try to create an artifact with bad section name (negative test)', async (t
 	});
 	t.true(artifact instanceof Artifact);
 
-	await notesDB.add(artifact)
-		.then((adb: NotesDB) => {
-			t.fail(adb.toString());
+	await adb.add(artifact)
+		.then((artifact: Artifact) => {
+			t.fail(artifact.toString());
 		})
 		.catch((err: string) => {
 			t.is(err, `Invalid section name '${badSectionName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);

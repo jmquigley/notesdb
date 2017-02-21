@@ -3,10 +3,10 @@
 import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {Artifact} from '../lib/artifact';
+import {Artifact} from '../index';
 import {Fixture} from 'util.fixture';
-import {NotesDB} from '../lib/notesdb';
-import {validateDB} from './helpers';
+import {NotesDB} from '../index';
+import {validateDB, validateArtifact} from './helpers';
 
 test.after.always((t: any) => {
 	console.log('final cleanup: test_db_notebooks');
@@ -122,10 +122,10 @@ test('Create a notebook within an existing database', async(t: any) => {
 			section: sectionName,
 			notebook: l[1]
 		}))])
-		.then(dbs => {
-			t.true(dbs instanceof Array);
-			t.is(dbs.length, 2);
-			return (dbs[0]);
+		.then((artifacts) => {
+			t.true(artifacts instanceof Array);
+			t.is(artifacts.length, 2);
+			return adb;
 		})
 		.then((adb: NotesDB) => {
 			let notebooks: string[] = adb.notebooks(sectionName);
@@ -164,7 +164,8 @@ test('Try to create a notebook that already exists', async (t: any) => {
 	});
 
 	await adb.add(artifact)
-		.then((adb: NotesDB) => {
+		.then((artifact: Artifact) => {
+			validateArtifact(artifact, sectionName, notebookName, '', t);
 			t.true(adb.hasNotebook({notebook: notebookName, section: sectionName}));
 		})
 		.catch((err: string) => {
@@ -188,8 +189,8 @@ test('Trying to create notebook with a bad name', async (t: any) => {
 	});
 
 	await adb.add(artifact)
-		.then((adb: NotesDB) => {
-			t.fail(adb.toString());
+		.then((artifact: Artifact) => {
+			t.fail(artifact.toString());
 		})
 		.catch(err => {
 			t.is(err, `Invalid notebook name '${notebookName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);

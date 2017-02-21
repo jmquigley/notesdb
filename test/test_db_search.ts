@@ -2,9 +2,9 @@
 
 import {test} from 'ava';
 import * as fs from 'fs-extra';
-import {Artifact} from '../lib/artifact';
+import {Artifact} from '../index';
 import {Fixture} from 'util.fixture';
-import {NotesDB} from '../lib/notesdb';
+import {NotesDB} from '../index';
 import {validateDB} from './helpers';
 
 test.after.always((t: any) => {

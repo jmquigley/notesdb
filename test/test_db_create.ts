@@ -5,9 +5,10 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import * as uuid from 'uuid';
-import {Artifact, IArtifactSearch} from '../lib/artifact';
-import {NotesDB} from '../lib/notesdb';
-import {validateDB} from './helpers';
+import {Artifact} from '../index';
+import {IArtifactSearch} from '../lib/artifact';
+import {NotesDB} from '../index';
+import {validateDB, validateArtifact} from './helpers';
 
 const randomBytes = require('randombytes');
 const pkg = require('../package.json');
@@ -341,8 +342,9 @@ test('Try to add an empty item to an existing database', async (t: any) => {
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let before = adb.toString();
-	await adb.add(Artifact.factory())
-		.then((adb: NotesDB) => {
+	await adb.add({section: '', notebook: '', filename: ''})
+		.then((artifact: Artifact) => {
+			validateArtifact(artifact, 'Default', 'Default', '', t);
 			let after = adb.toString();
 			t.is(before, after);
 		})
@@ -367,6 +369,7 @@ test.cb('Test has functions for NotesDB', (t: any) => {
 
 	// Failure tests
 	t.false(adb.hasSection({section: 'blah'}));
+	t.false(adb.hasSection({section: 'blah'}, 'badarea'));
 	t.false(adb.hasNotebook({section: 'Test1', notebook: 'blah'}));
 	t.false(adb.hasNotebook({section: 'blah', notebook: 'blah'}));
 	t.false(adb.hasArtifact({section: 'Test1', notebook: 'Default', filename: 'blah.txt'}));

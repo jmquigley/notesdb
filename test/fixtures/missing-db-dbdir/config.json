@@ -14,5 +14,6 @@
 		]
 	},
 	"saveInterval": 5000,
-	"bufSize": 65535
+	"bufSize": 65535,
+	"maxRecents": 5
 }
