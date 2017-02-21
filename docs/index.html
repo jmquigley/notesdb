@@ -103,19 +103,40 @@
               - {artifact 1}
               - {artifact 2}
               - {artifact N}
-            {notebook 2}/
+          {notebook 2}/
               - {artifact 1}
               - {artifact 2}
               - {artifact N}
        {section N}/
-           ...</code></pre><p> The main component is the artifact.  These are the text files.  The other items in the structure above are basic file directory strutures.</p>
+           ...</code></pre><p> The main component is the artifact.  These are the text files.  The other items in the structure above are basic file directory structures.  Sections and notebooks are just organizing constructs (directories).</p>
 <h4>Features</h4><ul>
-<li>Promised based public API
--</li>
+<li>Promised based public API</li>
+<li>Automatic timed save of documents</li>
+<li>Trashcan</li>
 </ul>
 <h2>Installation</h2><p>To install as a global package and cli:</p>
 <pre class="prettyprint source"><code>$ npm install --global notesdb</code></pre><p>To install as an application dependency with cli:</p>
-<pre class="prettyprint source"><code>$ npm install --save-dev notesdb</code></pre><h2>Usage</h2><h4>Creating an Instance</h4><p>To construct a new instance:</p>
+<pre class="prettyprint source"><code>$ npm install --save-dev notesdb</code></pre><h2>Usage</h2><p>The public api contains the following functions:</p>
+<ul>
+<li><code>add()</code></li>
+<li><code>create()</code></li>
+<li><code>emptyTrash()</code></li>
+<li><code>find()</code></li>
+<li><code>get()</code></li>
+<li><code>hasArtifact()</code></li>
+<li><code>hasNotebook()</code></li>
+<li><code>hasSection()</code></li>
+<li><code>notebooks()</code></li>
+<li><code>reload()</code></li>
+<li><code>remove()</code></li>
+<li><code>restore()</code></li>
+<li><code>save()</code></li>
+<li><code>saveArtifact()</code></li>
+<li><code>sections()</code></li>
+<li><code>shutdown()</code></li>
+<li><code>toString()</code></li>
+</ul>
+<h4>Creating an Instance</h4><p>To construct a new instance:</p>
 <pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
 
 let adb = new NotesDB();</code></pre><p>Loads a default instance of the schema.  This example contains no configuration options.  It will use the default configuration directory of <code>~/.notesdb</code>.  The configuration file for this instance is saved in <code>~/.notesdb/config.json</code>.  The log file for the database is saved within this directory in <code>~/notesdb/notesdb.log</code>.  The default name of the database is <code>adb</code> (the name of the binder) and is saved in <code>~/.notesdb/adb</code>.  This is where all sections, notebooks, and artifacts will be saved.</p>
@@ -133,7 +154,142 @@ let adb = new NotesDB({
     configRoot: '~/mydbconfig',
     root: '~/mydb'
 });</code></pre><p>This will create the database in <code>~/mydb/sampledb</code> and the configuration/logs are stored in <code>~/mydbconfig</code>.</p>
-<h2>API</h2><p>The API is generated with <a href="https://www.npmjs.com/package/jsdoc">JSDoc</a>.  It can be found within the <code>docs</code> directory for the project.  It can be generated with <code>npm run docs</code>.</p></article>
+<h4>Creating Sections</h4><p>Once an instance is created sections can be added.  There are two ways to do this.  The <code>create()</code> or <code>add</code>.  Using the create method:</p>
+<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+adb.create(['Test1', 'Test2'])
+    .then((adb: NotesDB) => {
+        let sections = adb.sections();
+        sections.forEach((section: string) => {
+            console.log(` ~> ${section}`);
+        });
+
+        return adb;
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });</code></pre><p>This will create two new sections within the schema named <code>Test1</code> and <code>Test2</code>.  It will also contain <code>Default</code> and <code>Trash</code>.  Sections can also be created through the <code>add</code> method.  This method uses an <code>Artifact</code> object during creation.</p>
+<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
+const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+adb.add(Artifact.factory('all', {section: 'Test1'}))
+    .then((adb: NotesDB) => {
+        let sections = adb.sections();
+        sections.forEach((section: string) => {
+            console.log(` ~> ${section}`);
+        });
+
+        return adb;
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });</code></pre><h4>Creating Notebooks</h4><p>A notebook is created with the <code>add</code> method.</p>
+<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
+const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+adb.add(Artifact.factory('all', {section: 'Test1', notebook: 'MyNotebook'}))
+    .then((artifact: Artifact) => {
+        console.log(artifact.toString());
+        let notebooks = adb.notebooks();
+        notebooks.forEach((notebook: string) => {
+            console.log(` ~> ${notebook}`);
+        });
+
+        return adb;
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });</code></pre><p>This will create a section named <code>Test1</code> (if it doesn't exist) and a notebook within that section named <code>MyNotebook</code>.</p>
+<h4>Creating Artifacts</h4><p>An artifact is the basic document within the notebook.  These are always text files.  That are created with the <code>add</code> method:</p>
+<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
+const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+adb.add({
+    section: 'Test1', 
+    notebook: 'MyNotebook', 
+    filename: 'myfile.txt'
+    })
+    .then((artifact: Artifact) => {
+        console.log(artifact.toString());
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });</code></pre><h4>Retrieving Artifacts</h4><p>Artifacts are placed into the system by adding them (as above) or when an instance is created (the existing artifacts are loaded automatically).  The artifacts are then retrieved from the system using the <code>get</code> method.  When retrieving an artifact one must use <em>section</em>, <em>notebook</em>, and <em>filename</em> to retrieve it:</p>
+<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
+const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+adb.get({
+    section: 'Default', 
+    notebook: 'Default', 
+    filename: 'test1.txt'
+    })
+    .then((artifact: Artifact) => {
+        // do something with the artifact
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });</code></pre><h4>Finding Artifacts</h4><p>One can also retrieve artifacts using the <code>find</code> method.  This will perform a regex text search, using JavaScript regex, using all artifacts that are in the system.  It will return an array of artifacts that contain the search string.</p>
+<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
+const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+adb.find('#1')
+    .then((artifacts: Array&lt;Artifact>) => {
+        artifacts.forEach((artifact: Artifact) => {
+            console.log(artifact.absolute());
+        });
+    })
+    .catch((err: string) => {
+        t.fail(`${t.title}: ${err}`);
+    });</code></pre><p>This call would find all artifacts that contain the string <code>#1</code> and return an array.</p>
+<h4>Removing/Restoring Artifacts</h4><p>Artifacts are not removed from the system directly.  They are first moved to a special <code>Trash</code> folder within the notebook.  An artifact is removed with the <code>remove</code> method.  A removed artifact can be recovered from the trash using the <code>restore</code> method:</p>
+<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+let lookup = {
+    section: 'Test2',
+    notebook: 'Default',
+    filename: 'test4.txt'
+}
+
+adb.remove(lookup)
+    .then((filename: string) => {
+        console.log(`removed: ${filename}`);
+        return adb.restore(lookup);
+    })
+    .then((filename: string) => {
+        console.log(`restored: ${filename}`);
+    })
+    .catch((err: string) => {
+        t.fail(`${t.title}: ${err}`);
+    });</code></pre><p>The example above would remove the artifact <code>/Test2/Default/test4.txt</code> and place it in the trash.  After it is removed it is immediately restored back to its original path.  If there is a name collision on delete/restore, then the current timestamp is placed on the artifacts name.  In this example a file artifact is removed.  Sections and notebooks can also be removed/restored.</p>
+<h4>Emptying the Trash</h4><p>Artifacts that were removed are not permanently removed until the trash is emptied.  That is performed with the <code>emptyTrash</code> method.</p>
+<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+adb.emptyTrash()
+    .then((adb: NotesDB) => {
+        assert(_.isEmpty(adb.schema.trash));
+    })
+    .catch((err: string) => {
+        t.fail(`${t.title}: ${err}`);
+    });</code></pre><h4>Shutdown</h4><p>The <code>shutdown</code> method immediately saves the binder, marks the instance as uninitialized, and turns off the automatic saving of documents.  It's a way to ensure proper cleanup once finished using this binder.</p>
+<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+adb.shutdown()
+    .then((msg: string) => {
+        console.log(msg);
+    })
+    .catch((err: string) => {
+        t.fail(`${t.title}: ${err}`);
+    });</code></pre><p>It returns a message indicating that the binder was shutdown.</p>
+<h2>API</h2><p>The API is generated with <a href="https://www.npmjs.com/package/jsdoc">JSDoc</a>.  It can be found within the <code>docs</code> directory for the project.  It can be generated with <code>npm run docs</code>.  An HTML site is generated in this directory that gives details on the api.</p></article>
     </section>
 
 
@@ -179,7 +335,7 @@ let adb = new NotesDB({
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on February 21st 2017, 11:56:14 am
+		on February 21st 2017, 3:12:42 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

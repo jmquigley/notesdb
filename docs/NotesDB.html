@@ -273,7 +273,7 @@ millis.</li>
             
 <hr>
 <dt>
-    <h4 class="name" id="add"><span class="type-signature"></span>add(artifact, area, self)</h4>
+    <h4 class="name" id="add"><span class="type-signature"></span>add(opts, area, self)</h4>
     
     
 </dt>
@@ -284,8 +284,8 @@ millis.</li>
         <p>Creates the requested artifact within the schema.  This will attempt
 to create each section, notebook, and document given.  If the item is
 empty, then it is ignored.</p>
-<p>The thenable return for this call is a reference to self (the db
-instance).  When an error occurs, the catch is a string.</p>
+<p>The thenable return for this call is a reference to the artifact that
+was created.</p>
     </div>
     
 
@@ -320,13 +320,13 @@ instance).  When an error occurs, the catch is a string.</p>
 
         <tr>
             
-                <td class="name"><code>artifact</code></td>
+                <td class="name"><code>opts</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="Artifact.html">Artifact</a></span>
+<span class="param-type">IArtifactSearch</span>
 
 
 
@@ -2200,7 +2200,9 @@ search.  There are two areas: notes &amp; trash.</p></td>
     
     <div class="description">
         <p>Moves an artifact from it's current directory to the &quot;Trash&quot; folder.  It
-is not removed until the emptyTrash() method is called.</p>
+is not removed until the emptyTrash() method is called.  The artifact
+is removed from the schema dictionary and stored in the trash dictionary.</p>
+<p>The thenable resolves to the path of the removed artifact.</p>
     </div>
     
 
@@ -2253,8 +2255,7 @@ is not removed until the emptyTrash() method is called.</p>
             
 
             <td class="description last"><p>the section/notebook/filename to remove
-for within the schema.</p>
-<p>The thenable resolves to the path of the removed artifact.</p></td>
+for within the schema.</p></td>
         </tr>
 
     
@@ -2574,7 +2575,7 @@ of the item that is being restored.</p>
             
 <hr>
 <dt>
-    <h4 class="name" id="save"><span class="type-signature"></span>save( [artifact], self)</h4>
+    <h4 class="name" id="save"><span class="type-signature"></span>save(self)</h4>
     
     
 </dt>
@@ -2607,7 +2608,157 @@ artifact list is scanned for dirty artifacts that need to be saved.</p>
         <th>Type</th>
 
         
-        <th>Argument</th>
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>self</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>a reference to the notes database instance</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a javascript promise object</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+
+    </dd>
+</dl>
+
+
+        
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="saveArtifact"><span class="type-signature"></span>saveArtifact(artifact)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Performs a save of a single artifact.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
         
 
         
@@ -2635,52 +2786,10 @@ artifact list is scanned for dirty artifacts that need to be saved.</p>
             </td>
 
             
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
 
             
 
-            <td class="description last"><p>a reference to a single artifact to save.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>self</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last"><p>a reference to the notes database instance</p></td>
+            <td class="description last"><p>the artifact value to save</p></td>
         </tr>
 
     
@@ -3295,7 +3404,7 @@ the database.</p>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on February 21st 2017, 11:56:14 am
+		on February 21st 2017, 3:12:42 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
