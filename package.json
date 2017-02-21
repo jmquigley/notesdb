@@ -2,8 +2,8 @@
   "name": "notesdb",
   "version": "0.0.2",
   "author": "jmquigley <jmquigley@outlook.com>",
-  "description": "Text file database (WIP)",
-  "private": true,
+  "description": "A text file notes database",
+  "private": false,
   "debug": false,
   "license": "MIT",
   "repository": {
