@@ -27,8 +27,9 @@ test('Test simple search for #1 in simple dB', async (t: any) => {
 		.then((artifacts: Array<Artifact>) => {
 			t.is(artifacts.length, 1);
 			t.is(artifacts[0].filename, 'test1.txt');
-
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -49,7 +50,9 @@ test(`Test regex search for 'File #[0-9]' in simple dB`, async (t: any) => {
 			t.is(artifacts[1].filename, 'test2.txt');
 			t.is(artifacts[2].filename, 'test3.txt');
 			t.is(artifacts[3].filename, 'test4.txt');
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});

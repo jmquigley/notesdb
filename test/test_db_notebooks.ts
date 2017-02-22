@@ -142,7 +142,9 @@ test('Create a notebook within an existing database', async(t: any) => {
 					section: sectionName
 				}));
 			});
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${this.name}: ${err}`);
 		});
@@ -167,7 +169,9 @@ test('Try to create a notebook that already exists', async (t: any) => {
 		.then((artifact: Artifact) => {
 			validateArtifact(artifact, sectionName, notebookName, '', t);
 			t.true(adb.hasNotebook({notebook: notebookName, section: sectionName}));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${this.name}: ${err}`);
 		});
@@ -206,4 +210,5 @@ test('Load a database with file in the sections directory', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
+	// TODO: this test is incomplete
 });

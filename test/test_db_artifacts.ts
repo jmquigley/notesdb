@@ -41,11 +41,9 @@ test('Create a new artifact file within the database', async (t: any) => {
 		})
 		.then((artifact: Artifact) => {
 			t.pass(artifact.toString());
-			return adb.shutdown();
+			return adb;
 		})
-		.then((msg: string) => {
-			t.is(msg, 'The database is shutdown.');
-		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -159,7 +157,9 @@ test('Get an existing artifact from the schema', async (t: any) => {
 		.then((artifact: Artifact) => {
 			t.is(artifact.buf, 'Test File #1\n');
 			t.true(artifact.loaded);
+			return adb
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -216,7 +216,9 @@ test('Try to remove an artifact from the database and then restore it', async (t
 			t.true(adb.hasArtifact(lookup));
 			t.false(fs.existsSync(artifactName));
 			t.true(fs.existsSync(filename));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -248,7 +250,9 @@ test('Try to remove a notebook from the binder and then restore it', async (t: a
 			t.true(adb.hasNotebook({notebook: lookup.notebook, section: lookup.section}));
 			t.false(fs.existsSync(notebookName));
 			t.true(fs.existsSync(filename));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -279,7 +283,9 @@ test('Try to remove a section from the binder and restore it', async (t: any) =>
 			t.true(adb.hasSection({section: lookup.section}));
 			t.false(fs.existsSync(sectionName));
 			t.true(fs.existsSync(filename));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -308,7 +314,9 @@ test('Try to restore a deleted item with a duplicate/collision', async (t: any) 
 			// directly.  We find a substring of the base name without the
 			// substring.
 			t.true(filename.includes(artifactName));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -330,7 +338,9 @@ test('Try to remove an section with duplicate/collision in Trash', async (t: any
 	await adb.remove(lookup)
 		.then((filename: string) => {
 			t.true(filename.startsWith(artifactName));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -353,7 +363,9 @@ test('Try to remove an notebook with duplicate/collision in Trash', async (t: an
 	await adb.remove(lookup)
 		.then((filename: string) => {
 			t.true(filename.startsWith(artifactName));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -381,7 +393,9 @@ test('Test the garbage empty process', async (t: any) => {
 		.then((adb: NotesDB) => {
 			t.true(_.isEmpty(adb.schema.trash));
 			t.true(emptyDir.sync(adb.config.trash));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -466,7 +480,9 @@ test('Create a new artifact, update it, and call the save', async (t: any) => {
 		.then((artifact: Artifact) => {
 			let data: string = fs.readFileSync(artifact.absolute()).toString();
 			t.is(data, `${content}${content}`);
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -515,7 +531,9 @@ test('Test the automatic ejection from recents list', async (t: any) => {
 			let data: string = fs.readFileSync(ejected.absolute()).toString();
 			t.is(data, 'Test File #1\nContent change');
 			t.is(ejected.buf, data);
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});

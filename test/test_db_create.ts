@@ -353,7 +353,9 @@ test('Test the reload function', async (t: any) => {
 		})
 		.then((artifact: Artifact) => {
 			t.is(artifact.buf, data);
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});
@@ -373,7 +375,9 @@ test('Try to add an empty item to an existing database', async (t: any) => {
 			validateArtifact(artifact, 'Default', 'Default', '', t);
 			let after = adb.toString();
 			t.is(before, after);
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${t.title}: ${err}`);
 		});

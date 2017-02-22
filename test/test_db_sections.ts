@@ -64,7 +64,9 @@ test('Create a new section within an existing database', async (t: any) => {
 			});
 
 			t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test3')));
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${this.name}: ${err}`);
 		});
@@ -86,7 +88,9 @@ test('Try to create a section that already exists within a database (negative te
 	await adb.add(artifact)
 		.then((artifact: Artifact) => {
 			validateArtifact(artifact, 'Test1', '', '', t);
+			return adb;
 		})
+		.then(adb.shutdown)
 		.catch((err: string) => {
 			t.fail(`${this.name}: ${err}`);
 		});
