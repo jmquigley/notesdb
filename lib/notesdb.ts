@@ -245,7 +245,7 @@ export class NotesDB extends EventEmitter {
 			if (opts instanceof Artifact) {
 				artifact = opts;
 			} else {
-				artifact = Artifact.factory('all', opts);
+				artifact = Artifact.factory('fields', opts);
 			}
 			artifact.root = self.config.dbdir;
 
@@ -296,7 +296,7 @@ export class NotesDB extends EventEmitter {
 
 			try {
 				schema.forEach((it: string) => {
-					let artifact = Artifact.factory('all', {
+					let artifact = Artifact.factory('fields', {
 						section: it,
 						root: self.config.dbdir
 					});
@@ -444,7 +444,7 @@ export class NotesDB extends EventEmitter {
 				}
 			} else if ((type === ArtifactType.SN && self.hasNotebook(opts, area)) ||
 				(type === ArtifactType.S && self.hasSection(opts, area))) {
-				let artifact = Artifact.factory('all', opts);
+				let artifact = Artifact.factory('fields', opts);
 				artifact.root = self.config.dbdir;
 				self.recents.enqueue(artifact);
 				resolve(artifact);
@@ -632,7 +632,7 @@ export class NotesDB extends EventEmitter {
 	 */
 	public restore(opts: IArtifactSearch, self = this) {
 		return new Promise((resolve, reject) => {
-			let artifact: Artifact = Artifact.factory('all', opts);
+			let artifact: Artifact = Artifact.factory('fields', opts);
 			artifact.root = self.config.dbdir;
 
 			let src: string = path.join(self.config.dbdir, 'Trash', artifact.path());

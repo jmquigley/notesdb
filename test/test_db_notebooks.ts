@@ -114,11 +114,11 @@ test('Create a notebook within an existing database', async(t: any) => {
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	await Promise.all([
-		adb.add(Artifact.factory('all', {
+		adb.add(Artifact.factory('fields', {
 			section: sectionName,
 			notebook: l[0]
 		})),
-		adb.add(Artifact.factory('all', {
+		adb.add(Artifact.factory('fields', {
 			section: sectionName,
 			notebook: l[1]
 		}))])
@@ -160,7 +160,7 @@ test('Try to create a notebook that already exists', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	let artifact = Artifact.factory('all', {
+	let artifact = Artifact.factory('fields', {
 		section: sectionName,
 		notebook: notebookName
 	});
@@ -187,7 +187,7 @@ test('Trying to create notebook with a bad name', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	let artifact = Artifact.factory('all', {
+	let artifact = Artifact.factory('fields', {
 		section: sectionName,
 		notebook: notebookName
 	});

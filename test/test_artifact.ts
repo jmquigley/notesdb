@@ -57,7 +57,7 @@ test('Testing artifact with empty creation', (t: any) => {
 });
 
 test('Testing artifact creation type bitmasking', (t: any) => {
-	let a7 = Artifact.factory('all', {
+	let a7 = Artifact.factory('fields', {
 		section: 'section',
 		notebook: 'notebook',
 		filename: 'filename'
@@ -65,14 +65,14 @@ test('Testing artifact creation type bitmasking', (t: any) => {
 	validateArtifact(a7, 'section', 'notebook', 'filename', t);
 	t.is(a7.type, ArtifactType.SNA);
 
-	let a3 = Artifact.factory('all', {
+	let a3 = Artifact.factory('fields', {
 		section: 'section',
 		notebook: 'notebook'
 	});
 	validateArtifact(a3, 'section', 'notebook', '', t);
 	t.is(a3.type, ArtifactType.SN);
 
-	let a1 = Artifact.factory('all', {
+	let a1 = Artifact.factory('fields', {
 		section: 'section'
 	});
 	validateArtifact(a1, 'section', '', '', t);
@@ -86,7 +86,7 @@ test('Testing artifact creation type bitmasking', (t: any) => {
 
 test('Testing artifact with factory all creation', (t: any) => {
 	let fixture = new Fixture();
-	let artifact = Artifact.factory('all', {
+	let artifact = Artifact.factory('fields', {
 		root: fixture.dir,
 		filename: 'filename',
 		notebook: 'notebook',
@@ -153,7 +153,7 @@ test('Test with an unknown mode sent to factory', (t: any) => {
 });
 
 test('Testing the dirty flag', (t: any) => {
-	let artifact = Artifact.factory('all', {
+	let artifact = Artifact.factory('fields', {
 		filename: 'filename',
 		notebook: 'notebook',
 		section: 'section'

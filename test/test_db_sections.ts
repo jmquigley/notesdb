@@ -42,7 +42,7 @@ test('Create a new section within an existing database', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	let artifact = Artifact.factory('all', {section: 'Test3'});
+	let artifact = Artifact.factory('fields', {section: 'Test3'});
 	t.true(artifact instanceof Artifact);
 
 	await adb.add(artifact)
@@ -80,7 +80,7 @@ test('Try to create a section that already exists within a database (negative te
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	let artifact = Artifact.factory('all', {
+	let artifact = Artifact.factory('fields', {
 		section: 'Test1'
 	});
 	t.true(artifact instanceof Artifact);
@@ -105,7 +105,7 @@ test('Try to create an artifact with bad section name (negative test)', async (t
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
 	let badSectionName = '////badSectionName';
-	let artifact = Artifact.factory('all', {
+	let artifact = Artifact.factory('fields', {
 		section: badSectionName
 	});
 	t.true(artifact instanceof Artifact);

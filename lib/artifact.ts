@@ -100,7 +100,7 @@ export class Artifact {
 				}
 				break;
 
-			case 'all':
+			case 'fields':
 				if (opts != null) {
 					let args: IArtifactOpts = opts;
 

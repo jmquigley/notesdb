@@ -157,28 +157,28 @@ test('Open existing database with defaultConfigFile location', async (t: any) =>
 	t.true(adb.hasNotebook({notebook: 'Default', section: 'Test2'}));
 
 	// Check for artifacts within notebooks
-	let artifact = Artifact.factory('all', {
+	let artifact = Artifact.factory('fields', {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
 	});
 	t.true(adb.hasArtifact(artifact));
 
-	artifact = Artifact.factory('all', {
+	artifact = Artifact.factory('fields', {
 		section: 'Default',
 		notebook: 'notebook1',
 		filename: 'test2.txt'
 	});
 	t.true(adb.hasArtifact(artifact));
 
-	artifact = Artifact.factory('all', {
+	artifact = Artifact.factory('fields', {
 		section: 'Test1',
 		notebook: 'Default',
 		filename: 'test3.txt'
 	});
 	t.true(adb.hasArtifact(artifact));
 
-	artifact = Artifact.factory('all', {
+	artifact = Artifact.factory('fields', {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'test4.txt'
