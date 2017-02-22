@@ -5,6 +5,7 @@
 	"configFile": "badconfigfile",
 	"configRoot": "{DIR}",
 	"trash": "{DIR}sampledb/Trash",
+	"metaFile": "{DIR}meta.json",
 	"log4js": {
 		"appenders": [
 			{

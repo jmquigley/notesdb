@@ -48,6 +48,7 @@ test.cb('Create a new database with a custom configuration', (t: any) => {
 	});
 
 	validateDB(adb, 'adb', dir, adb.initialized, t);
+
 	t.end();
 });
 
@@ -136,7 +137,7 @@ test('Create a binder with a bad initial section name', async (t: any) => {
 		});
 });
 
-test.cb('Open existing database with defaultConfigFile location', (t: any) => {
+test('Open existing database with defaultConfigFile location', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
 		root: fixture.dir
@@ -184,10 +185,16 @@ test.cb('Open existing database with defaultConfigFile location', (t: any) => {
 	});
 	t.true(adb.hasArtifact(artifact));
 
-	t.end();
+	await adb.shutdown()
+		.then((msg: string) => {
+			t.is(msg, 'The database is shutdown.')
+		})
+		.catch((err: string) => {
+			t.fail(`${t.title}: ${err}`);
+		});
 });
 
-test.cb('Try to load existing database with missing config file', (t: any) => {
+test.cb('Try to load existing database with missing config file (negative test)', (t: any) => {
 	let fixture = new Fixture('missing-db-config');
 
 	try {
@@ -202,7 +209,7 @@ test.cb('Try to load existing database with missing config file', (t: any) => {
 	t.end();
 });
 
-test.cb('Try to load existing database with missing root directory', (t: any) => {
+test.cb('Try to load existing database with missing root directory (negative test)', (t: any) => {
 	let fixture = new Fixture('missing-db-root');
 
 	try {
@@ -217,7 +224,7 @@ test.cb('Try to load existing database with missing root directory', (t: any) =>
 	t.end();
 });
 
-test.cb('Try to create a database with a missing dbdir in the config', (t: any) => {
+test.cb('Try to create a database with a missing dbdir in the config (negative test)', (t: any) => {
 	let fixture = new Fixture('missing-db-dbdir');
 
 	try {
@@ -232,7 +239,7 @@ test.cb('Try to create a database with a missing dbdir in the config', (t: any) 
 	t.end();
 });
 
-test('Test trying to save a bad configuration file', async (t: any) => {
+test('Test trying to save a bad configuration file (negative test)', async (t: any) => {
 	let fixture = new Fixture('simple-db');
 	let adb = new NotesDB({
 		root: fixture.dir
@@ -240,6 +247,25 @@ test('Test trying to save a bad configuration file', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 	adb.config.configFile = '';  // destroy config reference
+
+	await adb.save()
+		.then(adb => {
+			t.fail(adb.toString());
+		})
+		.catch(err => {
+			t.is(err, `ENOENT: no such file or directory, open ''`);
+			t.pass(err.message);
+		});
+});
+
+test('Test trying to save a bad metadata file (negative test)', async (t: any) => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+	adb.config.metaFile = '';  // destroy config reference
 
 	await adb.save()
 		.then(adb => {
@@ -270,7 +296,7 @@ test.cb('Test the timed save facility', (t: any) => {
 
 	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
 
-	let numFiles = 20;
+	let numFiles = 30;
 	let counter = 0;
 
 	let fn = function() {

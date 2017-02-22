@@ -7,9 +7,17 @@ export interface IArtifactSearch {
 	filename?: string;
 }
 
-export interface IArtifactOpts extends IArtifactSearch{
+export interface IArtifactOpts extends IArtifactSearch {
 	root?: string;
 	treeitem?: string;
+}
+
+export interface IArtifactMeta {
+	accessed: Date;
+	created: Date;
+	updated: Date;
+	tags?: string[];
+	layout?: any;
 }
 
 export const enum ArtifactType {
@@ -137,10 +145,13 @@ export class Artifact {
 	private _loaded: boolean = false;
 	private _dirty: boolean = false;
 	private _buf: string = '';
-	private _created: string = '';
-	private _updated: string = '';
-	private _tags: string[] = [];
-	private _layout: any = {};
+	private _meta: IArtifactMeta = {
+		accessed: new Date(),
+		created: new Date(),
+		updated: new Date(),
+		tags: [],
+		layout: {}
+	};
 
 	/**
 	 * The constructor is private.  Objects must be created with the factory
@@ -149,6 +160,16 @@ export class Artifact {
 
 	public absolute(): string {
 		return path.join(this.root, this.path());
+	}
+
+	/**
+	 * Adds a unique tag to the artifact.
+	 * @param tag {string} the name of the tag to add.
+	 */
+	public addTag(tag: string) {
+		if (this._meta.tags.indexOf(tag) === -1) {
+			this._meta.tags.push(tag);
+		}
 	}
 
 	public hasFilename(): boolean {
@@ -188,12 +209,33 @@ export class Artifact {
 	}
 
 	public toString(): string {
-		return JSON.stringify(this, null, 2);
+		let s: string = '';
+
+		s += `section: '${this._section}', `;
+		s += `notebook: '${this._notebook}', `;
+		s += `filename: '${this._filename}', `;
+		s += `type: ${this._type}, `;
+		s += `loaded: ${this._loaded}, `;
+		s += `dirty: ${this._dirty}, `;
+		s += `accessed: ${this._meta.accessed}, `;
+		s += `created: ${this._meta.created}, `;
+		s += `updated: ${this._meta.updated}, `;
+		s += `tags: '${this._meta.tags.join('|')}'`;
+
+		return s;
 	}
 
 	//
 	// Properties
 	//
+
+	get accessed(): Date {
+		return this._meta.accessed;
+	}
+
+	set accessed(val: Date) {
+		this._meta.accessed = val;
+	}
 
 	get buf(): string {
 		return this._buf;
@@ -212,8 +254,12 @@ export class Artifact {
 		return Buffer.from(this.buf);
 	}
 
-	get created() {
-		return this._created;
+	get created(): Date {
+		return this._meta.created;
+	}
+
+	set created(val: Date) {
+		this._meta.created = val;
 	}
 
 	get filename(): string {
@@ -225,7 +271,7 @@ export class Artifact {
 	}
 
 	get layout() {
-		return this._layout;
+		return this._meta.layout;
 	}
 
 	get loaded(): boolean {
@@ -234,6 +280,14 @@ export class Artifact {
 
 	set loaded(val: boolean) {
 		this._loaded = val;
+	}
+
+	get meta(): IArtifactMeta {
+		return this._meta;
+	}
+
+	set meta(val: IArtifactMeta) {
+		this._meta = val;
 	}
 
 	get notebook(): string {
@@ -264,8 +318,8 @@ export class Artifact {
 		this._section = val;
 	}
 
-	get tags() {
-		return this._tags;
+	get tags(): string[] {
+		return this._meta.tags;
 	}
 
 	get type(): ArtifactType {
@@ -276,7 +330,11 @@ export class Artifact {
 		this._type = val;
 	}
 
-	get updated() {
-		return this._updated;
+	get updated(): Date {
+		return this._meta.updated;
+	}
+
+	set updated(val: Date) {
+		this._meta.updated = val;
 	}
 }

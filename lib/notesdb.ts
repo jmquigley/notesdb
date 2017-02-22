@@ -14,7 +14,7 @@ import * as objectAssign from 'object-assign';
 import * as path from 'path';
 import {Deque} from 'util.ds';
 import {timestamp} from 'util.timestamp';
-import {Artifact, ArtifactType, IArtifactSearch} from './artifact';
+import {Artifact, ArtifactType, IArtifactSearch, IArtifactMeta} from './artifact';
 
 const walk = require('klaw-sync');
 const home = require('expand-home-dir');
@@ -65,6 +65,7 @@ export interface IConfigDB {
 	configRoot: string;
 	dbdir: string;
 	trash: string;
+	metaFile: string;
 	log4js: IAppenderList;
 	root: string;
 	saveInterval: number;
@@ -82,22 +83,28 @@ export const NS: INamespace = {
 	trash: 'trash'
 };
 
+export interface INotesMeta {
+	[key: string]: IArtifactMeta;
+}
+
 /** Creates an instance of the text database class */
 export class NotesDB extends EventEmitter {
 
 	private log: log4js.Logger;
+
 	private _artifacts: any = new Map();
 	private _config: IConfigDB;
+	private _fnSaveInterval: any;
 	private _ignore: string[] = [];
 	private _initialized: boolean = false;
+	private _meta: INotesMeta = {};
+	private _recents: Deque = null;
 	private _reID: RegExp = new RegExp(`^[${validNameChars}]+$`);
-	private _fnSaveInterval: any;
 	private _schema: ISchema = {
 		notes: {},
 		trash: {}
 	};
 	private _timedSave: boolean = false;
-	private _recents: Deque = null;
 
 
 	/**
@@ -155,6 +162,10 @@ export class NotesDB extends EventEmitter {
 			// Opens an existing configuration file
 			self._config = JSON.parse(fs.readFileSync(configFile).toString());
 
+			if (self.config.hasOwnProperty('metaFile') && fs.existsSync(self._config.metaFile)) {
+				self._meta = JSON.parse(fs.readFileSync(self._config.metaFile).toString());
+			}
+
 			// Apply optional overrides to an existing configuration
 			self._config.bufSize = opts.bufSize;
 			self._config.saveInterval = opts.saveInterval;
@@ -171,6 +182,7 @@ export class NotesDB extends EventEmitter {
 				fs.mkdirsSync(self.config.configRoot);
 			}
 			fs.writeFileSync(self.config.configFile, JSON.stringify(self.config, null, '\t'));
+			fs.writeFileSync(self.config.metaFile, JSON.stringify(self.meta, null, '\t'));
 
 			if (!fs.existsSync(self.config.dbdir)) {
 				fs.mkdirsSync(self.config.dbdir);
@@ -408,7 +420,15 @@ export class NotesDB extends EventEmitter {
 						artifact.loaded = true;
 						artifact.makeClean();
 						self.recents.enqueue(artifact);
-						resolve(artifact);
+
+						fs.stat(absolute, (err, stats) => {
+							if (err) {
+								reject(err.message);
+							}
+
+							self.loadMetadata(artifact, stats);
+							resolve(artifact);
+						});
 					});
 
 					inp.on('error', (err: Error) => {
@@ -719,10 +739,15 @@ export class NotesDB extends EventEmitter {
 	public shutdown(self = this) {
 		return new Promise((resolve, reject) => {
 			try {
-				self.saveBinder();
-				clearInterval(self._fnSaveInterval);
-				self.initialized = false;
-				resolve('The database is shutdown.');
+				self.saveBinder((err: string) => {
+					if (err) {
+						reject(err);
+					}
+
+					clearInterval(self._fnSaveInterval);
+					self.initialized = false;
+					resolve('The database is shutdown.');
+				});
 			} catch (err) {
 				reject(err.message);
 			}
@@ -776,6 +801,9 @@ export class NotesDB extends EventEmitter {
 		this._initialized = val;
 	}
 
+	get meta(): INotesMeta {
+		return this._meta;
+	}
 	get recents() {
 		return this._recents;
 	}
@@ -790,56 +818,6 @@ export class NotesDB extends EventEmitter {
 
 	get timedSave() {
 		return this._timedSave;
-	}
-
-	/**
-	 * Creates a new artifact (file) within the schema.  This call is an async
-	 * write of the file.  It expects to be called from a promise with the
-	 * proper resolve/reject callbacks.
-	 * @param artifact {Artifact} a structure that holds the details for the file
-	 * that will be created.
-	 * @param resolve {Function} a promise resolve function that can be called
-	 * if this function is successful.
-	 * @param reject {Function} a promise reject function that can be called
-	 * if this function fails.
-	 * @param area {string} the namespace area within the schema object to
-	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the NotesDB instance
-	 * @private
-	 */
-	private createArtifact(artifact: Artifact, resolve: Function, reject: Function, area: string = NS.notes, self = this) {
-		if (artifact.hasSection() &&
-			artifact.hasNotebook() &&
-			artifact.hasFilename() &&
-			!self.hasArtifact(artifact)) {
-			if (self.isValidName(artifact.filename)) {
-				let dst = path.join(self.config.dbdir, artifact.path());
-				if (area === NS.trash) {
-					dst = path.join(self.config.dbdir, 'Trash', artifact.path());
-				}
-
-				if (!fs.existsSync(dst)) {
-					fs.writeFile(dst, artifact.buffer, (err: Error) => {
-						if (err) {
-							reject('Cannot create file: ${dst}');
-						}
-						artifact.loaded = true;
-						self.log.info(`Added artifact: ${artifact.filename}`);
-						resolve(artifact);
-					});
-				}
-
-				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
-
-				if (area !== NS.trash) {
-					self._artifacts.set(artifact.path(), artifact);
-				}
-			} else {
-				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
-			}
-		}
-
-		resolve(artifact);
 	}
 
 	/**
@@ -858,6 +836,7 @@ export class NotesDB extends EventEmitter {
 			artifact.hasFilename() &&
 			!self.hasArtifact(artifact, area)) {
 			if (self.isValidName(artifact.filename)) {
+				self.loadMetadata(artifact);
 				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
 
 				if (area !== NS.trash) {
@@ -872,6 +851,70 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
+	 * Creates a new artifact (file) within the schema.  This call is an async
+	 * write of the file.  It expects to be called from a promise with the
+	 * proper resolve/reject callbacks.
+	 * @param artifact {Artifact} a structure that holds the details for the file
+	 * that will be created.
+	 * @param resolve {Function} a promise resolve function that can be called
+	 * if this function is successful.
+	 * @param reject {Function} a promise reject function that can be called
+	 * if this function fails.
+	 * @param area {string} the namespace area within the schema object to
+	 * search.  There are two areas: notes & trash.
+	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @private
+	 */
+	private createArtifact(artifact: Artifact, resolve: Function, reject: Function, area: string = NS.notes, self = this) {
+		function loadStats(filename: string) {
+			fs.stat(filename, (err, stats) => {
+				if (err) {
+					reject(err.message);
+				}
+
+				artifact.loaded = true;
+				self.loadMetadata(artifact, stats);
+				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
+
+				if (area !== NS.trash) {
+					self._artifacts.set(artifact.path(), artifact);
+				}
+
+				self.log.info(`Added artifact: ${artifact.filename}`);
+				resolve(artifact);
+			});
+		}
+
+		if (artifact.hasSection() &&
+			artifact.hasNotebook() &&
+			artifact.hasFilename() &&
+			!self.hasArtifact(artifact)) {
+			if (self.isValidName(artifact.filename)) {
+				let dst = path.join(self.config.dbdir, artifact.path());
+				if (area === NS.trash) {
+					dst = path.join(self.config.dbdir, 'Trash', artifact.path());
+				}
+
+				if (!fs.existsSync(dst)) {
+					fs.writeFile(dst, artifact.buffer, (err: Error) => {
+						if (err) {
+							reject('Cannot create file: ${dst}');
+						}
+
+						loadStats(dst);
+					});
+				}
+
+				loadStats(artifact.absolute());
+			} else {
+				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
+			}
+		}
+
+		resolve(artifact);
+	}
+
+	/**
 	 * Takes the name of the initial configuration file and builds the initial
 	 * structure for that configuration.
 	 * @param opts {INotesDBOpts} parameters used to instantiate this object.
@@ -880,6 +923,7 @@ export class NotesDB extends EventEmitter {
 	 */
 	private createInitialConfig(opts: INotesDBOpts): IConfigDB {
 		let configFile: string = path.join(opts.configRoot || './', 'config.json');
+		let metaFile: string = path.join(opts.configRoot || './', 'meta.json');
 
 		return {
 			binderName: opts.binderName || 'adb',
@@ -887,6 +931,7 @@ export class NotesDB extends EventEmitter {
 			configRoot: opts.configRoot,
 			dbdir: path.join(opts.root || './', opts.binderName || 'adb'),
 			trash: path.join(opts.root || './', opts.binderName || 'adb', 'Trash'),
+			metaFile: metaFile,
 			log4js: {
 				appenders: [
 					{
@@ -1041,6 +1086,36 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
+	 * Takes an artifact and tries to load its meta data from the the
+	 * configuration.  It will assign metadata that it finds to the aritifact.
+	 * If the artifact isn't found in the configuration, then the default
+	 * metadata from the artifact is used (and ultimately saved).
+	 * @param artifact {Artifact} a reference to the artifact that will be
+	 * loaded.
+	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @private
+	 */
+	private loadMetadata(artifact: Artifact, stats: fs.Stats = null, self = this): void {
+		if (artifact instanceof Artifact) {
+			if (artifact.path() in self.meta) {
+				artifact.meta = self.meta[artifact.path()];
+			} else {
+				self.meta[artifact.path()] = artifact.meta;
+			}
+
+			if (stats == null && fs.existsSync(artifact.absolute())) {
+				stats = fs.statSync(artifact.absolute());
+			}
+
+			if (stats != null) {
+				artifact.accessed = stats.atime;
+				artifact.created = stats.birthtime;
+				artifact.updated = stats.ctime;
+			}
+		}
+	}
+
+	/**
 	 * Takes an artifact and appends a timestamp to the last part of its path
 	 * @param artifact {Artifact} the artifact to change
 	 * @returns {Artifact} the modified artifact with a timestamp attached to
@@ -1063,25 +1138,47 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
-	 * Saves the internal state of the binder
+	 * Saves the internal state of the binder.  This includes saving any changes
+	 * in the configuration or meta data for artifacts.  It also looks for
+	 * "dirty" artifacts and saves them where necessary.
 	 * @param cb {Function} a callback function that is executed when all
 	 * artifact save promises have resolved.
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
 	private saveBinder(cb: Function = null, self = this) {
-		self.log.debug(`Saving configuration: ${self.config.configFile}`);
-		let data = JSON.stringify(self.config, null, '\t');
-		fs.writeFileSync(self.config.configFile, data);
-
 		let promises: any = [];
+
+		promises.push(new Promise((resolve, reject) => {
+			self.log.debug(`Saving configuration: ${self.config.configFile}`);
+			let data = JSON.stringify(self.config, null, '\t');
+			fs.writeFile(self.config.configFile, data, (err) => {
+				if (err) {
+					reject(err.message);
+				}
+				resolve('Saved configuration');
+			});
+		}));
+
+		promises.push(new Promise((resolve, reject) => {
+			self.log.debug(`Saving meta data: ${self.config.metaFile}`);
+			let data = JSON.stringify(self.meta, null, '\t');
+			fs.writeFile(self.config.metaFile, data, (err) => {
+				if (err) {
+					reject(err.message);
+				}
+				resolve('Saved metadata');
+			});
+		}));
+
+
 		for (let artifact of self.artifacts.values()) {
 			promises.push(self.saveArtifact(artifact));
 		}
 
 		Promise.all(promises)
-			.then(() => {
-				if (cb && typeof cb === 'function') {
+			.then((rets: any) => {
+				if (cb && typeof cb === 'function' && rets instanceof Array) {
 					cb(null);
 				}
 			})

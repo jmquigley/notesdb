@@ -1,0 +1,37 @@
+{
+	"Default/Default/test1.txt": {
+		"accessed": "2017-02-22T17:47:44.000Z",
+		"created": "2017-02-22T17:47:44.000Z",
+		"updated": "2017-02-22T17:47:44.000Z",
+		"tags": ["A", "B"],
+		"layout": {}
+	},
+	"Default/notebook1/test2.txt": {
+		"accessed": "2017-02-22T17:47:44.000Z",
+		"created": "2017-02-22T17:47:44.000Z",
+		"updated": "2017-02-22T17:47:44.000Z",
+		"tags": [],
+		"layout": {}
+	},
+	"Test1/Default/test3.txt": {
+		"accessed": "2017-02-22T17:47:44.000Z",
+		"created": "2017-02-22T17:47:44.000Z",
+		"updated": "2017-02-22T17:47:44.000Z",
+		"tags": [],
+		"layout": {}
+	},
+	"Test2/Default/test4.txt": {
+		"accessed": "2017-02-22T17:47:44.000Z",
+		"created": "2017-02-22T17:47:44.000Z",
+		"updated": "2017-02-22T17:47:44.000Z",
+		"tags": [],
+		"layout": {}
+	},
+	"GarbageSection/GarbageNotebook/throwaway.txt": {
+		"accessed": "2017-02-22T17:47:46.289Z",
+		"created": "2017-02-22T17:47:46.289Z",
+		"updated": "2017-02-22T17:47:46.289Z",
+		"tags": [],
+		"layout": {}
+	}
+}

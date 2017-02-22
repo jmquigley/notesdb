@@ -16,9 +16,6 @@
   "engines": {
     "node": ">=7.5"
   },
-  "bin": {
-    "notesdb": "./cli.js"
-  },
   "dependencies": {
     "@types/fs-extra": "0.0.37",
     "@types/lodash": "^4.14.52",

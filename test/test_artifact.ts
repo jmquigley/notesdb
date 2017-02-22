@@ -23,15 +23,21 @@ test('Testing artifact with empty creation', (t: any) => {
 
 	validateArtifact(artifact, '', '', '', t);
 
+	artifact.created = new Date();
+	artifact.accessed = new Date();
+	artifact.updated = new Date();
+
 	t.is(artifact.info(), '||');
 	t.true(typeof artifact.toString() === 'string');
+	console.log(artifact.toString());
 	t.true(artifact.buffer instanceof Buffer);
 	t.is(artifact.root, fixture.dir);
 	t.is(artifact.path(), '.');
-	t.is(artifact.created, '');
-	t.is(artifact.updated, '');
 	t.is(artifact.type, ArtifactType.Unk);
 	t.true(artifact.isEmtpy());
+	t.true(artifact.accessed != null && artifact.accessed instanceof Date);
+	t.true(artifact.created != null && artifact.created instanceof Date);
+	t.true(artifact.updated != null && artifact.updated instanceof Date);
 	t.truthy(artifact.layout);
 	t.false(artifact.loaded);
 	artifact.loaded = true;
@@ -39,6 +45,15 @@ test('Testing artifact with empty creation', (t: any) => {
 	t.truthy(artifact.tags);
 	t.true(artifact.tags instanceof Array);
 	t.is(artifact.absolute(), path.join(fixture.dir, artifact.path()));
+
+	artifact.addTag('A');
+	artifact.addTag('A');
+	artifact.addTag('B');
+
+	t.true(artifact.tags instanceof Array);
+	t.is(artifact.tags.length, 2);
+	t.true(artifact.tags[0] === 'A');
+	t.true(artifact.tags[1] === 'B');
 });
 
 test('Testing artifact creation type bitmasking', (t: any) => {

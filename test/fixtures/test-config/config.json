@@ -5,6 +5,7 @@
 	"configFile": "{DIR}config.json",
 	"configRoot": "{DIR}",
 	"trash": "",
+	"metaFile": "{DIR}meta.json",
 	"log4js": {
 		"appenders": [
 			{
