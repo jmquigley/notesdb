@@ -15,7 +15,7 @@ Creates an instance of the text database class
     * [.hasArtifact(search, area, self)](#NotesDB+hasArtifact) ⇒ <code>boolean</code>
     * [.hasNotebook(search, area, self)](#NotesDB+hasNotebook) ⇒ <code>boolean</code>
     * [.hasSection(search, area, self)](#NotesDB+hasSection) ⇒ <code>boolean</code>
-    * [.notebooks(sectionName, area, self)](#NotesDB+notebooks)
+    * [.notebooks(sectionName, area, self)](#NotesDB+notebooks) ⇒ <code>Array</code>
     * [.reload(area, self)](#NotesDB+reload) ⇒ <code>Promise</code>
     * [.remove(opts, area, self)](#NotesDB+remove) ⇒ <code>Promise</code>
     * [.restore(opts, self)](#NotesDB+restore) ⇒ <code>Promise</code>
@@ -168,11 +168,12 @@ Checks the current schema for the existence of a section.
 
 <a name="NotesDB+notebooks"></a>
 
-### notesDB.notebooks(sectionName, area, self)
+### notesDB.notebooks(sectionName, area, self) ⇒ <code>Array</code>
 Enumerates the list of notebooks in a section from the schema.
 returns {Array} a list of the notebooks for a section
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
+**Returns**: <code>Array</code> - a list of notebook names as strings  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -262,7 +263,7 @@ Performs a save of a single artifact.
 Enumerates the list of sections from the schema.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
-**Returns**: <code>Array</code> - a future promise to return the list  
+**Returns**: <code>Array</code> - a list of section names as strings  
 
 | Param | Type | Description |
 | --- | --- | --- |

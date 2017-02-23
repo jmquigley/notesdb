@@ -519,6 +519,7 @@ export class NotesDB extends EventEmitter {
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Array} a list of notebook names as strings
 	 */
 	public notebooks(sectionName: string, area: string = NS.notes, self = this): string[] {
 		let notebooks: string[] = [];
@@ -712,7 +713,7 @@ export class NotesDB extends EventEmitter {
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
-	 * @returns {Array} a future promise to return the list
+	 * @returns {Array} a list of section names as strings
 	 */
 	public sections(area: string = NS.notes, self = this): string[] {
 		let sections: string[] = [];

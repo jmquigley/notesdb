@@ -8,6 +8,8 @@ import {Artifact} from '../index';
 import {ArtifactType} from '../lib/artifact';
 import {validateArtifact} from './helpers';
 
+const pkg = require('../package.json');
+
 test.after.always((t: any) => {
 	console.log('final cleanup: test_artifacts');
 	let directories = Fixture.cleanup();
@@ -29,7 +31,11 @@ test('Testing artifact with empty creation', (t: any) => {
 
 	t.is(artifact.info(), '||');
 	t.true(typeof artifact.toString() === 'string');
-	console.log(artifact.toString());
+
+	if (pkg.debug) {
+		console.log(artifact.toString());
+	}
+
 	t.true(artifact.buffer instanceof Buffer);
 	t.is(artifact.root, fixture.dir);
 	t.is(artifact.path(), '.');

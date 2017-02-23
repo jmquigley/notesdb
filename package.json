@@ -58,6 +58,7 @@
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
+    "all": "npm run build && npm test && npm run report",
     "build": "./node_modules/.bin/pkgwrap --build && npm run docs",
     "coverage": "./node_modules/.bin/pkgwrap --coverage",
     "docs": "./node_modules/.bin/gulp docs",
