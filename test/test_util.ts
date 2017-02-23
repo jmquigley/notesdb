@@ -74,10 +74,3 @@ test('Get UUID with dashes', (t: any) => {
 	t.true(val.indexOf('-') > -1);
 	t.true(val.length === 36);
 });
-
-test.cb('Testing pause function', (t: any) => {
-	util.pause(2, () => {
-		t.pass('Finishd pause for 2 seconds');
-		t.end();
-	});
-});
