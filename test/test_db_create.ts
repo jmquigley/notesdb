@@ -4,13 +4,13 @@ import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
+import {wait} from 'util.wait';
 import * as uuid from 'uuid';
 import {Artifact} from '../index';
 import {IArtifactSearch} from '../lib/artifact';
 import {NotesDB} from '../index';
 import {validateDB, validateArtifact} from './helpers';
 
-const randomBytes = require('randombytes');
 const pkg = require('../package.json');
 
 test.after.always((t: any) => {
@@ -277,52 +277,24 @@ test('Test trying to save a bad metadata file (negative test)', async (t: any) =
 		});
 });
 
-test.cb('Test the timed save facility', (t: any) => {
-
-	// This is a really ugly timed save facility test.  It wastes time by
-	// creating N files async.  When the N files are complete it checks a
-	// global counter to see that they are all done.  When this global counter
-	// is exceeded, then the test is ended.  When it ends, the timed save
-	// facility should have fired (and saved a flag within the DB).
-	//
-	// The files are created by inserting random bytes into randoml named
-	// files within the fixture.
-
+test('Test the timed save facility', async (t: any) => {
 	let fixture = new Fixture('simple-db');
-	let notesDB = new NotesDB({
+	let adb = new NotesDB({
 		root: fixture.dir,
-		saveInterval: 100
+		saveInterval: 1000
 	});
 
-	validateDB(notesDB, 'sampledb', fixture.dir, notesDB.initialized, t);
+	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	let numFiles = 30;
-	let counter = 0;
-
-	let fn = function() {
-		let out = path.join(fixture.dir, `${uuid.v4()}.txt`);
-		fs.writeFile(out, randomBytes(5 * 1024 * 1024), (err) => {
-			if (err) {
-				t.fail(err.message);
-			}
-
-			if (counter++ >= numFiles-1) {
-				t.true(notesDB.timedSave);
-				notesDB.shutdown()
-				.then((msg: string ) => {
-					t.is(msg, 'The database is shutdown.');
-					t.end();
-				})
-				.catch((err: string) => {
-					t.fail(err);
-				});
-			}
+	await wait(3)
+		.then(() => {
+			t.true(adb.timedSave);
+			return adb;
+		})
+		.then(adb.shutdown)
+		.catch((err: string) => {
+			t.fail(`${t.title}: ${err}`);
 		});
-	};
-
-	for (let i=0; i<numFiles; i++) {
-		fn();
-	}
 });
 
 test('Test the reload function', async (t: any) => {

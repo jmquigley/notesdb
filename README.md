@@ -292,3 +292,6 @@ It returns a message indicating that the binder was shutdown.
 ## API
 
 The API is generated with [JSDoc](https://www.npmjs.com/package/jsdoc).  It can be found within the `docs` directory for the project.  It can be generated with `npm run docs`.  An HTML site is generated in this directory that gives details on the api.
+
+- [Artifact](docs/artifact.md)
+- [NotesDB](docs/artifact.md)

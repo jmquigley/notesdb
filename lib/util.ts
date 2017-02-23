@@ -2,7 +2,7 @@
  * This module contains helper functions used in the txtdb.  They represent
  * private functions that are not exposed as part of the main module.
  *
- * @module
+ * @module util
  */
 'use strict';
 

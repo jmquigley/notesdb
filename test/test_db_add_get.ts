@@ -2,10 +2,10 @@
 
 import {test} from 'ava';
 import * as fs from 'fs-extra';
-import * as _ from 'lodash';
 import {Artifact} from '../index';
 import {IArtifactSearch} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
+import {wait} from 'util.wait';
 import {NotesDB} from '../index';
 import {validateDB, validateArtifact} from './helpers';
 
@@ -256,12 +256,9 @@ test('Test the automatic ejection from recents list', async (t: any) => {
 		.then((artifact: Artifact) => {
 			validateArtifact(artifact, 'Default', 'notebook1', 'test2.txt', t);
 
-			// wasting time for event fire from first ejected to work
-			let promise = null;
-			_.times(10, () => {
-				promise = adb.get({section: 'Test1', notebook: 'Default', filename: 'test3.txt'})
-			});
-			return promise;
+			// This wait allows the event loop to continue and process the
+			// remove node event before moving on to the next thenable
+			return wait(3, adb.get({section: 'Test1', notebook: 'Default', filename: 'test3.txt'}));
 		})
 		.then((artifact: Artifact) => {
 			validateArtifact(artifact, 'Test1', 'Default', 'test3.txt', t);
