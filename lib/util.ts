@@ -19,7 +19,7 @@ const pkg = require('../package.json');
  * If it is already there, then it is not added again.
  * @param logger {Logger} a reference to the log4j object.
  */
-export function addConsole(logger: IAppenderList) {
+export function addConsole(logger: IAppenderList): void {
 	if (pkg.debug) {
 		let obj = logger.appenders.filter((appender: IAppender) => {
 			return appender.type === 'console';

@@ -202,7 +202,7 @@ test('Trying to create notebook with a bad name', async (t: any) => {
 		});
 });
 
-test('Load a database with file in the sections directory', async (t: any) => {
+test.cb('Load a database with file in the sections directory', (t: any) => {
 	let fixture = new Fixture('invalid-notebook');
 	let adb = new NotesDB({
 		root: fixture.dir
@@ -210,5 +210,7 @@ test('Load a database with file in the sections directory', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	// TODO: this test is incomplete
+	t.false(adb.hasNotebook({section: 'Default', notebook: 'somefile.txt'}));
+	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Default', 'somefile.txt')));
+	t.end();
 });
