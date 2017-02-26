@@ -13,8 +13,7 @@ import * as log4js from 'log4js';
 import * as objectAssign from 'object-assign';
 import * as path from 'path';
 import {Deque} from 'util.ds';
-import {timestamp} from 'util.timestamp';
-import {Artifact, ArtifactType, IArtifactSearch, IArtifactMeta} from './artifact';
+import {Artifact, ArtifactType, IArtifactSearch, IArtifactMeta, artifactComparator} from './artifact';
 
 const walk = require('klaw-sync');
 const home = require('expand-home-dir');
@@ -193,7 +192,7 @@ export class NotesDB extends EventEmitter {
 			}
 		}
 
-		self._recents = new Deque(self.config.maxRecents);
+		self._recents = new Deque(self.config.maxRecents, artifactComparator);
 
 		util.addConsole(self.config.log4js);
 		log4js.configure(self.config.log4js);
@@ -271,7 +270,9 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
-	 * Creates new sections within a binder.
+	 * Creates new sections within a binder.  It takes a list of section
+	 * strings and creates a directory for each given string.
+	 *
 	 * @param schema {Array|string} a list of directories (sections) under this
 	 * binder location.  Each of these directories will be created under this
 	 * binder unless they already exist.
@@ -314,6 +315,9 @@ export class NotesDB extends EventEmitter {
 	 * current DB.  It also resets the internal trash namespace to empty.  This
 	 * will check that the directory requested is within the database location
 	 * and has the 'Trash' directory.
+	 *
+	 * The thenable resolves to a reference to the NotesDB instance.
+	 *
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
@@ -393,10 +397,13 @@ export class NotesDB extends EventEmitter {
 	 * Retrieves an artifact from the schema.  If it exists, then it is returned
 	 * by the promise.  If it is not found, then an error will be thrown.  If
 	 * the artifact has never been loaded before, then it is read from the
-	 * filesystem when this request is made.
+	 * filesystem when this request is made.  This will place the artifact into
+	 * the recent documents queue.
 	 *
 	 * When the request is a section or notebook a temporary artifact object
 	 * is created and returned.
+	 *
+	 * The thenable resolves to the artifact created by the get request.
 	 *
 	 * @param opts {IArtifactSearch} the section/notebook/filename to search
 	 * for within the schema.
@@ -419,7 +426,9 @@ export class NotesDB extends EventEmitter {
 					inp.on('close', () => {
 						artifact.loaded = true;
 						artifact.makeClean();
-						self.recents.enqueue(artifact);
+
+						if (!self.recents.contains(artifact)) self.recents.enqueue(artifact);
+
 
 						fs.stat(absolute, (err, stats) => {
 							if (err) {
@@ -439,14 +448,14 @@ export class NotesDB extends EventEmitter {
 						artifact.buf += chunk;
 					});
 				} else {
-					self.recents.enqueue(artifact);
+					if (!self.recents.contains(artifact)) self.recents.enqueue(artifact);
 					resolve(artifact);
 				}
 			} else if ((type === ArtifactType.SN && self.hasNotebook(opts, area)) ||
 				(type === ArtifactType.S && self.hasSection(opts, area))) {
 				let artifact = Artifact.factory('fields', opts);
 				artifact.root = self.config.dbdir;
-				self.recents.enqueue(artifact);
+				if (!self.recents.contains(artifact)) self.recents.enqueue(artifact);
 				resolve(artifact);
 			} else {
 				reject(`Artifact doesn't exist: ${opts.section}|${opts.notebook}|${opts.filename}`);
@@ -562,57 +571,86 @@ export class NotesDB extends EventEmitter {
 	}
 
 	/**
-	 * Moves an artifact from it's current directory to the "Trash" folder.  It
-	 * is not removed until the emptyTrash() method is called.  The artifact
-	 * is removed from the schema dictionary and stored in the trash dictionary.
+	 * Immediately removes an section/notebook/artifact from the system.
 	 *
-	 * The thenable resolves to the path of the removed artifact.
+	 * The thenable resolves to a reference to the NotesDB instance.
 	 *
-	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
+	 * @param opts {IArtifactSearch} the section/notebook/filename to search
 	 * for within the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
 	 * @param self {NotesDB} a reference to the notes database instance
-	 * @returns {Promise} a javascript promise object.
+	 * @returns {Promise} a javascript promise object
 	 */
 	public remove(opts: IArtifactSearch, area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
 			self.get(opts)
 				.then((artifact: Artifact) => {
-					let src: string = path.join(self.config.dbdir, artifact.path());
-					let dst: string = path.join(self.config.dbdir, 'Trash', artifact.path());
-					if (fs.existsSync(dst)) {
-						dst = path.join(self.config.dbdir, 'Trash', self.makeUnique(artifact).path());
+					switch (artifact.type) {
+						case ArtifactType.SNA:
+							self.recents.eject(artifact);
+							self._artifacts.delete(artifact.path());
+							delete self.schema[area][artifact.section][artifact.notebook][artifact.filename];
+							break;
+
+						case ArtifactType.SN:
+							delete self.schema[area][artifact.section][artifact.notebook];
+							break;
+
+						case ArtifactType.S:
+							delete self.schema[area][artifact.section];
+							break;
 					}
 
-					fs.move(src, dst, (err: Error) => {
+					fs.remove(artifact.absolute(), (err) => {
 						if (err) {
 							reject(err.message);
 						}
 
-						switch (artifact.type) {
-							case ArtifactType.SNA:
-								self._artifacts.delete(artifact.path());
-								delete self.schema[area][artifact.section][artifact.notebook][artifact.filename];
-								break;
-
-							case ArtifactType.SN:
-								delete self.schema[area][artifact.section][artifact.notebook];
-								break;
-
-							case ArtifactType.S:
-								delete self.schema[area][artifact.section];
-								break;
-						}
-
-						self.reload('trash')
-							.then(() => {
-								resolve(dst);
-							})
-							.catch((err: string) => {
-								reject(err);
-							});
+						resolve(self);
 					});
+				})
+				.catch((err: string) => {
+					reject(err);
+				});
+		});
+	}
+
+	/**
+	 * Renames an artifact from the source (src) to destination (dst).
+	 *
+	 * The thenable resolves to a reference to the renamed artifact.
+	 *
+	 * @param src {IArtifactSearch} the source artifact that will be changed
+	 * @param dst {IArtifactSearch} the destination artifact that the source
+	 * will be changed into.
+	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object.
+	 */
+	public rename(src: IArtifactSearch, dst: IArtifactSearch, self = this) {
+		return new Promise((resolve, reject) => {
+			let srcArtifact: Artifact = null;
+			let dstArtifact: Artifact = null;
+
+			self.get(src)
+				.then((artifact: Artifact) => {
+					srcArtifact = artifact;
+					if (srcArtifact.type !== Artifact.isType(dst)) {
+						reject('SRC artifact type does not match DST');
+					}
+					return self.add(dst);
+				})
+				.then((artifact: Artifact) => {
+					dstArtifact = artifact;
+					dstArtifact.meta = _.cloneDeep(srcArtifact.meta);
+					dstArtifact.buf = srcArtifact.buf;
+					dstArtifact.makeDirty();
+				})
+				.then(() => {
+					return self.remove(srcArtifact);
+				})
+				.then(() => {
+					resolve(dstArtifact);
 				})
 				.catch((err: string) => {
 					reject(err);
@@ -625,7 +663,7 @@ export class NotesDB extends EventEmitter {
 	 * item is already in the schema, then it appends a timestamp to the name
 	 * of the item that is being restored.
 	 *
-	 * The thenable resolves to the path of the restored artifact.
+	 * The thenable resolves to the artifact that was retored.
 	 *
 	 * @param opts {IArtifactSearch} The section/notebook/filename to restore
 	 * @param self {NotesDB} a reference to the notes database instance
@@ -633,28 +671,34 @@ export class NotesDB extends EventEmitter {
 	 */
 	public restore(opts: IArtifactSearch, self = this) {
 		return new Promise((resolve, reject) => {
-			let artifact: Artifact = Artifact.factory('fields', opts);
-			artifact.root = self.config.dbdir;
+			let dstArtifact: Artifact = Artifact.factory('fields', opts);
+			dstArtifact.root = self.config.dbdir;
+			let srcArtifact: Artifact = dstArtifact.clone();
+			srcArtifact.root = path.join(self.config.dbdir, 'Trash');
 
-			let src: string = path.join(self.config.dbdir, 'Trash', artifact.path());
-			if (!fs.existsSync(src)) {
-				reject(`This artifact doesn't exist in Trash and can't be restored: ${artifact.info()}`);
+			// Compute the garbage can file/directory location
+			if (!fs.existsSync(srcArtifact.absolute())) {
+				reject(`This artifact doesn't exist in Trash and can't be restored: ${srcArtifact.info()}`);
 			}
 
-			let dst: string = path.join(self.config.dbdir, artifact.path());
-			if (fs.existsSync(dst)) {
-				dst = path.join(self.config.dbdir, self.makeUnique(artifact).path());
+			// Compute the restore location
+			if (fs.existsSync(dstArtifact.absolute())) {
+				dstArtifact.makeUnique();
 			}
 
-			fs.move(src, dst, (err: Error) => {
+			fs.move(srcArtifact.absolute(), dstArtifact.absolute(), (err: Error) => {
 				if (err) {
 					reject(err.message);
 				}
 
-				fs.removeSync(src);  // remove item in the trash
+				fs.removeSync(srcArtifact.absolute());
+
+				// This is an expensive reload process.  When it s single item it's
+				// expensive to do this, but if it's a directory with a lot of files
+				// restored, then it would be worth the overhead.
 				self.reload()
 					.then(() => {
-						resolve(dst);
+						resolve(dstArtifact);
 					})
 					.catch((err: string) => {
 						reject(err);
@@ -667,6 +711,9 @@ export class NotesDB extends EventEmitter {
 	 * User requested save function.  If given an artifact, then a single
 	 * save is performed.  If no artifact is specifid, then the binder
 	 * artifact list is scanned for dirty artifacts that need to be saved.
+	 *
+	 * The thenable resolves to a reference to the NotesDB instance.
+	 *
 	 * @param self {NotesDB} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
@@ -768,6 +815,51 @@ export class NotesDB extends EventEmitter {
 		};
 
 		return JSON.stringify(obj, null, '\t');
+	}
+
+    /**
+	 * Moves an artifact from it's current directory to the "Trash" folder.  It
+	 * is not removed until the emptyTrash() method is called.  The artifact
+	 * is removed from the schema dictionary and stored in the trash dictionary.
+	 *
+	 * The thenable resolves to the artifact that was moved to the trash.
+	 *
+	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
+	 * for within the schema.
+	 * @param self {NotesDB} a reference to the notes database instance
+	 * @returns {Promise} a javascript promise object.
+	 */
+	public trash(opts: IArtifactSearch, self = this) {
+		return new Promise((resolve, reject) => {
+			self.get(opts)
+				.then((srcArtifact: Artifact) => {
+					let dstArtifact: Artifact = srcArtifact.clone();
+					dstArtifact.root = path.join(self.config.dbdir, 'Trash');
+					if (fs.existsSync(dstArtifact.absolute())) {
+						dstArtifact.makeUnique();
+					}
+
+					fs.move(srcArtifact.absolute(), dstArtifact.absolute(), (err: Error) => {
+						if (err) {
+							reject(err.message);
+						}
+
+						self.remove(srcArtifact)
+							.then((adb: NotesDB) => {
+								return adb.reload('trash');
+							})
+							.then(() => {
+								resolve(dstArtifact);
+							})
+							.catch((err: string) => {
+								reject(err);
+							});
+					});
+				})
+				.catch((err: string) => {
+					reject(err);
+				});
+		});
 	}
 
 	//
@@ -910,9 +1002,9 @@ export class NotesDB extends EventEmitter {
 			} else {
 				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
+		} else {
+			resolve(artifact);
 		}
-
-		resolve(artifact);
 	}
 
 	/**
@@ -1114,28 +1206,6 @@ export class NotesDB extends EventEmitter {
 				artifact.updated = stats.ctime;
 			}
 		}
-	}
-
-	/**
-	 * Takes an artifact and appends a timestamp to the last part of its path
-	 * @param artifact {Artifact} the artifact to change
-	 * @returns {Artifact} the modified artifact with a timestamp attached to
-	 * the last element of the path.
-	 * @private
-	 */
-	private makeUnique(artifact: Artifact): Artifact {
-		artifact = _.cloneDeep(artifact);
-
-		let ts: string = `.${timestamp()}`;
-		if (artifact.type === ArtifactType.SNA) {
-			artifact.filename += ts;
-		} else if (artifact.type === ArtifactType.SN) {
-			artifact.notebook += ts;
-		} else if (artifact.type === ArtifactType.S) {
-			artifact.section += ts;
-		}
-
-		return artifact;
 	}
 
 	/**

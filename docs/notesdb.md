@@ -18,12 +18,14 @@ Creates an instance of the text database class
     * [.notebooks(sectionName, area, self)](#NotesDB+notebooks) ⇒ <code>Array</code>
     * [.reload(area, self)](#NotesDB+reload) ⇒ <code>Promise</code>
     * [.remove(opts, area, self)](#NotesDB+remove) ⇒ <code>Promise</code>
+    * [.rename(src, dst, self)](#NotesDB+rename) ⇒ <code>Promise</code>
     * [.restore(opts, self)](#NotesDB+restore) ⇒ <code>Promise</code>
     * [.save(self)](#NotesDB+save) ⇒ <code>Promise</code>
     * [.saveArtifact(artifact)](#NotesDB+saveArtifact) ⇒ <code>Promise</code>
     * [.sections(area, self)](#NotesDB+sections) ⇒ <code>Array</code>
     * [.shutdown(self)](#NotesDB+shutdown) ⇒ <code>Promise</code>
     * [.toString(self)](#NotesDB+toString) ⇒ <code>string</code>
+    * [.trash(opts, self)](#NotesDB+trash) ⇒ <code>Promise</code>
 
 <a name="new_NotesDB_new"></a>
 
@@ -59,7 +61,8 @@ was created.
 <a name="NotesDB+create"></a>
 
 ### notesDB.create(schema, area, self) ⇒ <code>Promise</code>
-Creates new sections within a binder.
+Creates new sections within a binder.  It takes a list of section
+strings and creates a directory for each given string.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object  
@@ -77,6 +80,8 @@ Removes the current contents of the 'Trash' folder/section from the
 current DB.  It also resets the internal trash namespace to empty.  This
 will check that the directory requested is within the database location
 and has the 'Trash' directory.
+
+The thenable resolves to a reference to the NotesDB instance.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
@@ -109,10 +114,13 @@ search criteria.
 Retrieves an artifact from the schema.  If it exists, then it is returned
 by the promise.  If it is not found, then an error will be thrown.  If
 the artifact has never been loaded before, then it is read from the
-filesystem when this request is made.
+filesystem when this request is made.  This will place the artifact into
+the recent documents queue.
 
 When the request is a section or notebook a temporary artifact object
 is created and returned.
+
+The thenable resolves to the artifact created by the get request.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
@@ -199,19 +207,33 @@ structure after the instance has been loaded.
 <a name="NotesDB+remove"></a>
 
 ### notesDB.remove(opts, area, self) ⇒ <code>Promise</code>
-Moves an artifact from it's current directory to the "Trash" folder.  It
-is not removed until the emptyTrash() method is called.  The artifact
-is removed from the schema dictionary and stored in the trash dictionary.
+Immediately removes an section/notebook/artifact from the system.
 
-The thenable resolves to the path of the removed artifact.
+The thenable resolves to a reference to the NotesDB instance.
+
+**Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
+**Returns**: <code>Promise</code> - a javascript promise object  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| opts | <code>IArtifactSearch</code> | the section/notebook/filename to search for within the schema. |
+| area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
+| self | <code>[NotesDB](#NotesDB)</code> | a reference to the notes database instance |
+
+<a name="NotesDB+rename"></a>
+
+### notesDB.rename(src, dst, self) ⇒ <code>Promise</code>
+Renames an artifact from the source (src) to destination (dst).
+
+The thenable resolves to a reference to the renamed artifact.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| opts | <code>IArtifactSearch</code> | the section/notebook/filename to remove for within the schema. |
-| area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
+| src | <code>IArtifactSearch</code> | the source artifact that will be changed |
+| dst | <code>IArtifactSearch</code> | the destination artifact that the source will be changed into. |
 | self | <code>[NotesDB](#NotesDB)</code> | a reference to the notes database instance |
 
 <a name="NotesDB+restore"></a>
@@ -221,7 +243,7 @@ Takes an item from the trash and puts it back into the schema.  If the
 item is already in the schema, then it appends a timestamp to the name
 of the item that is being restored.
 
-The thenable resolves to the path of the restored artifact.
+The thenable resolves to the artifact that was retored.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
@@ -237,6 +259,8 @@ The thenable resolves to the path of the restored artifact.
 User requested save function.  If given an artifact, then a single
 save is performed.  If no artifact is specifid, then the binder
 artifact list is scanned for dirty artifacts that need to be saved.
+
+The thenable resolves to a reference to the NotesDB instance.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object  
@@ -294,5 +318,22 @@ the database.
 
 | Param | Type | Description |
 | --- | --- | --- |
+| self | <code>[NotesDB](#NotesDB)</code> | a reference to the notes database instance |
+
+<a name="NotesDB+trash"></a>
+
+### notesDB.trash(opts, self) ⇒ <code>Promise</code>
+Moves an artifact from it's current directory to the "Trash" folder.  It
+is not removed until the emptyTrash() method is called.  The artifact
+is removed from the schema dictionary and stored in the trash dictionary.
+
+The thenable resolves to the artifact that was moved to the trash.
+
+**Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
+**Returns**: <code>Promise</code> - a javascript promise object.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| opts | <code>IArtifactSearch</code> | the section/notebook/filename to remove for within the schema. |
 | self | <code>[NotesDB](#NotesDB)</code> | a reference to the notes database instance |
 

@@ -3,7 +3,7 @@
 import {test} from 'ava';
 import * as fs from 'fs-extra';
 import {Artifact} from '../index';
-import {IArtifactSearch} from '../lib/artifact';
+import {IArtifactSearch, ArtifactType} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
 import {wait} from 'util.wait';
 import {NotesDB} from '../index';
@@ -33,7 +33,12 @@ test('Create a new artifact file within the database', async (t: any) => {
 
 	await adb.add(artifact)
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, 'Test3', 'notebook', 'test file 1.txt', t);
+			validateArtifact(artifact, t, {
+				section: 'Test3',
+				notebook: 'notebook',
+				filename: 'test file 1.txt',
+				type: ArtifactType.SNA
+			});
 			return adb.saveArtifact(artifact);
 		})
 		.then((artifact: Artifact) => {
@@ -243,7 +248,12 @@ test('Test the automatic ejection from recents list', async (t: any) => {
 
 	await adb.get({section: 'Default', notebook: 'Default', filename: 'test1.txt'})
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, 'Default', 'Default', 'test1.txt', t);
+			validateArtifact(artifact, t, {
+				section: 'Default',
+				notebook: 'Default',
+				filename: 'test1.txt',
+				type: ArtifactType.SNA
+			});
 
 			ejected = artifact;
 			t.false(artifact.isDirty());
@@ -254,14 +264,24 @@ test('Test the automatic ejection from recents list', async (t: any) => {
 			return adb.get({section: 'Default', notebook: 'notebook1', filename: 'test2.txt'});
 		})
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, 'Default', 'notebook1', 'test2.txt', t);
+			validateArtifact(artifact, t, {
+				section: 'Default',
+				notebook: 'notebook1',
+				filename: 'test2.txt',
+				type: ArtifactType.SNA
+			});
 
 			// This wait allows the event loop to continue and process the
 			// remove node event before moving on to the next thenable
 			return wait(3, adb.get({section: 'Test1', notebook: 'Default', filename: 'test3.txt'}));
 		})
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, 'Test1', 'Default', 'test3.txt', t);
+			validateArtifact(artifact, t, {
+				section: 'Test1',
+				notebook: 'Default',
+				filename: 'test3.txt',
+				type: ArtifactType.SNA
+			});
 			return adb;
 		})
 		.then((adb: NotesDB) => {

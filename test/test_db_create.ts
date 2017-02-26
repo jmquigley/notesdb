@@ -9,7 +9,7 @@ import * as uuid from 'uuid';
 import {Artifact} from '../index';
 import {IArtifactSearch} from '../lib/artifact';
 import {NotesDB} from '../index';
-import {validateDB, validateArtifact} from './helpers';
+import {validateDB} from './helpers';
 
 const pkg = require('../package.json');
 
@@ -341,17 +341,13 @@ test('Try to add an empty item to an existing database', async (t: any) => {
 
 	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
 
-	let before = adb.toString();
-	await adb.add({section: '', notebook: '', filename: ''})
+	await adb.add({})
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, 'Default', 'Default', '', t);
-			let after = adb.toString();
-			t.is(before, after);
-			return adb;
+			t.fail(artifact.toString())
 		})
-		.then(adb.shutdown)
 		.catch((err: string) => {
-			t.fail(`${t.title}: ${err}`);
+			t.is(err, 'Trying to add invalid artifact to DB');
+			t.pass(err);
 		});
 });
 

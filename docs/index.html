@@ -44,6 +44,13 @@
 				</ul>
 			</li>
 			
+			<li class="dropdown">
+				<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="global.html#artifactComparator">artifactComparator</a></li>
+				</ul>
+			</li>
+			
 		</ul>
         
             <div class="col-sm-3 col-md-3">
@@ -116,7 +123,8 @@
 </ul>
 <h2>Installation</h2><p>To install as a global package and cli:</p>
 <pre class="prettyprint source"><code>$ npm install --global notesdb</code></pre><p>To install as an application dependency with cli:</p>
-<pre class="prettyprint source"><code>$ npm install --save-dev notesdb</code></pre><h2>Usage</h2><p>The public api contains the following functions:</p>
+<pre class="prettyprint source"><code>$ npm install --save-dev notesdb</code></pre><p>To build the app and run all tests:</p>
+<pre class="prettyprint source"><code>$ npm run all</code></pre><h2>Usage</h2><p>The public api contains the following functions:</p>
 <ul>
 <li><code>add()</code></li>
 <li><code>create()</code></li>
@@ -129,12 +137,14 @@
 <li><code>notebooks()</code></li>
 <li><code>reload()</code></li>
 <li><code>remove()</code></li>
+<li><code>rename()</code></li>
 <li><code>restore()</code></li>
 <li><code>save()</code></li>
 <li><code>saveArtifact()</code></li>
 <li><code>sections()</code></li>
 <li><code>shutdown()</code></li>
 <li><code>toString()</code></li>
+<li><code>trash()</code></li>
 </ul>
 <h4>Creating an Instance</h4><p>To construct a new instance:</p>
 <pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
@@ -245,9 +255,32 @@ adb.find('#1')
         });
     })
     .catch((err: string) => {
-        t.fail(`${t.title}: ${err}`);
+        console.error(err);
     });</code></pre><p>This call would find all artifacts that contain the string <code>#1</code> and return an array.</p>
-<h4>Removing/Restoring Artifacts</h4><p>Artifacts are not removed from the system directly.  They are first moved to a special <code>Trash</code> folder within the notebook.  An artifact is removed with the <code>remove</code> method.  A removed artifact can be recovered from the trash using the <code>restore</code> method:</p>
+<h4>Renaming Artifacts</h4><p>The name of an artifact can be changed using the <code>rename</code> method.  It takes two parameters: the source location and the destination location:</p>
+<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+let src = {
+    section: 'Test1',
+    notebook: 'Default',
+    filename: 'test4.txt'
+}
+
+let dst = {
+    section: 'Test2',
+    notebook: 'Default',
+    filename: 'test4.txt'
+}
+
+adb.rename(src, dst)
+    .then((filename: string) => {
+        console.log(`renamed to: ${filename}`);
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });</code></pre><p>This example will rename the artifact <code>Test1/Default/test4.txt</code> to <code>Test2/Default/test4.txt</code>.</p>
+<h4>Trashing/Restoring Artifacts</h4><p>Artifacts are not removed from the system directly (generally).  They are first moved to a special <code>Trash</code> folder within the notebook.  An artifact is removed with the <code>trash</code> method.  A removed artifact can be recovered from the trash using the <code>restore</code> method:</p>
 <pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
 
 let adb = new NotesDB();
@@ -257,17 +290,17 @@ let lookup = {
     filename: 'test4.txt'
 }
 
-adb.remove(lookup)
+adb.trash(lookup)
     .then((filename: string) => {
-        console.log(`removed: ${filename}`);
+        console.log(`trashed: ${filename}`);
         return adb.restore(lookup);
     })
     .then((filename: string) => {
         console.log(`restored: ${filename}`);
     })
     .catch((err: string) => {
-        t.fail(`${t.title}: ${err}`);
-    });</code></pre><p>The example above would remove the artifact <code>/Test2/Default/test4.txt</code> and place it in the trash.  After it is removed it is immediately restored back to its original path.  If there is a name collision on delete/restore, then the current timestamp is placed on the artifacts name.  In this example a file artifact is removed.  Sections and notebooks can also be removed/restored.</p>
+        console.error(err);
+    });</code></pre><p>The example above would move the artifact <code>/Test2/Default/test4.txt</code> and place it in the trash.  After it is removed it is immediately restored back to its original path.  If there is a name collision on delete/restore, then the current timestamp is placed on the artifacts name.  In this example a file artifact is removed.  Sections and notebooks can also be removed/restored.</p>
 <h4>Emptying the Trash</h4><p>Artifacts that were removed are not permanently removed until the trash is emptied.  That is performed with the <code>emptyTrash</code> method.</p>
 <pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
 
@@ -277,7 +310,7 @@ adb.emptyTrash()
         assert(_.isEmpty(adb.schema.trash));
     })
     .catch((err: string) => {
-        t.fail(`${t.title}: ${err}`);
+        console.error(err);
     });</code></pre><h4>Shutdown</h4><p>The <code>shutdown</code> method immediately saves the binder, marks the instance as uninitialized, and turns off the automatic saving of documents.  It's a way to ensure proper cleanup once finished using this binder.</p>
 <pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
 
@@ -287,7 +320,7 @@ adb.shutdown()
         console.log(msg);
     })
     .catch((err: string) => {
-        t.fail(`${t.title}: ${err}`);
+        console.error(err);
     });</code></pre><p>It returns a message indicating that the binder was shutdown.</p>
 <h2>API</h2><p>The API is generated with <a href="https://www.npmjs.com/package/jsdoc">JSDoc</a>.  It can be found within the <code>docs</code> directory for the project.  It can be generated with <code>npm run docs</code>.  An HTML site is generated in this directory that gives details on the api.</p>
 <ul>
@@ -339,7 +372,7 @@ adb.shutdown()
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on February 23rd 2017, 10:43:43 am
+		on February 25th 2017, 8:43:23 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

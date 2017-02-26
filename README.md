@@ -38,6 +38,11 @@ To install as an application dependency with cli:
 $ npm install --save-dev notesdb
 ```
 
+To build the app and run all tests:
+```
+$ npm run all
+```
+
 
 ## Usage
 The public api contains the following functions:
@@ -53,12 +58,14 @@ The public api contains the following functions:
 - `notebooks()`
 - `reload()`
 - `remove()`
+- `rename()`
 - `restore()`
 - `save()`
 - `saveArtifact()`
 - `sections()`
 - `shutdown()`
 - `toString()`
+- `trash()`
 
 #### Creating an Instance
 To construct a new instance:
@@ -220,14 +227,45 @@ adb.find('#1')
 		});
 	})
 	.catch((err: string) => {
-		t.fail(`${t.title}: ${err}`);
+		console.error(err);
 	});
 ```
 
 This call would find all artifacts that contain the string `#1` and return an array.
 
-#### Removing/Restoring Artifacts
-Artifacts are not removed from the system directly.  They are first moved to a special `Trash` folder within the notebook.  An artifact is removed with the `remove` method.  A removed artifact can be recovered from the trash using the `restore` method:
+#### Renaming Artifacts
+The name of an artifact can be changed using the `rename` method.  It takes two parameters: the source location and the destination location:
+
+```javascript
+const NotesDB = require('notesdb').NotesDB;
+
+let adb = new NotesDB();
+let src = {
+	section: 'Test1',
+	notebook: 'Default',
+	filename: 'test4.txt'
+}
+
+let dst = {
+	section: 'Test2',
+	notebook: 'Default',
+	filename: 'test4.txt'
+}
+
+adb.rename(src, dst)
+	.then((filename: string) => {
+	    console.log(`renamed to: ${filename}`);
+	})
+	.catch((err: string) => {
+		console.error(err);
+	});
+
+```
+
+This example will rename the artifact `Test1/Default/test4.txt` to `Test2/Default/test4.txt`.
+
+#### Trashing/Restoring Artifacts
+Artifacts are not removed from the system directly (generally).  They are first moved to a special `Trash` folder within the notebook.  An artifact is removed with the `trash` method.  A removed artifact can be recovered from the trash using the `restore` method:
 
 ```javascript
 const NotesDB = require('notesdb').NotesDB;
@@ -239,20 +277,20 @@ let lookup = {
 	filename: 'test4.txt'
 }
 
-adb.remove(lookup)
+adb.trash(lookup)
 	.then((filename: string) => {
-		console.log(`removed: ${filename}`);
+		console.log(`trashed: ${filename}`);
 		return adb.restore(lookup);
 	})
 	.then((filename: string) => {
 		console.log(`restored: ${filename}`);
 	})
 	.catch((err: string) => {
-		t.fail(`${t.title}: ${err}`);
+		console.error(err);
 	});
 ```
 
-The example above would remove the artifact `/Test2/Default/test4.txt` and place it in the trash.  After it is removed it is immediately restored back to its original path.  If there is a name collision on delete/restore, then the current timestamp is placed on the artifacts name.  In this example a file artifact is removed.  Sections and notebooks can also be removed/restored.
+The example above would move the artifact `/Test2/Default/test4.txt` and place it in the trash.  After it is removed it is immediately restored back to its original path.  If there is a name collision on delete/restore, then the current timestamp is placed on the artifacts name.  In this example a file artifact is removed.  Sections and notebooks can also be removed/restored.
 
 #### Emptying the Trash
 Artifacts that were removed are not permanently removed until the trash is emptied.  That is performed with the `emptyTrash` method.
@@ -266,7 +304,7 @@ adb.emptyTrash()
 		assert(_.isEmpty(adb.schema.trash));
 	})
 	.catch((err: string) => {
-		t.fail(`${t.title}: ${err}`);
+		console.error(err);
 	});
 ```
 
@@ -282,7 +320,7 @@ adb.shutdown()
 		console.log(msg);
 	})
 	.catch((err: string) => {
-		t.fail(`${t.title}: ${err}`);
+		console.error(err);
 	});
 ```
 

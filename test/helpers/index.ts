@@ -7,7 +7,7 @@
 import {TestContext} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {Artifact} from '../../lib/artifact';
+import {Artifact, IArtifactOpts, ArtifactType} from '../../lib/artifact';
 import {NotesDB} from '../../lib/notesdb';
 
 export function validateDB(notesDB: NotesDB, binderName: string , root: string, valid: boolean, t: TestContext) {  // eslint-disable-line max-params
@@ -21,9 +21,10 @@ export function validateDB(notesDB: NotesDB, binderName: string , root: string, 
 	t.true(fs.existsSync(path.join(root, 'notesdb.log')));
 }
 
-export function validateArtifact(artifact: Artifact, section: string, notebook: string, filename: string, t: TestContext) { // eslint-disable-line max-params
+export function validateArtifact(artifact: Artifact, t: TestContext, opts: IArtifactOpts) {
 	t.true(artifact && typeof artifact !== 'undefined' && artifact instanceof Artifact);
-	t.is(artifact.section, section);
-	t.is(artifact.notebook, notebook);
-	t.is(artifact.filename, filename);
+	t.is(artifact.section, opts.section || '');
+	t.is(artifact.notebook, opts.notebook || '');
+	t.is(artifact.filename, opts.filename || '');
+	t.is(artifact.type, opts.type || ArtifactType.Unk);
 }

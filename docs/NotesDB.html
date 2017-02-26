@@ -44,6 +44,13 @@
 				</ul>
 			</li>
 			
+			<li class="dropdown">
+				<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="global.html#artifactComparator">artifactComparator</a></li>
+				</ul>
+			</li>
+			
 		</ul>
         
             <div class="col-sm-3 col-md-3">
@@ -486,7 +493,8 @@ search.  There are two areas: notes &amp; trash.</p></td>
 
     
     <div class="description">
-        <p>Creates new sections within a binder.</p>
+        <p>Creates new sections within a binder.  It takes a list of section
+strings and creates a directory for each given string.</p>
     </div>
     
 
@@ -696,6 +704,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
 current DB.  It also resets the internal trash namespace to empty.  This
 will check that the directory requested is within the database location
 and has the 'Trash' directory.</p>
+<p>The thenable resolves to a reference to the NotesDB instance.</p>
     </div>
     
 
@@ -1030,9 +1039,11 @@ search criteria.</p>
         <p>Retrieves an artifact from the schema.  If it exists, then it is returned
 by the promise.  If it is not found, then an error will be thrown.  If
 the artifact has never been loaded before, then it is read from the
-filesystem when this request is made.</p>
+filesystem when this request is made.  This will place the artifact into
+the recent documents queue.</p>
 <p>When the request is a section or notebook a temporary artifact object
 is created and returned.</p>
+<p>The thenable resolves to the artifact created by the get request.</p>
     </div>
     
 
@@ -2223,10 +2234,8 @@ search.  There are two areas: notes &amp; trash.</p></td>
 
     
     <div class="description">
-        <p>Moves an artifact from it's current directory to the &quot;Trash&quot; folder.  It
-is not removed until the emptyTrash() method is called.  The artifact
-is removed from the schema dictionary and stored in the trash dictionary.</p>
-<p>The thenable resolves to the path of the removed artifact.</p>
+        <p>Immediately removes an section/notebook/artifact from the system.</p>
+<p>The thenable resolves to a reference to the NotesDB instance.</p>
     </div>
     
 
@@ -2278,7 +2287,7 @@ is removed from the schema dictionary and stored in the trash dictionary.</p>
 
             
 
-            <td class="description last"><p>the section/notebook/filename to remove
+            <td class="description last"><p>the section/notebook/filename to search
 for within the schema.</p></td>
         </tr>
 
@@ -2305,6 +2314,208 @@ for within the schema.</p></td>
 
             <td class="description last"><p>the namespace area within the schema object to
 search.  There are two areas: notes &amp; trash.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>self</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>a reference to the notes database instance</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a javascript promise object</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+
+    </dd>
+</dl>
+
+
+        
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="rename"><span class="type-signature"></span>rename(src, dst, self)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Renames an artifact from the source (src) to destination (dst).</p>
+<p>The thenable resolves to a reference to the renamed artifact.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IArtifactSearch</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the source artifact that will be changed</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dst</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IArtifactSearch</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the destination artifact that the source
+will be changed into.</p></td>
         </tr>
 
     
@@ -2431,7 +2642,7 @@ search.  There are two areas: notes &amp; trash.</p></td>
         <p>Takes an item from the trash and puts it back into the schema.  If the
 item is already in the schema, then it appends a timestamp to the name
 of the item that is being restored.</p>
-<p>The thenable resolves to the path of the restored artifact.</p>
+<p>The thenable resolves to the artifact that was retored.</p>
     </div>
     
 
@@ -2610,6 +2821,7 @@ of the item that is being restored.</p>
         <p>User requested save function.  If given an artifact, then a single
 save is performed.  If no artifact is specifid, then the binder
 artifact list is scanned for dirty artifacts that need to be saved.</p>
+<p>The thenable resolves to a reference to the NotesDB instance.</p>
     </div>
     
 
@@ -3378,6 +3590,186 @@ the database.</p>
     
 </dd>
 
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="trash"><span class="type-signature"></span>trash(opts, self)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Moves an artifact from it's current directory to the &quot;Trash&quot; folder.  It
+is not removed until the emptyTrash() method is called.  The artifact
+is removed from the schema dictionary and stored in the trash dictionary.</p>
+<p>The thenable resolves to the artifact that was moved to the trash.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IArtifactSearch</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the section/notebook/filename to remove
+for within the schema.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>self</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="NotesDB.html">NotesDB</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>a reference to the notes database instance</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a javascript promise object.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+
+    </dd>
+</dl>
+
+
+        
+
+    
+</dd>
+
         </dl>
     
 
@@ -3428,7 +3820,7 @@ the database.</p>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on February 23rd 2017, 10:43:43 am
+		on February 25th 2017, 8:43:23 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

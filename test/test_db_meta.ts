@@ -4,7 +4,7 @@ import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Artifact} from '../index';
-import {IArtifactSearch} from '../lib/artifact';
+import {IArtifactSearch, ArtifactType} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
 import {NotesDB} from '../index';
 import {validateDB, validateArtifact} from './helpers';
@@ -35,7 +35,12 @@ test('Get an existing artifact from the schema', async(t: any) => {
 
 	await adb.get(lookup)
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, lookup.section, lookup.notebook, lookup.filename, t);
+			validateArtifact(artifact, t, {
+				section: lookup.section,
+				notebook: lookup.notebook,
+				filename: lookup.filename,
+				type: ArtifactType.SNA
+			});
 			t.is(artifact.buf, 'Test File #1\n');
 			t.true(artifact.loaded);
 
@@ -85,7 +90,12 @@ test('Test artifact update time change after change', async (t: any) => {
 
 	await adb.get(lookup)
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, lookup.section, lookup.notebook, lookup.filename, t);
+			validateArtifact(artifact, t, {
+				section: lookup.section,
+				notebook: lookup.notebook,
+				filename: lookup.filename,
+				type: ArtifactType.SNA
+			});
 			t.is(artifact.buf, 'Test File #1\n');
 			return wait(3, artifact);  // delay 3 seconds and return artifact
 		})

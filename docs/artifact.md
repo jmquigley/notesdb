@@ -1,3 +1,22 @@
+## Classes
+
+<dl>
+<dt><a href="#Artifact">Artifact</a></dt>
+<dd><p>A container class that holds the information for a single artifact within
+the database.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#artifactComparator">artifactComparator(o1, o2)</a> ⇒ <code>number</code></dt>
+<dd><p>Performs a comparison between two Artifact objects.  It uses the absolute
+path for each artifact as the basis of the comparison.  This function is
+used with the data structures in the util.ds objects.</p>
+</dd>
+</dl>
+
 <a name="Artifact"></a>
 
 ## Artifact
@@ -11,9 +30,10 @@ the database.
     * _instance_
         * [.buffer](#Artifact+buffer) ⇒ <code>Buffer</code>
         * [.addTag(tag)](#Artifact+addTag)
+        * [.makeUnique()](#Artifact+makeUnique) ⇒ <code>[Artifact](#Artifact)</code>
     * _static_
         * [.isType(search)](#Artifact.isType) ⇒ <code>ArtifactType</code>
-        * [.factory(mode, [opts])](#Artifact.factory) ⇒ <code>[Artifact](#Artifact)</code>
+        * [.factory(mode, [opts], [artifact])](#Artifact.factory) ⇒ <code>[Artifact](#Artifact)</code>
 
 <a name="new_Artifact_new"></a>
 
@@ -38,6 +58,14 @@ Adds a unique tag to the artifact.
 | --- | --- | --- |
 | tag | <code>string</code> | the name of the tag to add. |
 
+<a name="Artifact+makeUnique"></a>
+
+### artifact.makeUnique() ⇒ <code>[Artifact](#Artifact)</code>
+Takes an artifact and appends a timestamp to the last part of its path
+
+**Kind**: instance method of <code>[Artifact](#Artifact)</code>  
+**Returns**: <code>[Artifact](#Artifact)</code> - the modified artifact with a timestamp attached to
+the last element of the path.  
 <a name="Artifact.isType"></a>
 
 ### Artifact.isType(search) ⇒ <code>ArtifactType</code>
@@ -52,7 +80,7 @@ Takes artifact search information and builds the type id
 
 <a name="Artifact.factory"></a>
 
-### Artifact.factory(mode, [opts]) ⇒ <code>[Artifact](#Artifact)</code>
+### Artifact.factory(mode, [opts], [artifact]) ⇒ <code>[Artifact](#Artifact)</code>
 A factory method for creating different types of artifacts.  The mode
 determines what type of Artifact object will be factory and returned.
 The types include:
@@ -66,8 +94,24 @@ format of {section}/{notebook}/{filename}
 **Kind**: static method of <code>[Artifact](#Artifact)</code>  
 **Returns**: <code>[Artifact](#Artifact)</code> - a newly constructed artifact object.  
 
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| mode | <code>string</code> |  | tells the factory what to make |
+| [opts] | <code>Object</code> &#124; <code>string</code> |  | parameters to the facility that will make the object. |
+| [artifact] | <code>[Artifact](#Artifact)</code> | <code></code> | if an instance is passed to this factory then it is used instead of creating a new one.  Works like a copy constructor. |
+
+<a name="artifactComparator"></a>
+
+## artifactComparator(o1, o2) ⇒ <code>number</code>
+Performs a comparison between two Artifact objects.  It uses the absolute
+path for each artifact as the basis of the comparison.  This function is
+used with the data structures in the util.ds objects.
+
+**Kind**: global function  
+**Returns**: <code>number</code> - 0 if o1 & o2 are the same, 1 if o1 > o2, -1 if o1 < o2.  
+
 | Param | Type | Description |
 | --- | --- | --- |
-| mode | <code>string</code> | tells the factory what to make |
-| [opts] | <code>Object</code> &#124; <code>string</code> | parameters to the facility that will make the object. |
+| o1 | <code>[Artifact](#Artifact)</code> | the first artifact to compare. |
+| o2 | <code>[Artifact](#Artifact)</code> | the second artifact to compare. |
 

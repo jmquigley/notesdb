@@ -7,6 +7,7 @@ import {Fixture} from 'util.fixture';
 import {Artifact} from '../index';
 import {NotesDB} from '../index';
 import {validateDB, validateArtifact} from './helpers';
+import {ArtifactType} from '../lib/artifact';
 
 test.after.always((t: any) => {
 	console.log('final cleanup: test_db_sections');
@@ -47,7 +48,10 @@ test('Create a new section within an existing database', async (t: any) => {
 
 	await adb.add(artifact)
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, 'Test3', '', '', t);
+			validateArtifact(artifact, t, {
+				section: 'Test3',
+				type: ArtifactType.S
+			});
 			let sections = adb.sections();
 			t.true(sections instanceof Array);
 			t.is(sections.length, 4);
@@ -87,7 +91,10 @@ test('Try to create a section that already exists within a database (negative te
 
 	await adb.add(artifact)
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, 'Test1', '', '', t);
+			validateArtifact(artifact, t, {
+				section: 'Test1',
+				type: ArtifactType.S
+			});
 			return adb;
 		})
 		.then(adb.shutdown)

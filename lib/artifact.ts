@@ -1,5 +1,14 @@
-import * as path from 'path';
 import * as fs from 'fs-extra';
+import * as _ from 'lodash';
+import * as path from 'path';
+import {timestamp} from 'util.timestamp';
+
+export const enum ArtifactType {
+	Unk = 0,  // 0000b - Unknown type
+	S = 1,  // 0001b - Section only
+	SN = 3,  // 0011b - Section and notebook
+	SNA = 7   // 0111b - Section, notebook, and artifact
+}
 
 export interface IArtifactSearch {
 	section?: string;
@@ -10,6 +19,8 @@ export interface IArtifactSearch {
 export interface IArtifactOpts extends IArtifactSearch {
 	root?: string;
 	treeitem?: string;
+	path?: string;
+	type?: ArtifactType;
 }
 
 export interface IArtifactMeta {
@@ -20,11 +31,23 @@ export interface IArtifactMeta {
 	layout?: any;
 }
 
-export const enum ArtifactType {
-	Unk = 0,  // 0000b - Unknown type
-	S   = 1,  // 0001b - Section only
-	SN  = 3,  // 0011b - Section and notebook
-	SNA = 7   // 0111b - Section, notebook, and artifact
+/**
+ * Performs a comparison between two Artifact objects.  It uses the absolute
+ * path for each artifact as the basis of the comparison.  This function is
+ * used with the data structures in the util.ds objects.
+ *
+ * @param o1 {Artifact} the first artifact to compare.
+ * @param o2 {Artifact} the second artifact to compare.
+ * @returns {number} 0 if o1 & o2 are the same, 1 if o1 > o2, -1 if o1 < o2.
+ */
+export function artifactComparator(o1: Artifact, o2: Artifact): number {
+	if (o1.absolute() === o2.absolute()) {
+		return 0;
+	} else if (o1.absolute() > o2.absolute()) {
+		return 1;
+	}
+
+	return -1;
 }
 
 /**
@@ -35,6 +58,7 @@ export class Artifact {
 
 	/**
 	 * Takes artifact search information and builds the type id
+	 *
 	 * @param search {IArtifactSearch} an object that contains the current
 	 * Artifact parameters used to build the type id.
 	 * @returns {ArtifactType} the id associated with this search.
@@ -71,10 +95,15 @@ export class Artifact {
 	 * @param mode {string} tells the factory what to make
 	 * @param [opts] {Object|string} parameters to the facility that will make
 	 * the object.
+	 * @param [artifact] {Artifact} if an instance is passed to this factory
+	 * then it is used instead of creating a new one.  Works like a copy
+	 * constructor.
 	 * @returns {Artifact} a newly constructed artifact object.
 	 */
-	public static factory(mode?: string, opts?: IArtifactOpts): Artifact {
-		let artifact = new Artifact();
+	public static factory(mode?: string, opts?: IArtifactOpts, artifact: Artifact = null): Artifact {
+		if (artifact == null) {
+			artifact = new Artifact();
+		}
 
 		let a: string[] = [];
 
@@ -83,9 +112,34 @@ export class Artifact {
 		}
 
 		switch (mode) {
+			case 'fields':
+				if (opts != null) {
+					let args: IArtifactOpts = opts;
+
+					artifact.section = args.section || '';
+					artifact.notebook = args.notebook || '';
+					artifact.filename = args.filename || '';
+
+					if (Object.prototype.hasOwnProperty.call(args, 'root')) {
+						artifact.root = args.root;
+					}
+				}
+				break;
+
+			case 'path':
+				if (opts != null) {
+					if (opts.hasOwnProperty('path') && opts.hasOwnProperty('root')) {
+						artifact = Artifact.factory('treeitem', {
+							root: opts.root,
+							treeitem: opts.path.replace(opts.root, '').replace(/^\/*/, '')
+						}, artifact);
+					}
+				}
+				break;
+
 			case 'treeitem':
 				if (opts != null) {
-					if (Object.prototype.hasOwnProperty.call(opts, 'treeitem')) {
+					if (opts.hasOwnProperty('treeitem')) {
 						let s: string = opts.treeitem || '';
 						a = s.split(path.sep);
 
@@ -94,30 +148,8 @@ export class Artifact {
 						artifact.filename = a[2] || '';
 					}
 
-					if (Object.prototype.hasOwnProperty.call(opts, 'root')) {
+					if (opts.hasOwnProperty('root')) {
 						artifact.root = opts.root;
-					}
-				}
-				break;
-
-			case 'fields':
-				if (opts != null) {
-					let args: IArtifactOpts = opts;
-
-					if (Object.prototype.hasOwnProperty.call(args, 'section')) {
-						artifact.section = args.section || 'Default';
-					}
-
-					if (Object.prototype.hasOwnProperty.call(args, 'notebook')) {
-						artifact.notebook = args.notebook || 'Default';
-					}
-
-					if (Object.prototype.hasOwnProperty.call(args, 'filename')) {
-						artifact.filename = args.filename || '';
-					}
-
-					if (Object.prototype.hasOwnProperty.call(args, 'root')) {
-						artifact.root = args.root;
 					}
 				}
 				break;
@@ -156,7 +188,8 @@ export class Artifact {
 	/**
 	 * The constructor is private.  Objects must be created with the factory
 	 */
-	private constructor() {}
+	private constructor() {
+	}
 
 	public absolute(): string {
 		return path.join(this.root, this.path());
@@ -170,6 +203,10 @@ export class Artifact {
 		if (this._meta.tags.indexOf(tag) === -1) {
 			this._meta.tags.push(tag);
 		}
+	}
+
+	public clone() {
+		return _.cloneDeep(this);
 	}
 
 	public hasFilename(): boolean {
@@ -202,6 +239,24 @@ export class Artifact {
 
 	public makeDirty() {
 		this._dirty = true;
+	}
+
+	/**
+	 * Takes an artifact and appends a timestamp to the last part of its path
+	 * @returns {Artifact} the modified artifact with a timestamp attached to
+	 * the last element of the path.
+	 */
+	public makeUnique(): Artifact {
+		let ts: string = `.${timestamp()}`;
+		if (this.type === ArtifactType.SNA) {
+			this.filename += ts;
+		} else if (this.type === ArtifactType.SN) {
+			this.notebook += ts;
+		} else if (this.type === ArtifactType.S) {
+			this.section += ts;
+		}
+
+		return this;
 	}
 
 	public path(): string {

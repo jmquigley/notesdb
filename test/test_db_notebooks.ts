@@ -3,10 +3,11 @@
 import {test} from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {Artifact} from '../index';
 import {Fixture} from 'util.fixture';
+import {Artifact} from '../index';
 import {NotesDB} from '../index';
 import {validateDB, validateArtifact} from './helpers';
+import {ArtifactType} from '../lib/artifact';
 
 test.after.always((t: any) => {
 	console.log('final cleanup: test_db_notebooks');
@@ -167,7 +168,11 @@ test('Try to create a notebook that already exists', async (t: any) => {
 
 	await adb.add(artifact)
 		.then((artifact: Artifact) => {
-			validateArtifact(artifact, sectionName, notebookName, '', t);
+			validateArtifact(artifact, t, {
+				section: sectionName,
+				notebook: notebookName,
+				type: ArtifactType.SN
+			});
 			t.true(adb.hasNotebook({notebook: notebookName, section: sectionName}));
 			return adb;
 		})

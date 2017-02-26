@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@types/fs-extra": "0.0.37",
-    "@types/lodash": "^4.14.52",
+    "@types/lodash": "^4.14.53",
     "@types/log4js": "0.0.32",
     "@types/node": "^7.0.5",
     "@types/object-assign": "^4.0.30",
@@ -30,7 +30,7 @@
     "lodash": "^4.17.4",
     "log4js": "^1.1.0",
     "object-assign": "^4.1.1",
-    "util.ds": "0.0.5",
+    "util.ds": "0.0.8",
     "util.rstrip": "^0.0.7",
     "util.timestamp": "^0.0.17",
     "uuid": "^3.0.1",
