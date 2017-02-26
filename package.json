@@ -52,7 +52,7 @@
     "util.fixture": "0.0.30",
     "util.pkgwrap": "^0.0.6",
     "util.promise": "0.0.4",
-    "util.wait": "0.0.3",
+    "util.wait": "0.0.5",
     "xo": "^0.17.1"
   },
   "main": "./index.js",
