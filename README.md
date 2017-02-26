@@ -47,25 +47,25 @@ $ npm run all
 ## Usage
 The [public api](docs/notesdb.md) contains the following functions:
 
-- [add()][docs/notesdb.md#NotesDB+add]
-- [create()][docs/notesdb.md#NotesDB+create]
-- [emptyTrash()][docs/notesdb.md#NotesDB+emptyTrash]
-- [find()][docs/notesdb.md#NotesDB+find]
-- [get()][docs/notesdb.md#NotesDB+get]
-- [hasArtifact()][docs/notesdb.md#NotesDB+hasArtifact]
-- [hasNotebook()][docs/notesdb.md#NotesDB+hasNotebook]
-- [hasSection()][docs/notesdb.md#NotesDB+hasSection]
-- [notebooks()][docs/notesdb.md#NotesDB+notebooks]
-- [reload()][docs/notesdb.md#NotesDB+reload]
-- [remove()][docs/notesdb.md#NotesDB+remove]
-- [rename()][docs/notesdb.md#NotesDB+rename]
-- [restore()][docs/notesdb.md#NotesDB+restore]
-- [save()][docs/notesdb.md#NotesDB+save]
-- [saveArtifact()][docs/notesdb.md#NotesDB+saveArtifact]
-- [sections()][docs/notesdb.md#NotesDB+sections]
-- [shutdown()][docs/notesdb.md#NotesDB+shutdown]
-- [toString()][docs/notesdb.md#NotesDB+toString]
-- [trash()][docs/notesdb.md#NotesDB+trash]
+- [add()](docs/notesdb.md#NotesDB+add)
+- [create()](docs/notesdb.md#NotesDB+create)
+- [emptyTrash()](docs/notesdb.md#NotesDB+emptyTrash)
+- [find()](docs/notesdb.md#NotesDB+find)
+- [get()](docs/notesdb.md#NotesDB+get)
+- [hasArtifact()](docs/notesdb.md#NotesDB+hasArtifact)
+- [hasNotebook()](docs/notesdb.md#NotesDB+hasNotebook)
+- [hasSection()](docs/notesdb.md#NotesDB+hasSection)
+- [notebooks()](docs/notesdb.md#NotesDB+notebooks)
+- [reload()](docs/notesdb.md#NotesDB+reload)
+- [remove()](docs/notesdb.md#NotesDB+remove)
+- [rename()](docs/notesdb.md#NotesDB+rename)
+- [restore()](docs/notesdb.md#NotesDB+restore)
+- [save()](docs/notesdb.md#NotesDB+save)
+- [saveArtifact()](docs/notesdb.md#NotesDB+saveArtifact)
+- [sections()](docs/notesdb.md#NotesDB+sections)
+- [shutdown()](docs/notesdb.md#NotesDB+shutdown)
+- [toString()](docs/notesdb.md#NotesDB+toString)
+- [trash()](docs/notesdb.md#NotesDB+trash)
 
 #### Creating an Instance
 To construct a new instance:
