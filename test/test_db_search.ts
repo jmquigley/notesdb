@@ -57,3 +57,5 @@ test(`Test regex search for 'File #[0-9]' in simple dB`, async (t: any) => {
 			t.fail(`${t.title}: ${err}`);
 		});
 });
+
+// test search with a database of large artifacts, new test fixture

@@ -57,6 +57,20 @@ export function artifactComparator(o1: Artifact, o2: Artifact): number {
 export class Artifact {
 
 	/**
+	 * Takes two search objects and checks if they are different.
+	 * @param src {IArtifactSearch} 1st search object to check
+	 * @param dst {IArtifactSearch} 2nd search object to check
+	 * @returns true if they are the same, otherwise false.
+	 */
+	public static isDuplicateSearch(src: IArtifactSearch, dst: IArtifactSearch): boolean {
+		return (
+			src.section === dst.section &&
+			src.notebook === dst.notebook &&
+			src.filename === dst.filename
+		);
+	}
+
+	/**
 	 * Takes artifact search information and builds the type id
 	 *
 	 * @param search {IArtifactSearch} an object that contains the current
@@ -229,8 +243,17 @@ export class Artifact {
 		return this._dirty;
 	}
 
-	public isEmtpy(): boolean {
+	public isEmpty(): boolean {
 		return this._section === '' && this._notebook === '' && this._filename === '';
+	}
+
+	/**
+	 * Checks this artifact against a given artifact to show if they are equal
+	 * @param artifact {Artifact} input artifact to check against this one
+	 * @returns {boolean} true if the artifacts are the same, otherwise false.
+	 */
+	public isEqual(artifact: Artifact): boolean {
+		return (artifactComparator(this, artifact) == 0);
 	}
 
 	public makeClean() {

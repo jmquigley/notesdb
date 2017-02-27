@@ -5,7 +5,10 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact} from '../index';
-import {ArtifactType, IArtifactOpts} from '../lib/artifact';
+import {
+	artifactComparator, ArtifactType, IArtifactOpts,
+	IArtifactSearch
+} from '../lib/artifact';
 import {validateArtifact} from './helpers';
 
 const pkg = require('../package.json');
@@ -45,7 +48,7 @@ test.cb('Testing artifact with empty creation', (t: any) => {
 	t.is(artifact.root, fixture.dir);
 	t.is(artifact.path(), '.');
 	t.is(artifact.type, ArtifactType.Unk);
-	t.true(artifact.isEmtpy());
+	t.true(artifact.isEmpty());
 	t.true(artifact.accessed != null && artifact.accessed instanceof Date);
 	t.true(artifact.created != null && artifact.created instanceof Date);
 	t.true(artifact.updated != null && artifact.updated instanceof Date);
@@ -101,7 +104,7 @@ test.cb('Testing artifact creation type bitmasking', (t: any) => {
 		filename: '',
 		type: ArtifactType.Unk
 	});
-	t.true(a0.isEmtpy());
+	t.true(a0.isEmpty());
 
 	a0 = Artifact.factory('fields', {});
 	validateArtifact(a0, t, {
@@ -110,7 +113,7 @@ test.cb('Testing artifact creation type bitmasking', (t: any) => {
 		filename: '',
 		type: ArtifactType.Unk
 	});
-	t.true(a0.isEmtpy());
+	t.true(a0.isEmpty());
 	t.end();
 });
 
@@ -291,6 +294,57 @@ test.cb('Test artifact data append', (t: any) => {
 
 	artifact.buf += 'Bar';
 	t.is(artifact.buf, 'FooBar');
+
+	t.end();
+});
+
+test.cb('Test comparator function', (t: any) => {
+	let a1 = Artifact.factory('fields', {
+		filename: 'a',
+		notebook: 'a',
+		section: 'a'
+	});
+
+	let a2 = Artifact.factory('fields', {
+		filename: 'b',
+		notebook: 'b',
+		section: 'b'
+	});
+
+	let a3 = Artifact.factory('fields', {
+		filename: 'c',
+		notebook: 'c',
+		section: 'c'
+	});
+
+	t.is(artifactComparator(a1, a1), 0);
+	t.is(artifactComparator(a2, a1), 1);
+	t.is(artifactComparator(a1, a3), -1);
+
+	t.end();
+});
+
+test.cb('Test the isEqual function', (t: any) => {
+	let s1: IArtifactSearch = {
+		filename: 'a',
+		notebook: 'a',
+		section: 'a'
+	};
+	let a1 = Artifact.factory('fields', s1);
+
+
+	let s2: IArtifactSearch = {
+		filename: 'b',
+		notebook: 'b',
+		section: 'b'
+	}
+	let a2 = Artifact.factory('fields', s2);
+
+	t.true(a1.isEqual(a1));
+	t.false(a1.isEqual(a2));
+
+	t.true(Artifact.isDuplicateSearch(s1, s1));
+	t.false(Artifact.isDuplicateSearch(s1, s2));
 
 	t.end();
 });

@@ -30,8 +30,10 @@ the database.
     * _instance_
         * [.buffer](#Artifact+buffer) ⇒ <code>Buffer</code>
         * [.addTag(tag)](#Artifact+addTag)
+        * [.isEqual(artifact)](#Artifact+isEqual) ⇒ <code>boolean</code>
         * [.makeUnique()](#Artifact+makeUnique) ⇒ <code>[Artifact](#Artifact)</code>
     * _static_
+        * [.isDuplicateSearch(src, dst)](#Artifact.isDuplicateSearch) ⇒
         * [.isType(search)](#Artifact.isType) ⇒ <code>ArtifactType</code>
         * [.factory(mode, [opts], [artifact])](#Artifact.factory) ⇒ <code>[Artifact](#Artifact)</code>
 
@@ -58,6 +60,18 @@ Adds a unique tag to the artifact.
 | --- | --- | --- |
 | tag | <code>string</code> | the name of the tag to add. |
 
+<a name="Artifact+isEqual"></a>
+
+### artifact.isEqual(artifact) ⇒ <code>boolean</code>
+Checks this artifact against a given artifact to show if they are equal
+
+**Kind**: instance method of <code>[Artifact](#Artifact)</code>  
+**Returns**: <code>boolean</code> - true if the artifacts are the same, otherwise false.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| artifact | <code>[Artifact](#Artifact)</code> | input artifact to check against this one |
+
 <a name="Artifact+makeUnique"></a>
 
 ### artifact.makeUnique() ⇒ <code>[Artifact](#Artifact)</code>
@@ -66,6 +80,19 @@ Takes an artifact and appends a timestamp to the last part of its path
 **Kind**: instance method of <code>[Artifact](#Artifact)</code>  
 **Returns**: <code>[Artifact](#Artifact)</code> - the modified artifact with a timestamp attached to
 the last element of the path.  
+<a name="Artifact.isDuplicateSearch"></a>
+
+### Artifact.isDuplicateSearch(src, dst) ⇒
+Takes two search objects and checks if they are different.
+
+**Kind**: static method of <code>[Artifact](#Artifact)</code>  
+**Returns**: true if they are the same, otherwise false.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| src | <code>IArtifactSearch</code> | 1st search object to check |
+| dst | <code>IArtifactSearch</code> | 2nd search object to check |
+
 <a name="Artifact.isType"></a>
 
 ### Artifact.isType(search) ⇒ <code>ArtifactType</code>

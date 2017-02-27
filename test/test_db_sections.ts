@@ -54,13 +54,14 @@ test('Create a new section within an existing database', async (t: any) => {
 			});
 			let sections = adb.sections();
 			t.true(sections instanceof Array);
-			t.is(sections.length, 4);
+			t.is(sections.length, 5);
 
 			let l = [
 				'Default',
 				'Test1',
 				'Test2',
-				'Test3'
+				'Test3',
+				'Section With Spaces'
 			];
 
 			l.forEach((name: string) => {

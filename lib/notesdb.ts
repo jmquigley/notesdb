@@ -588,8 +588,8 @@ export class NotesDB extends EventEmitter {
 				.then((artifact: Artifact) => {
 					switch (artifact.type) {
 						case ArtifactType.SNA:
-							self.recents.eject(artifact);
 							self._artifacts.delete(artifact.path());
+							self.recents.eject(artifact);
 							delete self.schema[area][artifact.section][artifact.notebook][artifact.filename];
 							break;
 
@@ -631,6 +631,10 @@ export class NotesDB extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			let srcArtifact: Artifact = null;
 			let dstArtifact: Artifact = null;
+
+			if (Artifact.isDuplicateSearch(src, dst)) {
+				reject(`No difference between artifacts in rename request`);
+			}
 
 			self.get(src)
 				.then((artifact: Artifact) => {
@@ -959,25 +963,6 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createArtifact(artifact: Artifact, resolve: Function, reject: Function, area: string = NS.notes, self = this) {
-		function loadStats(filename: string) {
-			fs.stat(filename, (err, stats) => {
-				if (err) {
-					reject(err.message);
-				}
-
-				artifact.loaded = true;
-				self.loadMetadata(artifact, stats);
-				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
-
-				if (area !== NS.trash) {
-					self._artifacts.set(artifact.path(), artifact);
-				}
-
-				self.log.info(`Added artifact: ${artifact.filename}`);
-				resolve(artifact);
-			});
-		}
-
 		if (artifact.hasSection() &&
 			artifact.hasNotebook() &&
 			artifact.hasFilename() &&
@@ -989,16 +974,31 @@ export class NotesDB extends EventEmitter {
 				}
 
 				if (!fs.existsSync(dst)) {
-					fs.writeFile(dst, artifact.buffer, (err: Error) => {
-						if (err) {
-							reject('Cannot create file: ${dst}');
-						}
-
-						loadStats(dst);
-					});
+					// Note that if you try to use an async write here for the file
+					// it will lead to intermediate failures in loading the stats
+					// with a "file not found" error.  It seems that even though
+					// the writeFile callback is executed, and the file "should" be
+					// created, one cannot reliably use the fs.stat within that callback
+					// to get the file details.
+					fs.writeFileSync(dst, artifact.buffer);
 				}
 
-				loadStats(artifact.absolute());
+				fs.stat(dst, (err, stats) => {
+					if (err) {
+						reject(err.message);
+					}
+
+					artifact.loaded = true;
+					self.loadMetadata(artifact, stats);
+					self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
+
+					if (area !== NS.trash) {
+						self._artifacts.set(artifact.path(), artifact);
+					}
+
+					self.log.info(`Added artifact: ${artifact.filename}`);
+					resolve(artifact);
+				});
 			} else {
 				reject(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
@@ -1185,6 +1185,8 @@ export class NotesDB extends EventEmitter {
 	 * metadata from the artifact is used (and ultimately saved).
 	 * @param artifact {Artifact} a reference to the artifact that will be
 	 * loaded.
+	 * @param [stats] {fs.Stats} the statistics object associated with this
+	 * artifact.
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
