@@ -28,7 +28,7 @@
     "klaw-sync": "^1.1.2",
     "lodash": "^4.17.4",
     "log4js": "^1.1.0",
-    "util.ds": "0.0.9"
+    "util.ds": "0.0.9",
     "util.timestamp": "^0.0.18",
     "uuid": "^3.0.1"
   },
@@ -47,7 +47,7 @@
     "tslint": "^4.5.1",
     "typescript": "^2.2.1",
     "util.fixture": "0.0.31",
-    "util.pkgwrap": "^0.0.11"
+    "util.pkgwrap": "^0.0.11",
     "util.wait": "0.0.5"
   },
   "main": "./index.js",
