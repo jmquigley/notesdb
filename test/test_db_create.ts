@@ -274,7 +274,7 @@ describe('DB Create', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		await wait(3)
+		await wait(5)
 			.then(() => {
 				assert(adb.timedSave);
 				return adb;
