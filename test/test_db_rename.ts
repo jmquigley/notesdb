@@ -1,250 +1,252 @@
 'use strict';
 
-import {test} from 'ava';
+import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import {Fixture} from 'util.fixture';
 import {Artifact} from '../index';
 import {NotesDB} from '../index';
-import {validateDB, validateArtifact} from './helpers';
+import {debug, validateDB, validateArtifact} from './helpers';
 import {IArtifactSearch, ArtifactType} from '../lib/artifact';
 
-test.after.always((t: any) => {
-	console.log('final cleanup: test_db_rename');
-	let directories = Fixture.cleanup();
-	directories.forEach((directory: string) => {
-		t.false(fs.existsSync(directory));
-	});
-});
+describe('DB Rename', () => {
 
-test('Renames an artifact (full path)', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
+	after(() => {
+		debug('final cleanup: test_db_rename');
+		let directories = Fixture.cleanup();
+		directories.forEach((directory: string) => {
+			assert(!fs.existsSync(directory));
+		});
 	});
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+	it('Renames an artifact (full path)', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
+		});
 
-	let src: IArtifactSearch = {
-		section: 'Default',
-		notebook: 'Default',
-		filename: 'test1.txt'
-	};
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let dst: IArtifactSearch = {
-		section: 'Default',
-		notebook: 'Default',
-		filename: 'test1-copy.txt'
-	};
+		let src: IArtifactSearch = {
+			section: 'Default',
+			notebook: 'Default',
+			filename: 'test1.txt'
+		};
 
-	await adb.rename(src, dst)
-		.then((dstArtifact: Artifact) => {
+		let dst: IArtifactSearch = {
+			section: 'Default',
+			notebook: 'Default',
+			filename: 'test1-copy.txt'
+		};
 
-			validateArtifact(dstArtifact, t, {
-				section: 'Default',
-				notebook: 'Default',
-				filename: 'test1-copy.txt',
-				type: ArtifactType.SNA
+		await adb.rename(src, dst)
+			.then((dstArtifact: Artifact) => {
+
+				validateArtifact(dstArtifact, {
+					section: 'Default',
+					notebook: 'Default',
+					filename: 'test1-copy.txt',
+					type: ArtifactType.SNA
+				});
+
+				assert(fs.existsSync(dstArtifact.absolute()));
+				assert(!fs.existsSync(path.join(adb.config.dbdir, src.section, src.notebook, src.filename)));
+				return adb;
+			})
+			.then(adb.shutdown)
+			.catch((err: string) => {
+				assert(false, err);
 			});
-
-			t.true(fs.existsSync(dstArtifact.absolute()));
-			t.false(fs.existsSync(path.join(adb.config.dbdir, src.section, src.notebook, src.filename)));
-			return adb;
-		})
-		.then(adb.shutdown)
-		.catch((err: string) => {
-			t.fail(`${t.title}: ${err}`);
-		});
-});
-
-test('Renames an artifact (different intermediate paths)', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
 	});
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+	it('Renames an artifact (different intermediate paths)', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
+		});
 
-	let src: IArtifactSearch = {
-		section: 'Default',
-		notebook: 'Default',
-		filename: 'test1.txt'
-	};
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let dst: IArtifactSearch = {
-		section: 'Renamed Default',
-		notebook: 'Renamed Notebook',
-		filename: 'test1-copy.txt'
-	};
+		let src: IArtifactSearch = {
+			section: 'Default',
+			notebook: 'Default',
+			filename: 'test1.txt'
+		};
 
-	await adb.rename(src, dst)
-		.then((dstArtifact: Artifact) => {
+		let dst: IArtifactSearch = {
+			section: 'Renamed Default',
+			notebook: 'Renamed Notebook',
+			filename: 'test1-copy.txt'
+		};
 
-			validateArtifact(dstArtifact, t, {
-				section: 'Renamed Default',
-				notebook: 'Renamed Notebook',
-				filename: 'test1-copy.txt',
-				type: ArtifactType.SNA
+		await adb.rename(src, dst)
+			.then((dstArtifact: Artifact) => {
+
+				validateArtifact(dstArtifact, {
+					section: 'Renamed Default',
+					notebook: 'Renamed Notebook',
+					filename: 'test1-copy.txt',
+					type: ArtifactType.SNA
+				});
+
+				assert(fs.existsSync(dstArtifact.absolute()));
+				assert(!fs.existsSync(path.join(adb.config.dbdir, src.section, src.notebook, src.filename)));
+				return adb;
+			})
+			.then(adb.shutdown)
+			.catch((err: string) => {
+				assert(false, err);
 			});
-
-			t.true(fs.existsSync(dstArtifact.absolute()));
-			t.false(fs.existsSync(path.join(adb.config.dbdir, src.section, src.notebook, src.filename)));
-			return adb;
-		})
-		.then(adb.shutdown)
-		.catch((err: string) => {
-			t.fail(`${t.title}: ${err}`);
-		});
-});
-
-test('Rename a section', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
 	});
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+	it('Rename a section', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
+		});
 
-	let src: IArtifactSearch = {
-		section: 'Default',
-	};
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let dst: IArtifactSearch = {
-		section: 'RenamedDefault',
-	};
+		let src: IArtifactSearch = {
+			section: 'Default',
+		};
 
-	await adb.rename(src, dst)
-		.then((dstArtifact: Artifact) => {
+		let dst: IArtifactSearch = {
+			section: 'RenamedDefault',
+		};
 
-			validateArtifact(dstArtifact, t, {
-				section: 'RenamedDefault',
-				notebook: '',
-				filename: '',
-				type: ArtifactType.S
+		await adb.rename(src, dst)
+			.then((dstArtifact: Artifact) => {
+
+				validateArtifact(dstArtifact, {
+					section: 'RenamedDefault',
+					notebook: '',
+					filename: '',
+					type: ArtifactType.S
+				});
+
+				assert(fs.existsSync(dstArtifact.absolute()));
+				assert(!fs.existsSync(path.join(adb.config.dbdir, src.section)));
+				return adb;
+			})
+			.then(adb.shutdown)
+			.catch((err: string) => {
+				assert(false, err);
 			});
-
-			t.true(fs.existsSync(dstArtifact.absolute()));
-			t.false(fs.existsSync(path.join(adb.config.dbdir, src.section)));
-			return adb;
-		})
-		.then(adb.shutdown)
-		.catch((err: string) => {
-			t.fail(`${t.title}: ${err}`);
-		});
-});
-
-test('Rename a notebook', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
 	});
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+	it('Rename a notebook', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
+		});
 
-	let src: IArtifactSearch = {
-		section: 'Default',
-		notebook: 'Default'
-	};
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let dst: IArtifactSearch = {
-		section: 'Default',
-		notebook: 'Renamed Notebook'
-	};
+		let src: IArtifactSearch = {
+			section: 'Default',
+			notebook: 'Default'
+		};
 
-	await adb.rename(src, dst)
-		.then((dstArtifact: Artifact) => {
+		let dst: IArtifactSearch = {
+			section: 'Default',
+			notebook: 'Renamed Notebook'
+		};
 
-			validateArtifact(dstArtifact, t, {
-				section: 'Default',
-				notebook: 'Renamed Notebook',
-				filename: '',
-				type: ArtifactType.SN
+		await adb.rename(src, dst)
+			.then((dstArtifact: Artifact) => {
+
+				validateArtifact(dstArtifact, {
+					section: 'Default',
+					notebook: 'Renamed Notebook',
+					filename: '',
+					type: ArtifactType.SN
+				});
+
+				assert(fs.existsSync(dstArtifact.absolute()));
+				assert(!fs.existsSync(path.join(adb.config.dbdir, src.section, src.notebook)));
+				return adb;
+			})
+			.then(adb.shutdown)
+			.catch((err: string) => {
+				assert(false, err);
 			});
-
-			t.true(fs.existsSync(dstArtifact.absolute()));
-			t.false(fs.existsSync(path.join(adb.config.dbdir, src.section, src.notebook)));
-			return adb;
-		})
-		.then(adb.shutdown)
-		.catch((err: string) => {
-			t.fail(`${t.title}: ${err}`);
-		});
-});
-
-test('Rename a section with the same name (negative test, with warning)', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
 	});
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
-
-	let src: IArtifactSearch = {
-		section: 'Default'
-	};
-
-	let dst: IArtifactSearch = {
-		section: 'Default'
-	};
-
-	await adb.rename(src, dst)
-		.then((dstArtifact: Artifact) => {
-			t.fail(dstArtifact.absolute());
-		})
-		.catch((err: string) => {
-			t.is(err, 'No difference between artifacts in rename request');
+	it('Rename a section with the same name (negative test, with warning)', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
 		});
-});
 
-test('Rename artifact to an invalid name type (negative test)', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
+
+		let src: IArtifactSearch = {
+			section: 'Default'
+		};
+
+		let dst: IArtifactSearch = {
+			section: 'Default'
+		};
+
+		await adb.rename(src, dst)
+			.then((dstArtifact: Artifact) => {
+				assert(false, dstArtifact.absolute());
+			})
+			.catch((err: string) => {
+				assert.equal(err, 'No difference between artifacts in rename request');
+			});
 	});
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
-
-	let src: IArtifactSearch = {
-		section: 'Default'
-	};
-
-	let badSectionName = '////Default';
-	let dst: IArtifactSearch = {
-		section: badSectionName
-	};
-
-	await adb.rename(src, dst)
-		.then((dstArtifact: Artifact) => {
-			t.fail(dstArtifact.absolute());
-		})
-		.catch((err: string) => {
-			t.is(err, `Invalid section name '${badSectionName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
+	it('Rename artifact to an invalid name type (negative test)', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
 		});
-});
 
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-test('Perform rename where the src and dst types are a mismatch (negative test)', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
+		let src: IArtifactSearch = {
+			section: 'Default'
+		};
+
+		let badSectionName = '////Default';
+		let dst: IArtifactSearch = {
+			section: badSectionName
+		};
+
+		await adb.rename(src, dst)
+			.then((dstArtifact: Artifact) => {
+				assert(false, dstArtifact.absolute());
+			})
+			.catch((err: string) => {
+				assert.equal(err, `Invalid section name '${badSectionName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
+			});
 	});
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
-
-	let src: IArtifactSearch = {
-		section: 'Default'
-	};
-
-	let dst: IArtifactSearch = {
-		section: 'Default',
-		notebook: 'Default'
-	};
-
-	await adb.rename(src, dst)
-		.then((dstArtifact: Artifact) => {
-			t.fail(dstArtifact.absolute());
-		})
-		.catch((err: string) => {
-			t.is(err, 'SRC artifact type does not match DST');
+	it('Perform rename where the src and dst types are a mismatch (negative test)', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
 		});
-});
+
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
+
+		let src: IArtifactSearch = {
+			section: 'Default'
+		};
+
+		let dst: IArtifactSearch = {
+			section: 'Default',
+			notebook: 'Default'
+		};
+
+		await adb.rename(src, dst)
+			.then((dstArtifact: Artifact) => {
+				assert(false, dstArtifact.absolute());
+			})
+			.catch((err: string) => {
+				assert.equal(err, 'SRC artifact type does not match DST');
+			});
+	});
+})

@@ -37,7 +37,7 @@
     "yargs": "^6.6.0"
   },
   "devDependencies": {
-    "ava": "^0.18.2",
+    "@types/mocha": "^2.2.39",
     "coveralls": "^2.11.16",
     "gulp": "^3.9.1",
     "gulp-cli": "^1.2.2",
@@ -46,27 +46,25 @@
     "gulp-rename": "^1.2.2",
     "gulp-util": "^3.0.8",
     "jsdoc": "^3.4.3",
+    "mocha": "^3.2.0",
     "nyc": "^10.1.2",
-    "tslint": "^4.4.2",
+    "tslint": "^4.5.1",
     "typescript": "^2.2.1",
     "util.fixture": "0.0.30",
-    "util.pkgwrap": "^0.0.6",
+    "util.pkgwrap": "^0.0.10",
     "util.promise": "0.0.4",
-    "util.wait": "0.0.5",
-    "xo": "^0.17.1"
+    "util.wait": "0.0.5"
   },
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "all": "npm run build && npm test && npm run report",
+    "all": "npm run lint && npm run build && npm test && npm run report",
     "build": "./node_modules/.bin/pkgwrap --build && npm run docs",
     "coverage": "./node_modules/.bin/pkgwrap --coverage",
     "docs": "./node_modules/.bin/gulp docs",
+    "lint": "./node_modules/.bin/pkgwrap --lint",
     "postinstall": "./node_modules/.bin/pkgwrap --postinstall",
     "report": "./node_modules/.bin/pkgwrap --reporting",
     "test": "./node_modules/.bin/pkgwrap --testing"
-  },
-  "ava": {
-    "concurrency": 5
   }
 }

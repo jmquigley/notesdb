@@ -253,7 +253,7 @@ export class Artifact {
 	 * @returns {boolean} true if the artifacts are the same, otherwise false.
 	 */
 	public isEqual(artifact: Artifact): boolean {
-		return (artifactComparator(this, artifact) == 0);
+		return (artifactComparator(this, artifact) === 0);
 	}
 
 	public makeClean() {

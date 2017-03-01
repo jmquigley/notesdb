@@ -27,7 +27,7 @@ export function addConsole(logger: IAppenderList): void {
 
 		if (typeof obj === 'undefined') {
 			logger.appenders.push({
-				type: 'console',
+				type: 'console'
 			});
 		}
 	}

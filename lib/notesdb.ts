@@ -13,7 +13,7 @@ import * as log4js from 'log4js';
 import * as objectAssign from 'object-assign';
 import * as path from 'path';
 import {Deque} from 'util.ds';
-import {Artifact, ArtifactType, IArtifactSearch, IArtifactMeta, artifactComparator} from './artifact';
+import {Artifact, artifactComparator, ArtifactType, IArtifactMeta, IArtifactSearch} from './artifact';
 
 const walk = require('klaw-sync');
 const home = require('expand-home-dir');
@@ -104,7 +104,6 @@ export class NotesDB extends EventEmitter {
 		trash: {}
 	};
 	private _timedSave: boolean = false;
-
 
 	/**
 	 * Creates the instance of the NotesDB class and loads or defines the
@@ -215,7 +214,7 @@ export class NotesDB extends EventEmitter {
 		// the save to make sure it is written before removal.
 		self.recents.on('remove', (artifact: Artifact) => {
 			self.saveArtifact(artifact)
-				.then((artifact: Artifact) => {
+				.then(() => {
 					self.log.debug(`Removal save of ${artifact.absolute()}`);
 				})
 				.catch((err: string) => {
@@ -384,7 +383,7 @@ export class NotesDB extends EventEmitter {
 			Promise.all(promise)
 				.then((artifacts: Artifact[]) => {
 					resolve(artifacts.filter((n) => {
-						return n != null
+						return n != null;
 					}));
 				})
 				.catch((err: Error) => {
@@ -427,8 +426,9 @@ export class NotesDB extends EventEmitter {
 						artifact.loaded = true;
 						artifact.makeClean();
 
-						if (!self.recents.contains(artifact)) self.recents.enqueue(artifact);
-
+						if (!self.recents.contains(artifact)) {
+							self.recents.enqueue(artifact);
+						}
 
 						fs.stat(absolute, (err, stats) => {
 							if (err) {
@@ -448,14 +448,18 @@ export class NotesDB extends EventEmitter {
 						artifact.buf += chunk;
 					});
 				} else {
-					if (!self.recents.contains(artifact)) self.recents.enqueue(artifact);
+					if (!self.recents.contains(artifact)) {
+						self.recents.enqueue(artifact);
+					}
 					resolve(artifact);
 				}
 			} else if ((type === ArtifactType.SN && self.hasNotebook(opts, area)) ||
 				(type === ArtifactType.S && self.hasSection(opts, area))) {
 				let artifact = Artifact.factory('fields', opts);
 				artifact.root = self.config.dbdir;
-				if (!self.recents.contains(artifact)) self.recents.enqueue(artifact);
+				if (!self.recents.contains(artifact)) {
+					self.recents.enqueue(artifact);
+				}
 				resolve(artifact);
 			} else {
 				reject(`Artifact doesn't exist: ${opts.section}|${opts.notebook}|${opts.filename}`);
@@ -600,6 +604,10 @@ export class NotesDB extends EventEmitter {
 						case ArtifactType.S:
 							delete self.schema[area][artifact.section];
 							break;
+
+						default:
+							reject('Invalid artifact type given in remove');
+							break;
 					}
 
 					fs.remove(artifact.absolute(), (err) => {
@@ -704,8 +712,8 @@ export class NotesDB extends EventEmitter {
 					.then(() => {
 						resolve(dstArtifact);
 					})
-					.catch((err: string) => {
-						reject(err);
+					.catch((errmsg: string) => {
+						reject(errmsg);
 					});
 			});
 		});
@@ -821,7 +829,7 @@ export class NotesDB extends EventEmitter {
 		return JSON.stringify(obj, null, '\t');
 	}
 
-    /**
+	/**
 	 * Moves an artifact from it's current directory to the "Trash" folder.  It
 	 * is not removed until the emptyTrash() method is called.  The artifact
 	 * is removed from the schema dictionary and stored in the trash dictionary.
@@ -855,8 +863,8 @@ export class NotesDB extends EventEmitter {
 							.then(() => {
 								resolve(dstArtifact);
 							})
-							.catch((err: string) => {
-								reject(err);
+							.catch((errmsg: string) => {
+								reject(errmsg);
 							});
 					});
 				})
@@ -1051,7 +1059,9 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createNotebook(artifact: Artifact, area: string = NS.notes, self = this) {
-		if (artifact.hasSection() && artifact.hasNotebook() && self.hasSection(artifact, area) && !self.hasNotebook(artifact, area)) {
+		if (artifact.hasSection() && artifact.hasNotebook() &&
+			self.hasSection(artifact, area) &&
+			!self.hasNotebook(artifact, area)) {
 			if (self.isValidName(artifact.notebook)) {
 				let dst = path.join(self.config.dbdir, artifact.section, artifact.notebook);
 				if (area === NS.trash) {
@@ -1099,7 +1109,9 @@ export class NotesDB extends EventEmitter {
 					fs.mkdirsSync(dst);
 				}
 
-				if (!self.hasSection(artifact, area) && fs.existsSync(dst) && fs.lstatSync(dst).isDirectory()) {
+				if (!self.hasSection(artifact, area) &&
+					fs.existsSync(dst) &&
+					fs.lstatSync(dst).isDirectory()) {
 					self.schema[area][artifact.section] = {};
 				}
 
@@ -1243,7 +1255,6 @@ export class NotesDB extends EventEmitter {
 				resolve('Saved metadata');
 			});
 		}));
-
 
 		for (let artifact of self.artifacts.values()) {
 			promises.push(self.saveArtifact(artifact));

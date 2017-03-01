@@ -1,129 +1,129 @@
 'use strict';
 
-import {test} from 'ava';
+import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact} from '../index';
 import {NotesDB} from '../index';
-import {validateDB, validateArtifact} from './helpers';
+import {debug, validateDB, validateArtifact} from './helpers';
 import {ArtifactType} from '../lib/artifact';
 
-test.after.always((t: any) => {
-	console.log('final cleanup: test_db_sections');
-	let directories = Fixture.cleanup();
-	directories.forEach((directory: string) => {
-		t.false(fs.existsSync(directory));
-	});
-});
+describe('DB Sections', () => {
 
-test.cb('Try to get sections from an unitialized database', (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
+	after(() => {
+		debug('final cleanup: test_db_sections');
+		let directories = Fixture.cleanup();
+		directories.forEach((directory: string) => {
+			assert(!fs.existsSync(directory));
+		});
 	});
 
-	adb.initialized = false;
+	it('Try to get sections from an unitialized database', () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
+		});
 
-	try {
-		let sections = adb.sections();
-		t.fail(sections.toString());
-	} catch (err) {
-		t.is(err.message, `Trying to retrieve sections from an unitialized database.`);
-		t.pass(err.message);
-	}
-	t.end();
-});
+		adb.initialized = false;
 
-test('Create a new section within an existing database', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
-	});
-
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
-
-	let artifact = Artifact.factory('fields', {section: 'Test3'});
-	t.true(artifact instanceof Artifact);
-
-	await adb.add(artifact)
-		.then((artifact: Artifact) => {
-			validateArtifact(artifact, t, {
-				section: 'Test3',
-				type: ArtifactType.S
-			});
+		try {
 			let sections = adb.sections();
-			t.true(sections instanceof Array);
-			t.is(sections.length, 5);
+			assert(false, sections.toString());
+		} catch (err) {
+			assert.equal(err.message, `Trying to retrieve sections from an unitialized database.`);
+		}
+	});
 
-			let l = [
-				'Default',
-				'Test1',
-				'Test2',
-				'Test3',
-				'Section With Spaces'
-			];
+	it('Create a new section within an existing database', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
+		});
 
-			l.forEach((name: string) => {
-				t.true(adb.hasSection({section: name}));
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
+
+		let artifact = Artifact.factory('fields', {section: 'Test3'});
+		assert(artifact instanceof Artifact);
+
+		await adb.add(artifact)
+			.then((artifact: Artifact) => {
+				validateArtifact(artifact, {
+					section: 'Test3',
+					type: ArtifactType.S
+				});
+				let sections = adb.sections();
+				assert(sections instanceof Array);
+				assert.equal(sections.length, 5);
+
+				let l = [
+					'Default',
+					'Test1',
+					'Test2',
+					'Test3',
+					'Section With Spaces'
+				];
+
+				l.forEach((name: string) => {
+					assert(adb.hasSection({section: name}));
+				});
+
+				assert(fs.existsSync(path.join(adb.config.dbdir, 'Test3')));
+				return adb;
+			})
+			.then(adb.shutdown)
+			.catch((err: string) => {
+				assert(false, err);
 			});
+	});
 
-			t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test3')));
-			return adb;
-		})
-		.then(adb.shutdown)
-		.catch((err: string) => {
-			t.fail(`${this.name}: ${err}`);
+	it('Try to create a section that already exists within a database (negative test)', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
 		});
-});
 
-test('Try to create a section that already exists within a database (negative test)', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
-	});
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
+		let artifact = Artifact.factory('fields', {
+			section: 'Test1'
+		});
+		assert(artifact instanceof Artifact);
 
-	let artifact = Artifact.factory('fields', {
-		section: 'Test1'
-	});
-	t.true(artifact instanceof Artifact);
-
-	await adb.add(artifact)
-		.then((artifact: Artifact) => {
-			validateArtifact(artifact, t, {
-				section: 'Test1',
-				type: ArtifactType.S
+		await adb.add(artifact)
+			.then((artifact: Artifact) => {
+				validateArtifact(artifact, {
+					section: 'Test1',
+					type: ArtifactType.S
+				});
+				return adb;
+			})
+			.then(adb.shutdown)
+			.catch((err: string) => {
+				assert(false, err);
 			});
-			return adb;
-		})
-		.then(adb.shutdown)
-		.catch((err: string) => {
-			t.fail(`${this.name}: ${err}`);
-		});
-});
-
-test('Try to create an artifact with bad section name (negative test)', async (t: any) => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
-		root: fixture.dir
 	});
 
-	validateDB(adb, 'sampledb', fixture.dir, adb.initialized, t);
-
-	let badSectionName = '////badSectionName';
-	let artifact = Artifact.factory('fields', {
-		section: badSectionName
-	});
-	t.true(artifact instanceof Artifact);
-
-	await adb.add(artifact)
-		.then((artifact: Artifact) => {
-			t.fail(artifact.toString());
-		})
-		.catch((err: string) => {
-			t.is(err, `Invalid section name '${badSectionName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
-			t.pass(err);
+	it('Try to create an artifact with bad section name (negative test)', async () => {
+		let fixture = new Fixture('simple-db');
+		let adb = new NotesDB({
+			root: fixture.dir
 		});
-});
+
+		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
+
+		let badSectionName = '////badSectionName';
+		let artifact = Artifact.factory('fields', {
+			section: badSectionName
+		});
+		assert(artifact instanceof Artifact);
+
+		await adb.add(artifact)
+			.then((artifact: Artifact) => {
+				assert(false, artifact.toString());
+			})
+			.catch((err: string) => {
+				assert.equal(err, `Invalid section name '${badSectionName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
+			});
+	});
+})
