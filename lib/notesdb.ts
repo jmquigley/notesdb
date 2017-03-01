@@ -10,7 +10,6 @@ import {EventEmitter} from 'events';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
 import * as log4js from 'log4js';
-import * as objectAssign from 'object-assign';
 import * as path from 'path';
 import {Deque} from 'util.ds';
 import {Artifact, artifactComparator, ArtifactType, IArtifactMeta, IArtifactSearch} from './artifact';
@@ -138,7 +137,7 @@ export class NotesDB extends EventEmitter {
 
 		let self = this;
 
-		opts = objectAssign({
+		opts = Object.assign({
 			binderName: 'adb',
 			configRoot: '',
 			env: process.env,

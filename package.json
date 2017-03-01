@@ -21,7 +21,6 @@
     "@types/lodash": "^4.14.53",
     "@types/log4js": "0.0.32",
     "@types/node": "^7.0.5",
-    "@types/object-assign": "^4.0.30",
     "@types/uuid": "^2.0.29",
     "empty-dir": "^0.2.1",
     "expand-home-dir": "0.0.3",
@@ -29,12 +28,9 @@
     "klaw-sync": "^1.1.2",
     "lodash": "^4.17.4",
     "log4js": "^1.1.0",
-    "object-assign": "^4.1.1",
-    "util.ds": "0.0.8",
-    "util.rstrip": "^0.0.7",
-    "util.timestamp": "^0.0.17",
-    "uuid": "^3.0.1",
-    "yargs": "^6.6.0"
+    "util.ds": "0.0.9"
+    "util.timestamp": "^0.0.18",
+    "uuid": "^3.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.39",
@@ -50,9 +46,8 @@
     "nyc": "^10.1.2",
     "tslint": "^4.5.1",
     "typescript": "^2.2.1",
-    "util.fixture": "0.0.30",
-    "util.pkgwrap": "^0.0.10",
-    "util.promise": "0.0.4",
+    "util.fixture": "0.0.31",
+    "util.pkgwrap": "^0.0.11"
     "util.wait": "0.0.5"
   },
   "main": "./index.js",

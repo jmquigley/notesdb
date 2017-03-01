@@ -7,7 +7,7 @@
 import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {Artifact, IArtifactOpts, ArtifactType} from '../../lib/artifact';
+import {Artifact, ArtifactType, IArtifactOpts} from '../../lib/artifact';
 import {NotesDB} from '../../lib/notesdb';
 
 const pkg = require('../../package.json');
@@ -32,7 +32,7 @@ export function validateArtifact(artifact: Artifact, opts: IArtifactOpts): void 
 }
 
 export function debug(message: string): void {
-	if (pkg.debug) {	
+	if (pkg.debug) {
 		console.log(message);
 	}
 }
