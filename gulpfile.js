@@ -7,7 +7,30 @@ const gutil = require('gulp-util');
 const rename = require('gulp-rename');
 
 gulp.task('site', cb => {
-	let config = require('./jsdoc.json');
+	let config = {
+		tags: {
+			allowUnknownTags: true
+		},
+		opts: {
+			destination: './docs'
+		},
+		plugins: [
+			'plugins/markdown'
+		],
+		templates: {
+			cleverLinks: false,
+			monospaceLinks: false,
+			default: {
+				outputSourceFiles: true
+			},
+			path: 'ink-docstrap',
+			theme: 'cerulean',
+			navType: 'vertical',
+			linenums: true,
+			dateFormat: 'MMMM Do YYYY, h:mm:ss a'
+		}
+	};
+	
 	gulp.src(['README.md', './lib/*.js'], {read: false})
 		.pipe(jsdoc(config, cb));
 });
