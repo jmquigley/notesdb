@@ -23,12 +23,13 @@
     "@types/node": "^7.0.5",
     "@types/uuid": "^2.0.29",
     "empty-dir": "^0.2.1",
-    "expand-home-dir": "0.0.3",
     "fs-extra": "^2.0.0",
     "klaw-sync": "^1.1.2",
     "lodash": "^4.17.4",
     "log4js": "^1.1.1",
     "util.ds": "0.0.11",
+    "util.home": "0.0.3",
+    "util.pkgwrap": "^0.0.12",
     "util.timestamp": "^0.0.18",
     "uuid": "^3.0.1"
   },
@@ -47,7 +48,6 @@
     "tslint": "^4.5.1",
     "typescript": "^2.2.1",
     "util.fixture": "0.0.32",
-    "util.pkgwrap": "^0.0.12",
     "util.wait": "0.0.9"
   },
   "main": "./index.js",

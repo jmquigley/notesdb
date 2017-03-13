@@ -12,10 +12,10 @@ import * as _ from 'lodash';
 import * as log4js from 'log4js';
 import * as path from 'path';
 import {Deque} from 'util.ds';
+import {expandHomeDirectory as home} from 'util.home';
 import {Artifact, artifactComparator, ArtifactType, IArtifactMeta, IArtifactSearch} from './artifact';
 
 const walk = require('klaw-sync');
-const home = require('expand-home-dir');
 const util = require('./util');
 
 const defRoot = home(path.join('~/', '.notesdb'));
