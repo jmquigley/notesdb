@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 import {Artifact} from '../index';
 import {IArtifactSearch, ArtifactType} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
-import {wait} from 'util.wait';
+import {waitPromise} from 'util.wait';
 import {NotesDB} from '../index';
 import {debug, validateDB, validateArtifact} from './helpers';
 
@@ -268,7 +268,7 @@ describe('DB Add', () => {
 
 				// This wait allows the event loop to continue and process the
 				// remove node event before moving on to the next thenable
-				return wait(3, adb.get({section: 'Test1', notebook: 'Default', filename: 'test3.txt'}));
+				return waitPromise(3, adb.get({section: 'Test1', notebook: 'Default', filename: 'test3.txt'}));
 			})
 			.then((artifact: Artifact) => {
 				validateArtifact(artifact, {

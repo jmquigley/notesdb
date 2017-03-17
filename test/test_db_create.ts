@@ -4,7 +4,7 @@ import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {wait} from 'util.wait';
+import {waitPromise} from 'util.wait';
 import * as uuid from 'uuid';
 import {Artifact} from '../index';
 import {IArtifactSearch} from '../lib/artifact';
@@ -274,7 +274,7 @@ describe('DB Create', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		await wait(5)
+		await waitPromise(5)
 			.then(() => {
 				assert(adb.timedSave);
 				return adb;

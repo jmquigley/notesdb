@@ -8,7 +8,7 @@ import {IArtifactSearch, ArtifactType} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
 import {NotesDB} from '../index';
 import {debug, validateDB, validateArtifact} from './helpers';
-import {wait} from 'util.wait';
+import {waitPromise} from 'util.wait';
 
 describe('DB Meta', () => {
 
@@ -99,7 +99,7 @@ describe('DB Meta', () => {
 					type: ArtifactType.SNA
 				});
 				assert.equal(artifact.buf, 'Test File #1\n');
-				return wait(3, artifact);  // delay 3 seconds and return artifact
+				return waitPromise(3, artifact);  // delay 3 seconds and return artifact
 			})
 			.then((artifact: Artifact) => {
 				artifact.buf += 'Added Content';
