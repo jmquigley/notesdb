@@ -41,5 +41,4 @@ tmp-unit-test-data
 *.js
 *.js.map
 *.d.ts
-!gulpfile.js
 !docs/**/*.js
