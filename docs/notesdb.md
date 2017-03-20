@@ -30,7 +30,9 @@ Creates an instance of the text database class
 <a name="new_NotesDB_new"></a>
 
 ### new NotesDB([opts])
-Creates the instance of the NotesDB class and loads or defines theinitial configuration parameters.  If the schema already exists, thenit will be loaded.
+Creates the instance of the NotesDB class and loads or defines the
+initial configuration parameters.  If the schema already exists, then
+it will be loaded.
 
 
 | Param | Type | Description |
@@ -40,7 +42,12 @@ Creates the instance of the NotesDB class and loads or defines theinitial confi
 <a name="NotesDB+add"></a>
 
 ### notesDB.add(opts, area, self) ⇒ <code>Promise</code>
-Creates the requested artifact within the schema.  This will attemptto create each section, notebook, and document given.  If the item isempty, then it is ignored.The thenable return for this call is a reference to the artifact thatwas created.
+Creates the requested artifact within the schema.  This will attempt
+to create each section, notebook, and document given.  If the item is
+empty, then it is ignored.
+
+The thenable return for this call is a reference to the artifact that
+was created.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object  
@@ -54,7 +61,8 @@ Creates the requested artifact within the schema.  This will attemptto create e
 <a name="NotesDB+create"></a>
 
 ### notesDB.create(schema, area, self) ⇒ <code>Promise</code>
-Creates new sections within a binder.  It takes a list of sectionstrings and creates a directory for each given string.
+Creates new sections within a binder.  It takes a list of section
+strings and creates a directory for each given string.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object  
@@ -68,7 +76,12 @@ Creates new sections within a binder.  It takes a list of sectionstrings and cr
 <a name="NotesDB+emptyTrash"></a>
 
 ### notesDB.emptyTrash(self) ⇒ <code>Promise</code>
-Removes the current contents of the 'Trash' folder/section from thecurrent DB.  It also resets the internal trash namespace to empty.  Thiswill check that the directory requested is within the database locationand has the 'Trash' directory.The thenable resolves to a reference to the NotesDB instance.
+Removes the current contents of the 'Trash' folder/section from the
+current DB.  It also resets the internal trash namespace to empty.  This
+will check that the directory requested is within the database location
+and has the 'Trash' directory.
+
+The thenable resolves to a reference to the NotesDB instance.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
@@ -80,7 +93,12 @@ Removes the current contents of the 'Trash' folder/section from thecurrent DB. 
 <a name="NotesDB+find"></a>
 
 ### notesDB.find(search, self) ⇒ <code>Promise</code>
-Performs a text search against all artifacts within the repository.This will return a list of all artifacts tha contain the requestedstring.  The string can be a regex.The thenable from this call is an Array of Artifacts that meet thesearch criteria.
+Performs a text search against all artifacts within the repository.
+This will return a list of all artifacts tha contain the requested
+string.  The string can be a regex.
+
+The thenable from this call is an Array of Artifacts that meet the
+search criteria.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object  
@@ -93,7 +111,16 @@ Performs a text search against all artifacts within the repository.This will re
 <a name="NotesDB+get"></a>
 
 ### notesDB.get(opts, area, self) ⇒ <code>Promise</code>
-Retrieves an artifact from the schema.  If it exists, then it is returnedby the promise.  If it is not found, then an error will be thrown.  Ifthe artifact has never been loaded before, then it is read from thefilesystem when this request is made.  This will place the artifact intothe recent documents queue.When the request is a section or notebook a temporary artifact objectis created and returned.The thenable resolves to the artifact created by the get request.
+Retrieves an artifact from the schema.  If it exists, then it is returned
+by the promise.  If it is not found, then an error will be thrown.  If
+the artifact has never been loaded before, then it is read from the
+filesystem when this request is made.  This will place the artifact into
+the recent documents queue.
+
+When the request is a section or notebook a temporary artifact object
+is created and returned.
+
+The thenable resolves to the artifact created by the get request.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
@@ -107,7 +134,8 @@ Retrieves an artifact from the schema.  If it exists, then it is returnedby the
 <a name="NotesDB+hasArtifact"></a>
 
 ### notesDB.hasArtifact(search, area, self) ⇒ <code>boolean</code>
-Checks to see if a document is in the repository by name, notebook andsection.
+Checks to see if a document is in the repository by name, notebook and
+section.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>boolean</code> - true if the artifact is found, otherwise false  
@@ -149,7 +177,8 @@ Checks the current schema for the existence of a section.
 <a name="NotesDB+notebooks"></a>
 
 ### notesDB.notebooks(sectionName, area, self) ⇒ <code>Array</code>
-Enumerates the list of notebooks in a section from the schema.returns {Array} a list of the notebooks for a section
+Enumerates the list of notebooks in a section from the schema.
+returns {Array} a list of the notebooks for a section
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Array</code> - a list of notebook names as strings  
@@ -163,7 +192,9 @@ Enumerates the list of notebooks in a section from the schema.returns {Array} a
 <a name="NotesDB+reload"></a>
 
 ### notesDB.reload(area, self) ⇒ <code>Promise</code>
-Scans the current repository directory to rebuild the schema.  Thisonly needs to be done if a file/artifact is added to the directorystructure after the instance has been loaded.
+Scans the current repository directory to rebuild the schema.  This
+only needs to be done if a file/artifact is added to the directory
+structure after the instance has been loaded.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
@@ -176,7 +207,9 @@ Scans the current repository directory to rebuild the schema.  Thisonly needs t
 <a name="NotesDB+remove"></a>
 
 ### notesDB.remove(opts, area, self) ⇒ <code>Promise</code>
-Immediately removes an section/notebook/artifact from the system.The thenable resolves to a reference to the NotesDB instance.
+Immediately removes an section/notebook/artifact from the system.
+
+The thenable resolves to a reference to the NotesDB instance.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object  
@@ -190,7 +223,9 @@ Immediately removes an section/notebook/artifact from the system.The thenable 
 <a name="NotesDB+rename"></a>
 
 ### notesDB.rename(src, dst, self) ⇒ <code>Promise</code>
-Renames an artifact from the source (src) to destination (dst).The thenable resolves to a reference to the renamed artifact.
+Renames an artifact from the source (src) to destination (dst).
+
+The thenable resolves to a reference to the renamed artifact.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
@@ -204,7 +239,11 @@ Renames an artifact from the source (src) to destination (dst).The thenable re
 <a name="NotesDB+restore"></a>
 
 ### notesDB.restore(opts, self) ⇒ <code>Promise</code>
-Takes an item from the trash and puts it back into the schema.  If theitem is already in the schema, then it appends a timestamp to the nameof the item that is being restored.The thenable resolves to the artifact that was retored.
+Takes an item from the trash and puts it back into the schema.  If the
+item is already in the schema, then it appends a timestamp to the name
+of the item that is being restored.
+
+The thenable resolves to the artifact that was retored.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  
@@ -217,7 +256,11 @@ Takes an item from the trash and puts it back into the schema.  If theitem is a
 <a name="NotesDB+save"></a>
 
 ### notesDB.save(self) ⇒ <code>Promise</code>
-User requested save function.  If given an artifact, then a singlesave is performed.  If no artifact is specifid, then the binderartifact list is scanned for dirty artifacts that need to be saved.The thenable resolves to a reference to the NotesDB instance.
+User requested save function.  If given an artifact, then a single
+save is performed.  If no artifact is specifid, then the binder
+artifact list is scanned for dirty artifacts that need to be saved.
+
+The thenable resolves to a reference to the NotesDB instance.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object  
@@ -254,7 +297,8 @@ Enumerates the list of sections from the schema.
 <a name="NotesDB+shutdown"></a>
 
 ### notesDB.shutdown(self) ⇒ <code>Promise</code>
-Called when the database is no longer needed.  This will cleanupoperations and shutdown the intervals.
+Called when the database is no longer needed.  This will cleanup
+operations and shutdown the intervals.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object  
@@ -269,7 +313,8 @@ Called when the database is no longer needed.  This will cleanupoperations and 
 Converts the internal structures to a string and returns it.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
-**Returns**: <code>string</code> - a string that shows the configuration and schema forthe database.  
+**Returns**: <code>string</code> - a string that shows the configuration and schema for
+the database.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -278,7 +323,11 @@ Converts the internal structures to a string and returns it.
 <a name="NotesDB+trash"></a>
 
 ### notesDB.trash(opts, self) ⇒ <code>Promise</code>
-Moves an artifact from it's current directory to the "Trash" folder.  Itis not removed until the emptyTrash() method is called.  The artifactis removed from the schema dictionary and stored in the trash dictionary.The thenable resolves to the artifact that was moved to the trash.
+Moves an artifact from it's current directory to the "Trash" folder.  It
+is not removed until the emptyTrash() method is called.  The artifact
+is removed from the schema dictionary and stored in the trash dictionary.
+
+The thenable resolves to the artifact that was moved to the trash.
 
 **Kind**: instance method of <code>[NotesDB](#NotesDB)</code>  
 **Returns**: <code>Promise</code> - a javascript promise object.  

@@ -1,16 +1,16 @@
 {
 	"root": "{DIR}",
 	"binderName": "sampledb",
-	"dbdir": "{DIR}sampledb",
-	"configFile": "{DIR}config.json",
+	"dbdir": "{DIR}/sampledb",
+	"configFile": "{DIR}/config.json",
 	"configRoot": "{DIR}",
-	"trash": "{DIR}sampledb/Trash",
-	"metaFile": "{DIR}meta.json",
+	"trash": "{DIR}/sampledb/Trash",
+	"metaFile": "{DIR}/meta.json",
 	"log4js": {
 		"appenders": [
 			{
 				"type": "file",
-				"filename": "{DIR}notesdb.log",
+				"filename": "{DIR}/notesdb.log",
 			    "category": "notesdb"
 			}
 		]

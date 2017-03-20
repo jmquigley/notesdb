@@ -50,7 +50,7 @@
     "power-assert": "^1.4.2",
     "tslint": "^4.5.1",
     "typescript": "^2.2.1",
-    "util.fixture": "0.0.37",
+    "util.fixture": "0.0.39",
     "util.wait": "0.0.16"
   },
   "main": "./index.js",

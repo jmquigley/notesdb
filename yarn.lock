@@ -3716,9 +3716,9 @@ util.filelist@0.0.16:
     util.pkgwrap "0.0.18"
     util.rstrip "0.0.14"
 
-util.fixture@0.0.37:
-  version "0.0.37"
-  resolved "https://registry.yarnpkg.com/util.fixture/-/util.fixture-0.0.37.tgz#3cfe159cd3ed406ed157eed19bc36598b7133861"
+util.fixture@0.0.39:
+  version "0.0.39"
+  resolved "https://registry.yarnpkg.com/util.fixture/-/util.fixture-0.0.39.tgz#20ce873969018fea03becdc1adca3c40fbf5f135"
   dependencies:
     fs-extra "^2.1.2"
     klaw-sync "^1.1.2"

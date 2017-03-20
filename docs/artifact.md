@@ -20,7 +20,8 @@ used with the data structures in the util.ds objects.</p>
 <a name="Artifact"></a>
 
 ## Artifact
-A container class that holds the information for a single artifact withinthe database.
+A container class that holds the information for a single artifact within
+the database.
 
 **Kind**: global class  
 
@@ -77,7 +78,8 @@ Checks this artifact against a given artifact to show if they are equal
 Takes an artifact and appends a timestamp to the last part of its path
 
 **Kind**: instance method of <code>[Artifact](#Artifact)</code>  
-**Returns**: <code>[Artifact](#Artifact)</code> - the modified artifact with a timestamp attached tothe last element of the path.  
+**Returns**: <code>[Artifact](#Artifact)</code> - the modified artifact with a timestamp attached to
+the last element of the path.  
 <a name="Artifact.isDuplicateSearch"></a>
 
 ### Artifact.isDuplicateSearch(src, dst) ⇒
@@ -106,7 +108,15 @@ Takes artifact search information and builds the type id
 <a name="Artifact.factory"></a>
 
 ### Artifact.factory(mode, [opts], [artifact]) ⇒ <code>[Artifact](#Artifact)</code>
-A factory method for creating different types of artifacts.  The modedetermines what type of Artifact object will be factory and returned.The types include:- all|default - use a object with properties for each field to factory the objectand set its properties- treeitem - represents an object that can be parsed in the treetitemformat of {section}/{notebook}/{filename}- empty - just return an empty object.  This is the default.
+A factory method for creating different types of artifacts.  The mode
+determines what type of Artifact object will be factory and returned.
+The types include:
+
+- all|default - use a object with properties for each field to factory the object
+and set its properties
+- treeitem - represents an object that can be parsed in the treetitem
+format of {section}/{notebook}/{filename}
+- empty - just return an empty object.  This is the default.
 
 **Kind**: static method of <code>[Artifact](#Artifact)</code>  
 **Returns**: <code>[Artifact](#Artifact)</code> - a newly constructed artifact object.  
@@ -120,7 +130,9 @@ A factory method for creating different types of artifacts.  The modedetermines
 <a name="artifactComparator"></a>
 
 ## artifactComparator(o1, o2) ⇒ <code>number</code>
-Performs a comparison between two Artifact objects.  It uses the absolutepath for each artifact as the basis of the comparison.  This function isused with the data structures in the util.ds objects.
+Performs a comparison between two Artifact objects.  It uses the absolute
+path for each artifact as the basis of the comparison.  This function is
+used with the data structures in the util.ds objects.
 
 **Kind**: global function  
 **Returns**: <code>number</code> - 0 if o1 & o2 are the same, 1 if o1 > o2, -1 if o1 < o2.  
