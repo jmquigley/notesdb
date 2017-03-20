@@ -2,22 +2,28 @@
 
 import * as assert from 'assert';
 import * as fs from 'fs-extra';
-import {Artifact} from '../index';
-import {IArtifactSearch, ArtifactType} from '../lib/artifact';
+import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
-import {NotesDB} from '../index';
-import {debug, validateDB, validateArtifact} from './helpers';
+import {Artifact, NotesDB} from '../index';
+import {ArtifactType, IArtifactSearch} from '../lib/artifact';
+import {validateArtifact, validateDB} from './helpers';
 
-describe('DB Add', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_db_add');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+	// after('final cleanup', (done) => {
+	// 	Fixture.cleanup((err: Error, directories: string[]) => {
+	// 		if (err) {
+	// 			return done(failure);
+	// 		}
+	//
+	// 		directories.forEach((directory: string) => {
+	// 			assert(!fs.existsSync(directory));
+	// 		});
+	//
+	// 		return done();
+	// 	});
+	// });
 
 	it('Create a new artifact file within the database', async () => {
 		let fixture = new Fixture('simple-db');
@@ -27,13 +33,13 @@ describe('DB Add', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		let artifact = {
+		let testArtifact = {
 			section: 'Test3',
 			notebook: 'notebook',
 			filename: 'test file 1.txt'
 		};
 
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				validateArtifact(artifact, {
 					section: 'Test3',
@@ -62,13 +68,13 @@ describe('DB Add', () => {
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
 		let badFileName = '////badfilename';
-		let artifact = {
+		let testArtifact = {
 			section: 'Test3',
 			notebook: 'notebook',
 			filename: badFileName
 		};
 
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				assert(false, artifact.toString());
 			})
@@ -85,10 +91,10 @@ describe('DB Add', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		let artifact = Artifact.factory();
-		artifact.type = 99;  // set an invalid type to force failure
+		let testArtifact = Artifact.factory();
+		testArtifact.type = 99;  // set an invalid type to force failure
 
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				assert(false, artifact.toString());
 			})
@@ -155,7 +161,7 @@ describe('DB Add', () => {
 			.then((artifact: Artifact) => {
 				assert.equal(artifact.buf, 'Test File #1\n');
 				assert(artifact.loaded);
-				return adb
+				return adb;
 			})
 			.then(adb.shutdown)
 			.catch((err: string) => {
@@ -194,14 +200,14 @@ describe('DB Add', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		let artifact = {
+		let testArtifact = {
 			section: 'Test1',
 			notebook: 'notebook1',
 			filename: 'somefile.txt'
 		};
 
 		let content: string = 'Adding content';
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				assert(!artifact.isDirty());
 				artifact.buf += content;
@@ -279,13 +285,13 @@ describe('DB Add', () => {
 				});
 				return adb;
 			})
-			.then((adb: NotesDB) => {
-				assert.equal(adb.recents.length, 1);
+			.then((padb: NotesDB) => {
+				assert.equal(padb.recents.length, 1);
 				assert(!ejected.isDirty());
 				let data: string = fs.readFileSync(ejected.absolute()).toString();
 				assert.equal(data, 'Test File #1\nContent change');
 				assert.equal(ejected.buf, data);
-				return adb;
+				return padb;
 			})
 			.then(adb.shutdown)
 			.catch((err: string) => {

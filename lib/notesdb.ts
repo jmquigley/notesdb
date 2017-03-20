@@ -16,6 +16,7 @@ import {expandHomeDirectory as home} from 'util.home';
 import {Artifact, artifactComparator, ArtifactType, IArtifactMeta, IArtifactSearch} from './artifact';
 
 const walk = require('klaw-sync');
+const normalize = require('normalize-path');
 const util = require('./util');
 
 const defRoot = home(path.join('~/', '.notesdb'));
@@ -1282,12 +1283,12 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private tree(directory: string = '', self = this) {
-		directory = (directory === '') ? self.config.dbdir : path.join(self.config.dbdir, directory);
+		directory = (directory === '') ? self.config.dbdir : normalize(path.join(self.config.dbdir, directory));
 		let l: string[] = [];
 		let files = walk(directory, {ignore: self.ignore});
 
 		files.forEach((file: any) => {
-			l.push(file.path.replace(`${directory}${path.sep}`, ''));
+			l.push(normalize(file.path).replace(`${directory}/`, ''));
 		}, self);
 
 		return l;

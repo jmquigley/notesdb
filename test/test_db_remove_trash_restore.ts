@@ -4,23 +4,22 @@ import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
 import * as path from 'path';
-import {Artifact} from '../index';
-import {IArtifactSearch} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
-import {NotesDB} from '../index';
-import {debug, validateDB} from './helpers';
+import {Artifact, NotesDB} from '../index';
+import {IArtifactSearch} from '../lib/artifact';
+import {validateDB} from './helpers';
 
 const emptyDir = require('empty-dir');
 
-describe('DB Remove/Restore/Trash', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_db_remove_trash_restore');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+	// after(() => {
+	// 	debug('final cleanup: test_db_remove_trash_restore');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	// });
 
 	it('Send an item to the trash from the database and then restore it', async () => {
 		let fixture = new Fixture('simple-db');
@@ -110,7 +109,7 @@ describe('DB Remove/Restore/Trash', () => {
 				assert(fs.existsSync(artifact.absolute()));
 				assert.equal(sectionName, artifact.absolute());
 
-				return adb.restore(lookup)
+				return adb.restore(lookup);
 			})
 			.then((artifact: Artifact) => {
 				assert(adb.hasSection({section: lookup.section}));
@@ -211,22 +210,22 @@ describe('DB Remove/Restore/Trash', () => {
 		});
 
 		await adb.emptyTrash()
-			.then((adb: NotesDB) => {
-				assert(_.isEmpty(adb.schema.trash));
-				assert(emptyDir.sync(adb.config.trash));
+			.then((padb: NotesDB) => {
+				assert(_.isEmpty(padb.schema.trash));
+				assert(emptyDir.sync(padb.config.trash));
 
-				return adb.trash({
-					'section': 'Test2'
+				return padb.trash({
+					section: 'Test2'
 				});
 			})
 			.then((artifact: Artifact) => {
 				assert(fs.existsSync(artifact.absolute()));
 				return adb.emptyTrash();
 			})
-			.then((adb: NotesDB) => {
-				assert(_.isEmpty(adb.schema.trash));
-				assert(emptyDir.sync(adb.config.trash));
-				return adb;
+			.then((padb: NotesDB) => {
+				assert(_.isEmpty(padb.schema.trash));
+				assert(emptyDir.sync(padb.config.trash));
+				return padb;
 			})
 			.then(adb.shutdown)
 			.catch((err: string) => {
@@ -243,8 +242,8 @@ describe('DB Remove/Restore/Trash', () => {
 		adb.config.trash = 'alksjdglaksdjgaaslkdjg';
 
 		await adb.emptyTrash()
-			.then((adb: NotesDB) => {
-				assert(false, adb.toString());
+			.then((padb: NotesDB) => {
+				assert(false, padb.toString());
 			})
 			.catch((err: string) => {
 				assert.equal(err, `Invalid trash directory, no empty: ${adb.config.trash}`);
@@ -290,14 +289,14 @@ describe('DB Remove/Restore/Trash', () => {
 		};
 
 		await adb.remove(lookup)
-			.then((adb: NotesDB) => {
-				assert(!adb.hasArtifact(lookup));
-				assert(!fs.existsSync(path.join(adb.config.dbdir, lookup.section, lookup.notebook, lookup.filename)));
-				return adb;
+			.then((padb: NotesDB) => {
+				assert(!padb.hasArtifact(lookup));
+				assert(!fs.existsSync(path.join(padb.config.dbdir, lookup.section, lookup.notebook, lookup.filename)));
+				return padb;
 			})
 			.then(adb.shutdown)
 			.catch((err: string) => {
- 				assert(false, err);
+				assert(false, err);
 			});
 	});
 
@@ -315,10 +314,10 @@ describe('DB Remove/Restore/Trash', () => {
 		};
 
 		await adb.remove(lookup)
-			.then((adb: NotesDB) => {
-				assert(!adb.hasNotebook(lookup));
-				assert(!fs.existsSync(path.join(adb.config.dbdir, lookup.section, lookup.notebook)));
-				return adb;
+			.then((padb: NotesDB) => {
+				assert(!padb.hasNotebook(lookup));
+				assert(!fs.existsSync(path.join(padb.config.dbdir, lookup.section, lookup.notebook)));
+				return padb;
 			})
 			.then(adb.shutdown)
 			.catch((err: string) => {
@@ -339,10 +338,10 @@ describe('DB Remove/Restore/Trash', () => {
 		};
 
 		await adb.remove(lookup)
-			.then((adb: NotesDB) => {
-				assert(!adb.hasNotebook(lookup));
-				assert(!fs.existsSync(path.join(adb.config.dbdir, lookup.section)));
-				return adb;
+			.then((padb: NotesDB) => {
+				assert(!padb.hasNotebook(lookup));
+				assert(!fs.existsSync(path.join(padb.config.dbdir, lookup.section)));
+				return padb;
 			})
 			.then(adb.shutdown)
 			.catch((err: string) => {

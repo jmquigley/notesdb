@@ -3,22 +3,21 @@
 import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {Artifact} from '../index';
-import {IArtifactSearch, ArtifactType} from '../lib/artifact';
 import {Fixture} from 'util.fixture';
-import {NotesDB} from '../index';
-import {debug, validateDB, validateArtifact} from './helpers';
 import {waitPromise} from 'util.wait';
+import {Artifact, NotesDB} from '../index';
+import {ArtifactType, IArtifactSearch} from '../lib/artifact';
+import {validateArtifact, validateDB} from './helpers';
 
-describe('DB Meta', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_db_meta');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+	// after(() => {
+	// 	debug('final cleanup: test_db_meta');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	// });
 
 	it('Get an existing artifact from the schema', async() => {
 		let fixture = new Fixture('simple-db');
@@ -50,11 +49,11 @@ describe('DB Meta', () => {
 				let l = ['A', 'B'];
 
 				l.forEach((tag: string) => {
-					assert(tags.indexOf(tag) != -1)
+					assert(tags.indexOf(tag) !== -1);
 				});
 
 				artifact.addTag('C');
-				return adb
+				return adb;
 			})
 			.then(adb.shutdown)
 			.then((msg: string) => {
@@ -66,7 +65,7 @@ describe('DB Meta', () => {
 				let l = ['A', 'B', 'C'];
 
 				l.forEach((tag: string) => {
-					assert(metadata[metaPath].tags.indexOf(tag) != -1)
+					assert(metadata[metaPath].tags.indexOf(tag) !== -1);
 				});
 			})
 			.catch((err: string) => {
@@ -103,7 +102,7 @@ describe('DB Meta', () => {
 			})
 			.then((artifact: Artifact) => {
 				artifact.buf += 'Added Content';
-				return adb
+				return adb;
 			})
 			.then(adb.shutdown)
 			.then((msg: string) => {

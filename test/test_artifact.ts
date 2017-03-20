@@ -1,7 +1,6 @@
 'use strict';
 
 import * as assert from 'assert';
-import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact} from '../index';
@@ -9,19 +8,19 @@ import {
 	artifactComparator, ArtifactType, IArtifactOpts,
 	IArtifactSearch
 } from '../lib/artifact';
-import {debug, validateArtifact} from './helpers';
+import {validateArtifact} from './helpers';
 
 const pkg = require('../package.json');
 
-describe('Artifact Tests', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_artifacts');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+	// after(() => {
+	// 	debug('final cleanup: test_artifacts');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	// });
 
 	it('Testing artifact with empty creation', () => {
 		let fixture = new Fixture();
@@ -32,7 +31,7 @@ describe('Artifact Tests', () => {
 			section: '',
 			notebook: '',
 			filename: '',
-			type: ArtifactType.Unk,
+			type: ArtifactType.Unk
 		});
 
 		artifact.created = new Date();
@@ -127,13 +126,13 @@ describe('Artifact Tests', () => {
 
 		validateArtifact(artifact, {
 			section: 'section',
-		    notebook: 'notebook',
+			notebook: 'notebook',
 			filename: 'filename',
 			type: ArtifactType.SNA
 		});
 
 		assert(artifact.root === fixture.dir);
-		assert(artifact.path() === 'section/notebook/filename');
+		assert(artifact.path() === `section${path.sep}notebook${path.sep}filename`);
 		assert(artifact.hasSection());
 		assert(artifact.hasNotebook());
 		assert(artifact.hasFilename());

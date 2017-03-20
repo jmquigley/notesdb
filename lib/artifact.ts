@@ -145,7 +145,7 @@ export class Artifact {
 					if (opts.hasOwnProperty('path') && opts.hasOwnProperty('root')) {
 						artifact = Artifact.factory('treeitem', {
 							root: opts.root,
-							treeitem: opts.path.replace(opts.root, '').replace(/^\/*/, '')
+							treeitem: opts.path.replace(opts.root, '').replace(/^[\/\\]*/, '')
 						}, artifact);
 					}
 				}
@@ -155,7 +155,7 @@ export class Artifact {
 				if (opts != null) {
 					if (opts.hasOwnProperty('treeitem')) {
 						let s: string = opts.treeitem || '';
-						a = s.split(path.sep);
+						a = s.split(/\/|\\/);
 
 						artifact.section = a[0] || 'Default';
 						artifact.notebook = a[1] || 'Default';

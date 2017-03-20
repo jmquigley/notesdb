@@ -4,21 +4,20 @@ import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact} from '../index';
-import {NotesDB} from '../index';
-import {debug, validateDB, validateArtifact} from './helpers';
+import {Artifact, NotesDB} from '../index';
 import {ArtifactType} from '../lib/artifact';
+import {validateArtifact, validateDB} from './helpers';
 
-describe('DB Notebooks', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_db_notebooks');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-
-	});
+	// after(() => {
+	// 	debug('final cleanup: test_db_notebooks');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	//
+	// });
 
 	it('Load a database with file in the sections directory', () => {
 		let fixture = new Fixture('invalid-section');
@@ -124,8 +123,8 @@ describe('DB Notebooks', () => {
 				assert.equal(artifacts.length, 2);
 				return adb;
 			})
-			.then((adb: NotesDB) => {
-				let notebooks: string[] = adb.notebooks(sectionName);
+			.then((padb: NotesDB) => {
+				let notebooks: string[] = padb.notebooks(sectionName);
 				assert(notebooks instanceof Array);
 				assert.equal(notebooks.length, 2);
 
@@ -134,12 +133,12 @@ describe('DB Notebooks', () => {
 				});
 
 				notebooks.forEach((notebookName: string) => {
-					assert(adb.hasNotebook({
+					assert(padb.hasNotebook({
 						notebook: notebookName,
 						section: sectionName
 					}));
 				});
-				return adb;
+				return padb;
 			})
 			.then(adb.shutdown)
 			.catch((err: string) => {
@@ -157,12 +156,12 @@ describe('DB Notebooks', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		let artifact = Artifact.factory('fields', {
+		let testArtifact = Artifact.factory('fields', {
 			section: sectionName,
 			notebook: notebookName
 		});
 
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				validateArtifact(artifact, {
 					section: sectionName,
@@ -188,16 +187,16 @@ describe('DB Notebooks', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		let artifact = Artifact.factory('fields', {
+		let testArtifact = Artifact.factory('fields', {
 			section: sectionName,
 			notebook: notebookName
 		});
 
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				assert(false, artifact.toString());
 			})
-			.catch(err => {
+			.catch((err: string) => {
 				assert.equal(err, `Invalid notebook name '${notebookName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
 			});
 	});

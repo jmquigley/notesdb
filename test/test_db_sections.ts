@@ -4,20 +4,19 @@ import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact} from '../index';
-import {NotesDB} from '../index';
-import {debug, validateDB, validateArtifact} from './helpers';
+import {Artifact, NotesDB} from '../index';
 import {ArtifactType} from '../lib/artifact';
+import {validateArtifact, validateDB} from './helpers';
 
-describe('DB Sections', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_db_sections');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+	// after(() => {
+	// 	debug('final cleanup: test_db_sections');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	// });
 
 	it('Try to get sections from an unitialized database', () => {
 		let fixture = new Fixture('simple-db');
@@ -43,10 +42,10 @@ describe('DB Sections', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		let artifact = Artifact.factory('fields', {section: 'Test3'});
-		assert(artifact instanceof Artifact);
+		let testArtifact = Artifact.factory('fields', {section: 'Test3'});
+		assert(testArtifact instanceof Artifact);
 
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				validateArtifact(artifact, {
 					section: 'Test3',
@@ -85,12 +84,12 @@ describe('DB Sections', () => {
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
-		let artifact = Artifact.factory('fields', {
+		let testArtifact = Artifact.factory('fields', {
 			section: 'Test1'
 		});
-		assert(artifact instanceof Artifact);
+		assert(testArtifact instanceof Artifact);
 
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				validateArtifact(artifact, {
 					section: 'Test1',
@@ -113,12 +112,12 @@ describe('DB Sections', () => {
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
 		let badSectionName = '////badSectionName';
-		let artifact = Artifact.factory('fields', {
+		let testArtifact = Artifact.factory('fields', {
 			section: badSectionName
 		});
-		assert(artifact instanceof Artifact);
+		assert(testArtifact instanceof Artifact);
 
-		await adb.add(artifact)
+		await adb.add(testArtifact)
 			.then((artifact: Artifact) => {
 				assert(false, artifact.toString());
 			})
@@ -126,4 +125,4 @@ describe('DB Sections', () => {
 				assert.equal(err, `Invalid section name '${badSectionName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
 			});
 	});
-})
+});

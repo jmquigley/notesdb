@@ -1,21 +1,20 @@
 'use strict';
 
 import * as assert from 'assert';
-import * as fs from 'fs-extra';
-import {Artifact} from '../index';
+import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {NotesDB} from '../index';
-import {debug, validateDB} from './helpers';
+import {Artifact, NotesDB} from '../index';
+import {validateDB} from './helpers';
 
-describe('DB Search', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_db_search');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+	// after(() => {
+	// 	debug('final cleanup: test_db_search');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	// });
 
 	it('Test simple search for #1 in simple dB', async () => {
 		let fixture = new Fixture('simple-db');
@@ -26,7 +25,7 @@ describe('DB Search', () => {
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
 		await adb.find('#1')
-			.then((artifacts: Array<Artifact>) => {
+			.then((artifacts: Artifact[]) => {
 				assert.equal(artifacts.length, 1);
 				assert.equal(artifacts[0].filename, 'test1.txt');
 				return adb;
@@ -46,7 +45,7 @@ describe('DB Search', () => {
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
 		await adb.find('File #[0-9]')
-			.then((artifacts: Array<Artifact>) => {
+			.then((artifacts: Artifact[]) => {
 				assert.equal(artifacts.length, 4);
 				assert.equal(artifacts[0].filename, 'test1.txt');
 				assert.equal(artifacts[1].filename, 'test2.txt');
@@ -59,6 +58,6 @@ describe('DB Search', () => {
 				assert(false, err);
 			});
 	});
-})
+});
 
 // test search with a database of large artifacts, new test fixture

@@ -6,22 +6,21 @@ import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
 import * as uuid from 'uuid';
-import {Artifact} from '../index';
+import {Artifact, NotesDB} from '../index';
 import {IArtifactSearch} from '../lib/artifact';
-import {NotesDB} from '../index';
-import {debug, validateDB} from './helpers';
+import {validateDB} from './helpers';
 
 const pkg = require('../package.json');
 
-describe('DB Create', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_db_create');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+	// after(() => {
+	// 	debug('final cleanup: test_db_create');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	// });
 
 	it('The database toString() function', () => {
 		let fixture = new Fixture('empty-db');
@@ -102,7 +101,7 @@ describe('DB Create', () => {
 
 	it('Try to create a binder with a bad name (negative test)', () => {
 		let fixture = new Fixture('tmpdir');
-		let binderName:string = '////testdb';
+		let binderName: string = '////testdb';
 
 		try {
 			let adb = new NotesDB({
@@ -181,13 +180,13 @@ describe('DB Create', () => {
 		});
 		assert(adb.hasArtifact(artifact));
 
-	await adb.shutdown()
-		.then((msg: string) => {
-			assert.equal(msg, 'The database is shutdown.')
-		})
-		.catch((err: string) => {
-			assert(false, err);
-		});
+		await adb.shutdown()
+			.then((msg: string) => {
+				assert.equal(msg, 'The database is shutdown.');
+			})
+			.catch((err: string) => {
+				assert(false, err);
+			});
 	});
 
 	it('Try to load existing database with missing config file (negative test)', () => {
@@ -239,10 +238,10 @@ describe('DB Create', () => {
 		adb.config.configFile = '';  // destroy config reference
 
 		await adb.save()
-			.then(adb => {
-				assert(false, adb.toString());
+			.then((padb: NotesDB) => {
+				assert(false, padb.toString());
 			})
-			.catch(err => {
+			.catch((err: string) => {
 				assert.equal(err, `ENOENT: no such file or directory, open ''`);
 			});
 	});
@@ -257,10 +256,10 @@ describe('DB Create', () => {
 		adb.config.metaFile = '';  // destroy config reference
 
 		await adb.save()
-			.then(adb => {
-				assert(false, adb.toString());
+			.then((padb: NotesDB) => {
+				assert(false, padb.toString());
 			})
-			.catch(err => {
+			.catch((err: string) => {
 				assert.equal(err, `ENOENT: no such file or directory, open ''`);
 			});
 	});
@@ -288,7 +287,7 @@ describe('DB Create', () => {
 	it('Test the reload function', async () => {
 		let fixture = new Fixture('simple-db');
 		let adb = new NotesDB({
-			root: fixture.dir,
+			root: fixture.dir
 		});
 
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
@@ -307,9 +306,9 @@ describe('DB Create', () => {
 		fs.writeFileSync(path.join(adb.config.dbdir, 'Default', 'Default', filename), data);
 
 		await adb.reload()
-			.then((adb: NotesDB) => {
-				assert(adb.hasArtifact(lookup));
-				return adb.get(lookup)
+			.then((padb: NotesDB) => {
+				assert(padb.hasArtifact(lookup));
+				return padb.get(lookup);
 			})
 			.then((artifact: Artifact) => {
 				assert.equal(artifact.buf, data);
@@ -331,7 +330,7 @@ describe('DB Create', () => {
 
 		await adb.add({})
 			.then((artifact: Artifact) => {
-				assert(false, artifact.toString())
+				assert(false, artifact.toString());
 			})
 			.catch((err: string) => {
 				assert.equal(err, 'Trying to add invalid artifact to DB');

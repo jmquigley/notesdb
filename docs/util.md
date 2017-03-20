@@ -1,8 +1,7 @@
 <a name="module_util"></a>
 
 ## util
-This module contains helper functions used in the txtdb.  They represent
-private functions that are not exposed as part of the main module.
+This module contains helper functions used in the txtdb.  They representprivate functions that are not exposed as part of the main module.
 
 
 * [util](#module_util)
@@ -13,9 +12,7 @@ private functions that are not exposed as part of the main module.
 <a name="module_util..addConsole"></a>
 
 ### util~addConsole(logger)
-Adds a console logging appender to to the logging facility used by the TxtDB
-class.  It checks to see if there is already a console logger in the config.
-If it is already there, then it is not added again.
+Adds a console logging appender to to the logging facility used by the TxtDBclass.  It checks to see if there is already a console logger in the config.If it is already there, then it is not added again.
 
 **Kind**: inner method of <code>[util](#module_util)</code>  
 

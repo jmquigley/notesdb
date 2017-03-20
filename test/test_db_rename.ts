@@ -1,23 +1,22 @@
 'use strict';
 
 import * as assert from 'assert';
-import * as path from 'path';
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact} from '../index';
-import {NotesDB} from '../index';
-import {debug, validateDB, validateArtifact} from './helpers';
-import {IArtifactSearch, ArtifactType} from '../lib/artifact';
+import {Artifact, NotesDB} from '../index';
+import {ArtifactType, IArtifactSearch} from '../lib/artifact';
+import {validateArtifact, validateDB} from './helpers';
 
-describe('DB Rename', () => {
+describe(path.basename(__filename), () => {
 
-	after(() => {
-		debug('final cleanup: test_db_rename');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+	// after(() => {
+	// 	debug('final cleanup: test_db_rename');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	// });
 
 	it('Renames an artifact (full path)', async () => {
 		let fixture = new Fixture('simple-db');
@@ -108,11 +107,11 @@ describe('DB Rename', () => {
 		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
 
 		let src: IArtifactSearch = {
-			section: 'Default',
+			section: 'Default'
 		};
 
 		let dst: IArtifactSearch = {
-			section: 'RenamedDefault',
+			section: 'RenamedDefault'
 		};
 
 		await adb.rename(src, dst)
@@ -249,4 +248,4 @@ describe('DB Rename', () => {
 				assert.equal(err, 'SRC artifact type does not match DST');
 			});
 	});
-})
+});

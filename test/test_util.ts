@@ -8,20 +8,19 @@ import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import * as uuid from 'uuid';
 import {IAppenderList} from '../lib/notesdb';
-import {debug} from './helpers';
 
 const util = require('../lib/util');
 const pkg = require('../package.json');
 
-describe('Testing Utilities', () => {
-	
-	after(() => {
-		debug('final cleanup: test_util');
-		let directories = Fixture.cleanup();
-		directories.forEach((directory: string) => {
-			assert(!fs.existsSync(directory));
-		});
-	});
+describe(path.basename(__filename), () => {
+
+	// after(() => {
+	// 	debug('final cleanup: test_util');
+	// 	let directories = Fixture.cleanup();
+	// 	directories.forEach((directory: string) => {
+	// 		assert(!fs.existsSync(directory));
+	// 	});
+	// });
 
 	it('Adding console logger to log4js', () => {
 		let logger = _.cloneDeep(log4js);

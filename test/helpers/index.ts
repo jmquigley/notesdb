@@ -10,13 +10,15 @@ import * as path from 'path';
 import {Artifact, ArtifactType, IArtifactOpts} from '../../lib/artifact';
 import {NotesDB} from '../../lib/notesdb';
 
+const normalize = require('normalize-path');
+
 const pkg = require('../../package.json');
 
 export function validateDB(notesDB: NotesDB, binderName: string , root: string, valid: boolean): void {
 	assert(notesDB && typeof notesDB !== 'undefined' && notesDB instanceof NotesDB);
 	assert(notesDB.config.binderName === binderName);
-	assert(notesDB.config.root === root);
-	assert(notesDB.config.dbdir === path.join(root, binderName));
+	assert(notesDB.config.root === `${root}/`);
+	assert(notesDB.config.dbdir === normalize(path.join(root, binderName)));
 	assert(fs.existsSync(notesDB.configFile));
 	assert(fs.existsSync(notesDB.config.metaFile));
 	assert(valid);
