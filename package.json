@@ -22,8 +22,8 @@
     "lodash": "^4.17.4",
     "log4js": "^1.1.1",
     "util.ds": "0.0.15",
-    "util.home": "0.0.9",
-    "util.join": "0.0.4",
+    "util.home": "0.0.11",
+    "util.join": "0.0.5",
     "util.pkgwrap": "^0.0.20",
     "util.timestamp": "^0.0.21",
     "uuid": "^3.0.1"

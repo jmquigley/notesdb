@@ -32,7 +32,7 @@ describe(path.basename(__filename), () => {
 			notebook: 'Default',
 			filename: 'test1.txt'
 		};
-		let metaPath: string = `${lookup.section}${path.sep}${lookup.notebook}${path.sep}${lookup.filename}`;
+		let metaPath: string = `${lookup.section}/${lookup.notebook}/${lookup.filename}`;
 
 		await adb.get(lookup)
 			.then((artifact: Artifact) => {

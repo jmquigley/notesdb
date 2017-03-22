@@ -322,7 +322,7 @@ export class NotesDB extends EventEmitter {
 	public emptyTrash(self = this) {
 		return new Promise((resolve, reject) => {
 			if (fs.existsSync(self.config.trash) &&
-				self.config.trash.endsWith(`${path.sep}Trash`) &&
+				self.config.trash.endsWith(`/Trash`) &&
 				self.config.trash.startsWith(self.config.dbdir)) {
 				self.log.info('Emptying trash: ${self.config.trash}');
 

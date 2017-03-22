@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
-import * as path from 'path';
+import {join} from 'util.join';
 import {timestamp} from 'util.timestamp';
 
 export const enum ArtifactType {
@@ -206,7 +206,7 @@ export class Artifact {
 	}
 
 	public absolute(): string {
-		return path.join(this.root, this.path());
+		return join(this.root, this.path());
 	}
 
 	/**
@@ -283,7 +283,7 @@ export class Artifact {
 	}
 
 	public path(): string {
-		return path.join(this.section, this.notebook, this.filename);
+		return join(this.section, this.notebook, this.filename);
 	}
 
 	public toString(): string {

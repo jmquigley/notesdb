@@ -3,6 +3,7 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
+import {join} from 'util.join';
 import {Artifact} from '../index';
 import {
 	artifactComparator, ArtifactType, IArtifactOpts,
@@ -47,7 +48,7 @@ describe(path.basename(__filename), () => {
 
 		assert(artifact.buffer instanceof Buffer);
 		assert(artifact.root === fixture.dir);
-		assert(artifact.path() === '.');
+		assert(artifact.path() === '');
 		assert(artifact.type === ArtifactType.Unk);
 		assert(artifact.isEmpty());
 		assert(artifact.accessed != null && artifact.accessed instanceof Date);
@@ -59,7 +60,7 @@ describe(path.basename(__filename), () => {
 		assert(artifact.loaded);
 		assert(artifact.tags);
 		assert(artifact.tags instanceof Array);
-		assert(artifact.absolute() === path.join(fixture.dir, artifact.path()));
+		assert(artifact.absolute() === join(fixture.dir, artifact.path()));
 
 		artifact.addTag('A');
 		artifact.addTag('A');
@@ -132,7 +133,7 @@ describe(path.basename(__filename), () => {
 		});
 
 		assert(artifact.root === fixture.dir);
-		assert(artifact.path() === `section${path.sep}notebook${path.sep}filename`);
+		assert(artifact.path() === 'section/notebook/filename');
 		assert(artifact.hasSection());
 		assert(artifact.hasNotebook());
 		assert(artifact.hasFilename());
@@ -141,8 +142,8 @@ describe(path.basename(__filename), () => {
 	it('Testing artifact with factory path creation', () => {
 		let fixture = new Fixture('simple-db');
 		let artifact = Artifact.factory('path', {
-			root: path.join(fixture.dir, 'sampledb'),
-			path: path.join(fixture.dir, 'sampledb', 'Default', 'Default', 'test1.txt')
+			root: join(fixture.dir, 'sampledb'),
+			path: join(fixture.dir, 'sampledb', 'Default', 'Default', 'test1.txt')
 		});
 
 		validateArtifact(artifact, {
@@ -156,7 +157,7 @@ describe(path.basename(__filename), () => {
 	it('Testing artifact with factory treeitem creation', () => {
 		let fixture = new Fixture();
 		let artifact = Artifact.factory('treeitem', {
-			treeitem: `section${path.sep}notebook${path.sep}filename`,
+			treeitem: 'section/notebook/filename',
 			root: fixture.dir
 		});
 
@@ -189,7 +190,7 @@ describe(path.basename(__filename), () => {
 	it('Testing artifact with factory treeitem section & notebook only creation', () => {
 		let fixture = new Fixture();
 		let artifact = Artifact.factory('treeitem', {
-			treeitem: `section${path.sep}notebook${path.sep}`,
+			treeitem: 'section/notebook/',
 			root: fixture.dir
 		});
 
@@ -203,7 +204,7 @@ describe(path.basename(__filename), () => {
 	it('Testing artifact with factory treeitem too many items on creation', () => {
 		let fixture = new Fixture();
 		let artifact = Artifact.factory('treeitem', {
-			treeitem: `section${path.sep}notebook${path.sep}filename${path.sep}blah1${path.sep}blah2`,
+			treeitem: 'section/notebook/filename/blah1/blah2',
 			root: fixture.dir
 		});
 

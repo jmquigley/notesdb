@@ -5,6 +5,7 @@ import * as fs from 'fs-extra';
 import * as _ from 'lodash';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
+import {join} from 'util.join';
 import {Artifact, NotesDB} from '../index';
 import {IArtifactSearch} from '../lib/artifact';
 import {validateDB} from './helpers';
@@ -34,7 +35,7 @@ describe(path.basename(__filename), () => {
 			notebook: 'Default',
 			filename: 'test4.txt'
 		};
-		let artifactName: string = path.join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook, lookup.filename);
+		let artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook, lookup.filename);
 
 		await adb.trash(lookup)
 			.then((artifact: Artifact) => {
@@ -68,7 +69,7 @@ describe(path.basename(__filename), () => {
 			section: 'Test2',
 			notebook: 'Default'
 		};
-		let notebookName: string = path.join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
+		let notebookName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
 
 		await adb.trash(lookup)
 			.then((artifact: Artifact) => {
@@ -136,7 +137,7 @@ describe(path.basename(__filename), () => {
 			notebook: 'Default',
 			filename: 'test4.txt'
 		};
-		let artifactName: string = path.join(adb.config.dbdir, lookup.section, lookup.notebook, lookup.filename);
+		let artifactName: string = join(adb.config.dbdir, lookup.section, lookup.notebook, lookup.filename);
 
 		await adb.restore(lookup)
 			.then((artifact: Artifact) => {
@@ -165,7 +166,7 @@ describe(path.basename(__filename), () => {
 		let lookup: IArtifactSearch = {
 			section: 'Test2'
 		};
-		let artifactName: string = path.join(adb.config.dbdir, 'Trash', lookup.section);
+		let artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section);
 
 		await adb.trash(lookup)
 			.then((artifact: Artifact) => {
@@ -190,7 +191,7 @@ describe(path.basename(__filename), () => {
 			section: 'Test2',
 			notebook: 'Default'
 		};
-		let artifactName: string = path.join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
+		let artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
 
 		await adb.trash(lookup)
 			.then((artifact: Artifact) => {
@@ -291,7 +292,7 @@ describe(path.basename(__filename), () => {
 		await adb.remove(lookup)
 			.then((padb: NotesDB) => {
 				assert(!padb.hasArtifact(lookup));
-				assert(!fs.existsSync(path.join(padb.config.dbdir, lookup.section, lookup.notebook, lookup.filename)));
+				assert(!fs.existsSync(join(padb.config.dbdir, lookup.section, lookup.notebook, lookup.filename)));
 				return padb;
 			})
 			.then(adb.shutdown)
@@ -316,7 +317,7 @@ describe(path.basename(__filename), () => {
 		await adb.remove(lookup)
 			.then((padb: NotesDB) => {
 				assert(!padb.hasNotebook(lookup));
-				assert(!fs.existsSync(path.join(padb.config.dbdir, lookup.section, lookup.notebook)));
+				assert(!fs.existsSync(join(padb.config.dbdir, lookup.section, lookup.notebook)));
 				return padb;
 			})
 			.then(adb.shutdown)
@@ -340,7 +341,7 @@ describe(path.basename(__filename), () => {
 		await adb.remove(lookup)
 			.then((padb: NotesDB) => {
 				assert(!padb.hasNotebook(lookup));
-				assert(!fs.existsSync(path.join(padb.config.dbdir, lookup.section)));
+				assert(!fs.existsSync(join(padb.config.dbdir, lookup.section)));
 				return padb;
 			})
 			.then(adb.shutdown)

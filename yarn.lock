@@ -332,11 +332,7 @@ beeper@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/beeper/-/beeper-1.1.1.tgz#e6d5ea8c5dad001304a70b22638447f69cb2f809"
 
-bluebird@^3.1.1:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.0.tgz#791420d7f551eea2897453a8a77653f96606d67c"
-
-bluebird@~3.4.6:
+bluebird@^3.1.1, bluebird@~3.4.6:
   version "3.4.7"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.4.7.tgz#f72d760be09b7f76d08ed8fae98b289a8d05fab3"
 
@@ -1725,8 +1721,8 @@ homedir-polyfill@^1.0.0:
     parse-passwd "^1.0.0"
 
 hosted-git-info@^2.1.4:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.3.1.tgz#ac439421605f0beb0ea1349de7d8bb28e50be1dd"
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.4.1.tgz#4b0445e41c004a8bd1337773a4ff790ca40318c8"
 
 htmlparser2@^3.9.0:
   version "3.9.2"
@@ -1970,8 +1966,8 @@ istanbul-lib-hook@^1.0.0:
     append-transform "^0.4.0"
 
 istanbul-lib-instrument@^1.4.2:
-  version "1.6.1"
-  resolved "https://registry.yarnpkg.com/istanbul-lib-instrument/-/istanbul-lib-instrument-1.6.1.tgz#6c9c3191ebd5aa856d66dc2f0b2f719c3732de2d"
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/istanbul-lib-instrument/-/istanbul-lib-instrument-1.6.2.tgz#dac644f358f51efd6113536d7070959a0111f73b"
   dependencies:
     babel-generator "^6.18.0"
     babel-template "^6.16.0"
@@ -3730,6 +3726,13 @@ util.fixture@0.0.39:
     util.pkgwrap "0.0.18"
     uuid "^3.0.1"
 
+util.home@0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/util.home/-/util.home-0.0.11.tgz#d4a15a04135df1cbc9869b8271a1e6c9c311e7f4"
+  dependencies:
+    util.pkgwrap "0.0.20"
+    util.toolbox "0.0.15"
+
 util.home@0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/util.home/-/util.home-0.0.6.tgz#f133846ab2f5f44b2264bce2cafcbed785a19597"
@@ -3745,9 +3748,9 @@ util.home@0.0.9:
     util.pkgwrap "0.0.20"
     util.toolbox "0.0.13"
 
-util.join@0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/util.join/-/util.join-0.0.4.tgz#6bc91702db1abff3282435ba7d5d76623c5cc4df"
+util.join@0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/util.join/-/util.join-0.0.5.tgz#b67f7c220a5a0cdc9de8d081b9d68ebb7c3b55aa"
   dependencies:
     util.home "0.0.9"
     util.pkgwrap "0.0.20"
@@ -3804,6 +3807,13 @@ util.toolbox@0.0.13:
   dependencies:
     util.pkgwrap "0.0.18"
     util.rstrip "0.0.13"
+
+util.toolbox@0.0.15:
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/util.toolbox/-/util.toolbox-0.0.15.tgz#7083f942cdf094fe92224583bd2729824fe4094d"
+  dependencies:
+    util.pkgwrap "0.0.20"
+    util.rstrip "0.0.14"
 
 util.wait@0.0.17:
   version "0.0.17"
