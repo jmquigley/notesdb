@@ -18,7 +18,9 @@ export function validateDB(notesDB: NotesDB, binderName: string , root: string, 
 	assert(notesDB && typeof notesDB !== 'undefined' && notesDB instanceof NotesDB);
 	assert(notesDB.config.binderName === binderName);
 	assert(notesDB.config.root === root);
-	assert(notesDB.config.dbdir === normalize(path.join(root, binderName)));
+
+	let p = normalize(path.join(root, binderName));
+	assert(notesDB.config.dbdir === p);
 	assert(fs.existsSync(notesDB.configFile));
 	assert(fs.existsSync(notesDB.config.metaFile));
 	assert(valid);

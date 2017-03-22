@@ -21,16 +21,16 @@
     "klaw-sync": "^1.1.2",
     "lodash": "^4.17.4",
     "log4js": "^1.1.1",
-    "normalize-path": "^2.0.1",
     "util.ds": "0.0.15",
-    "util.home": "0.0.6",
-    "util.pkgwrap": "^0.0.18",
+    "util.home": "0.0.9",
+    "util.join": "0.0.4",
+    "util.pkgwrap": "^0.0.20",
     "util.timestamp": "^0.0.21",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
     "@types/fs-extra": "2.0.0",
-    "@types/lodash": "^4.14.55",
+    "@types/lodash": "^4.14.56",
     "@types/log4js": "0.0.32",
     "@types/mocha": "^2.2.40",
     "@types/node": "^7.0.8",
@@ -51,7 +51,7 @@
     "tslint": "^4.5.1",
     "typescript": "^2.2.1",
     "util.fixture": "0.0.39",
-    "util.wait": "0.0.16"
+    "util.wait": "0.0.17"
   },
   "main": "./index.js",
   "types": "./index.d.ts",

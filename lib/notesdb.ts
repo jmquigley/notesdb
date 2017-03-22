@@ -12,14 +12,13 @@ import * as _ from 'lodash';
 import * as log4js from 'log4js';
 import * as path from 'path';
 import {Deque} from 'util.ds';
-import {expandHomeDirectory as home} from 'util.home';
+import {join, normalize} from 'util.join';
 import {Artifact, artifactComparator, ArtifactType, IArtifactMeta, IArtifactSearch} from './artifact';
 
 const walk = require('klaw-sync');
-const normalize = require('normalize-path');
 const util = require('./util');
 
-const defRoot = home(path.join('~/', '.notesdb'));
+const defRoot = join('~/', '.notesdb');
 const validNameChars = `-\\.+@_!$&0-9a-zA-Z `; // regex [] pattern
 
 let defIgnoreList = ['.DS_Store', '.placeholder', 'Trash'];
@@ -153,7 +152,7 @@ export class NotesDB extends EventEmitter {
 			opts.configRoot = opts.root;
 		}
 
-		let configFile = path.join(opts.configRoot, 'config.json');
+		let configFile = join(opts.configRoot, 'config.json');
 		self.ignore = _.union(opts.ignore, defIgnoreList);
 
 		if (fs.existsSync(configFile)) {
@@ -359,7 +358,7 @@ export class NotesDB extends EventEmitter {
 
 		function searchArtifact(artifact: Artifact) {
 			return new Promise((resolve, reject) => {
-				let filename: string = path.join(self.config.dbdir, artifact.path());
+				let filename: string = join(self.config.dbdir, artifact.path());
 				fs.readFile(filename, (err, data) => {
 					if (err) {
 						reject(err.message);
@@ -686,7 +685,7 @@ export class NotesDB extends EventEmitter {
 			let dstArtifact: Artifact = Artifact.factory('fields', opts);
 			dstArtifact.root = self.config.dbdir;
 			let srcArtifact: Artifact = dstArtifact.clone();
-			srcArtifact.root = path.join(self.config.dbdir, 'Trash');
+			srcArtifact.root = join(self.config.dbdir, 'Trash');
 
 			// Compute the garbage can file/directory location
 			if (!fs.existsSync(srcArtifact.absolute())) {
@@ -846,7 +845,7 @@ export class NotesDB extends EventEmitter {
 			self.get(opts)
 				.then((srcArtifact: Artifact) => {
 					let dstArtifact: Artifact = srcArtifact.clone();
-					dstArtifact.root = path.join(self.config.dbdir, 'Trash');
+					dstArtifact.root = join(self.config.dbdir, 'Trash');
 					if (fs.existsSync(dstArtifact.absolute())) {
 						dstArtifact.makeUnique();
 					}
@@ -976,9 +975,9 @@ export class NotesDB extends EventEmitter {
 			artifact.hasFilename() &&
 			!self.hasArtifact(artifact)) {
 			if (self.isValidName(artifact.filename)) {
-				let dst = path.join(self.config.dbdir, artifact.path());
+				let dst = join(self.config.dbdir, artifact.path());
 				if (area === NS.trash) {
-					dst = path.join(self.config.dbdir, 'Trash', artifact.path());
+					dst = join(self.config.dbdir, 'Trash', artifact.path());
 				}
 
 				if (!fs.existsSync(dst)) {
@@ -1023,21 +1022,21 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createInitialConfig(opts: INotesDBOpts): IConfigDB {
-		let configFile: string = path.join(opts.configRoot || './', 'config.json');
-		let metaFile: string = path.join(opts.configRoot || './', 'meta.json');
+		let configFile: string = join(opts.configRoot || './', 'config.json');
+		let metaFile: string = join(opts.configRoot || './', 'meta.json');
 
 		return {
 			binderName: opts.binderName || 'adb',
 			configFile: configFile,
 			configRoot: opts.configRoot,
-			dbdir: path.join(opts.root || './', opts.binderName || 'adb'),
-			trash: path.join(opts.root || './', opts.binderName || 'adb', 'Trash'),
+			dbdir: join(opts.root || './', opts.binderName || 'adb'),
+			trash: join(opts.root || './', opts.binderName || 'adb', 'Trash'),
 			metaFile: metaFile,
 			log4js: {
 				appenders: [
 					{
 						category: 'notesdb',
-						filename: path.join(path.dirname(configFile || './'), 'notesdb.log'),
+						filename: join(path.dirname(configFile || './'), 'notesdb.log'),
 						type: 'file'
 					}
 				]
@@ -1063,9 +1062,9 @@ export class NotesDB extends EventEmitter {
 			self.hasSection(artifact, area) &&
 			!self.hasNotebook(artifact, area)) {
 			if (self.isValidName(artifact.notebook)) {
-				let dst = path.join(self.config.dbdir, artifact.section, artifact.notebook);
+				let dst = join(self.config.dbdir, artifact.section, artifact.notebook);
 				if (area === NS.trash) {
-					dst = path.join(self.config.dbdir, 'Trash', artifact.section, artifact.notebook);
+					dst = join(self.config.dbdir, 'Trash', artifact.section, artifact.notebook);
 				}
 
 				if (!fs.existsSync(dst)) {
@@ -1099,9 +1098,9 @@ export class NotesDB extends EventEmitter {
 	private createSection(artifact: Artifact, area: string = NS.notes, self = this) {
 		if (!self.hasSection(artifact, area)) {
 			if (self.isValidName(artifact.section)) {
-				let dst = path.join(self.config.dbdir, artifact.section);
+				let dst = join(self.config.dbdir, artifact.section);
 				if (area === NS.trash) {
-					dst = path.join(self.config.dbdir, 'Trash', artifact.section);
+					dst = join(self.config.dbdir, 'Trash', artifact.section);
 				}
 
 				if (!fs.existsSync(dst)) {
@@ -1283,7 +1282,7 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private tree(directory: string = '', self = this) {
-		directory = (directory === '') ? self.config.dbdir : normalize(path.join(self.config.dbdir, directory));
+		directory = (directory === '') ? self.config.dbdir : join(self.config.dbdir, directory);
 		let l: string[] = [];
 		let files = walk(directory, {ignore: self.ignore});
 

@@ -3,8 +3,8 @@
 
 
 "@types/express-serve-static-core@*":
-  version "4.0.41"
-  resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-4.0.41.tgz#05df354cbbe5069b4c089320065870033f41e670"
+  version "4.0.42"
+  resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-4.0.42.tgz#e79fa1827ebd04e741adedd0ddd1f1708c80366c"
   dependencies:
     "@types/node" "*"
 
@@ -21,9 +21,9 @@
   dependencies:
     "@types/node" "*"
 
-"@types/lodash@^4.14.55":
-  version "4.14.55"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.55.tgz#75d7d4eba020ee4103d4cbd0f2a3ef5db8f7534f"
+"@types/lodash@^4.14.56":
+  version "4.14.56"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.56.tgz#e7ed952ca250c5bdfbf6e75598c137785c41170e"
 
 "@types/log4js@0.0.32":
   version "0.0.32"
@@ -953,8 +953,8 @@ error-ex@^1.2.0:
     is-arrayish "^0.2.1"
 
 es5-ext@^0.10.14, es5-ext@^0.10.9, es5-ext@~0.10.14:
-  version "0.10.14"
-  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.14.tgz#625bc9ab9cac0f6fb9dc271525823d1800b3d360"
+  version "0.10.15"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.15.tgz#c330a5934c1ee21284a7c081a86e5fd937c91ea6"
   dependencies:
     es6-iterator "2"
     es6-symbol "~3.1"
@@ -1964,14 +1964,14 @@ istanbul-lib-coverage@^1.0.0, istanbul-lib-coverage@^1.0.0-alpha, istanbul-lib-c
   resolved "https://registry.yarnpkg.com/istanbul-lib-coverage/-/istanbul-lib-coverage-1.0.1.tgz#f263efb519c051c5f1f3343034fc40e7b43ff212"
 
 istanbul-lib-hook@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/istanbul-lib-hook/-/istanbul-lib-hook-1.0.0.tgz#fc5367ee27f59268e8f060b0c7aaf051d9c425c5"
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/istanbul-lib-hook/-/istanbul-lib-hook-1.0.4.tgz#1919debbc195807880041971caf9c7e2be2144d6"
   dependencies:
     append-transform "^0.4.0"
 
 istanbul-lib-instrument@^1.4.2:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/istanbul-lib-instrument/-/istanbul-lib-instrument-1.5.0.tgz#0f844fd5d729f2bcb0eed5329273c581ca9a8c74"
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/istanbul-lib-instrument/-/istanbul-lib-instrument-1.6.1.tgz#6c9c3191ebd5aa856d66dc2f0b2f719c3732de2d"
   dependencies:
     babel-generator "^6.18.0"
     babel-template "^6.16.0"
@@ -2531,8 +2531,8 @@ mocha@^3.2.0:
     supports-color "3.1.2"
 
 moment@^2.14.1:
-  version "2.18.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.0.tgz#6cfec6a495eca915d02600a67020ed994937252c"
+  version "2.18.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
 ms@0.7.1:
   version "0.7.1"
@@ -3738,6 +3738,20 @@ util.home@0.0.6:
     util.pkgwrap "0.0.18"
     util.toolbox "0.0.13"
 
+util.home@0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/util.home/-/util.home-0.0.9.tgz#fca4b6413c5ae40f4684cf55968ac0ad88e9f7bb"
+  dependencies:
+    util.pkgwrap "0.0.20"
+    util.toolbox "0.0.13"
+
+util.join@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/util.join/-/util.join-0.0.4.tgz#6bc91702db1abff3282435ba7d5d76623c5cc4df"
+  dependencies:
+    util.home "0.0.9"
+    util.pkgwrap "0.0.20"
+
 util.pkgwrap@0.0.17:
   version "0.0.17"
   resolved "https://registry.yarnpkg.com/util.pkgwrap/-/util.pkgwrap-0.0.17.tgz#ae0de1e83c7ad57f1a9966b27e4acd074bc70f9c"
@@ -3747,9 +3761,18 @@ util.pkgwrap@0.0.17:
     lodash "^4.17.4"
     yargs "^6.5.0"
 
-util.pkgwrap@0.0.18, util.pkgwrap@^0.0.18:
+util.pkgwrap@0.0.18:
   version "0.0.18"
   resolved "https://registry.yarnpkg.com/util.pkgwrap/-/util.pkgwrap-0.0.18.tgz#d36e85311550ac37c945eef4f92eba9c77b78e35"
+  dependencies:
+    expand-home-dir "github:jmquigley/expand-home-dir"
+    fs-extra "^2.0.0"
+    lodash "^4.17.4"
+    yargs "^6.5.0"
+
+util.pkgwrap@0.0.20, util.pkgwrap@^0.0.20:
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/util.pkgwrap/-/util.pkgwrap-0.0.20.tgz#adc9ad7bcec4750e2ee9d4d43862f2309a71a6e2"
   dependencies:
     expand-home-dir "github:jmquigley/expand-home-dir"
     fs-extra "^2.0.0"
@@ -3782,9 +3805,9 @@ util.toolbox@0.0.13:
     util.pkgwrap "0.0.18"
     util.rstrip "0.0.13"
 
-util.wait@0.0.16:
-  version "0.0.16"
-  resolved "https://registry.yarnpkg.com/util.wait/-/util.wait-0.0.16.tgz#1254401498b09bd0656ea81fcb72c67e271f3abe"
+util.wait@0.0.17:
+  version "0.0.17"
+  resolved "https://registry.yarnpkg.com/util.wait/-/util.wait-0.0.17.tgz#348529f8ca98f1a8242e5fa971a16b59743bb46c"
   dependencies:
     util.pkgwrap "0.0.18"
 
