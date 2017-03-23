@@ -381,7 +381,7 @@ export class NotesDB extends EventEmitter {
 
 			Promise.all(promise)
 				.then((artifacts: Artifact[]) => {
-					resolve(artifacts.filter((n) => {
+					resolve(artifacts.filter(n => {
 						return n != null;
 					}));
 				})
@@ -609,7 +609,7 @@ export class NotesDB extends EventEmitter {
 							break;
 					}
 
-					fs.remove(artifact.absolute(), (err) => {
+					fs.remove(artifact.absolute(), err => {
 						if (err) {
 							reject(err.message);
 						}
@@ -1236,7 +1236,7 @@ export class NotesDB extends EventEmitter {
 		promises.push(new Promise((resolve, reject) => {
 			self.log.debug(`Saving configuration: ${self.config.configFile}`);
 			let data = JSON.stringify(self.config, null, '\t');
-			fs.writeFile(self.config.configFile, data, (err) => {
+			fs.writeFile(self.config.configFile, data, err => {
 				if (err) {
 					reject(err.message);
 				}
@@ -1247,7 +1247,7 @@ export class NotesDB extends EventEmitter {
 		promises.push(new Promise((resolve, reject) => {
 			self.log.debug(`Saving meta data: ${self.config.metaFile}`);
 			let data = JSON.stringify(self.meta, null, '\t');
-			fs.writeFile(self.config.metaFile, data, (err) => {
+			fs.writeFile(self.config.metaFile, data, err => {
 				if (err) {
 					reject(err.message);
 				}

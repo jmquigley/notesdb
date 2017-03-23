@@ -60,7 +60,7 @@
     "lint": "./node_modules/.bin/pkgwrap --lint",
     "postinstall": "./node_modules/.bin/pkgwrap --postinstall",
     "report": "./node_modules/.bin/pkgwrap --reporting",
-    "test": "./node_modules/.bin/pkgwrap --testing"
+    "test": "./node_modules/.bin/pkgwrap --testing --ava"
   },
   "ava": {
     "concurrency": 5
