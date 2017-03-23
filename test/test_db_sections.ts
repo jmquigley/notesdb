@@ -1,128 +1,121 @@
 'use strict';
 
-import * as assert from 'assert';
+import test from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact, NotesDB} from '../index';
 import {ArtifactType} from '../lib/artifact';
-import {validateArtifact, validateDB} from './helpers';
+import {cleanup, validateArtifact, validateDB} from './helpers';
 
-describe(path.basename(__filename), () => {
+test.after.always.cb(t => {
+	cleanup(path.basename(__filename), t);
+});
 
-	// after(() => {
-	// 	debug('final cleanup: test_db_sections');
-	// 	let directories = Fixture.cleanup();
-	// 	directories.forEach((directory: string) => {
-	// 		assert(!fs.existsSync(directory));
-	// 	});
-	// });
+test('Try to get sections from an unitialized database', t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
 
-	it('Try to get sections from an unitialized database', () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
-		});
+	adb.initialized = false;
 
-		adb.initialized = false;
+	try {
+		let sections = adb.sections();
+		t.fail(sections.toString());
+	} catch (err) {
+		t.is(err.message, `Trying to retrieve sections from an unitialized database.`);
+	}
+});
 
-		try {
+test('Create a new section within an existing database', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	let testArtifact = Artifact.factory('fields', {section: 'Test3'});
+	t.truthy(testArtifact instanceof Artifact);
+
+	await adb.add(testArtifact)
+		.then((artifact: Artifact) => {
+			validateArtifact(t, artifact, {
+				section: 'Test3',
+				type: ArtifactType.S
+			});
 			let sections = adb.sections();
-			assert(false, sections.toString());
-		} catch (err) {
-			assert.equal(err.message, `Trying to retrieve sections from an unitialized database.`);
-		}
-	});
+			t.truthy(sections instanceof Array);
+			t.is(sections.length, 5);
 
-	it('Create a new section within an existing database', async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
-		});
+			let l = [
+				'Default',
+				'Test1',
+				'Test2',
+				'Test3',
+				'Section With Spaces'
+			];
 
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let testArtifact = Artifact.factory('fields', {section: 'Test3'});
-		assert(testArtifact instanceof Artifact);
-
-		await adb.add(testArtifact)
-			.then((artifact: Artifact) => {
-				validateArtifact(artifact, {
-					section: 'Test3',
-					type: ArtifactType.S
-				});
-				let sections = adb.sections();
-				assert(sections instanceof Array);
-				assert.equal(sections.length, 5);
-
-				let l = [
-					'Default',
-					'Test1',
-					'Test2',
-					'Test3',
-					'Section With Spaces'
-				];
-
-				l.forEach((name: string) => {
-					assert(adb.hasSection({section: name}));
-				});
-
-				assert(fs.existsSync(path.join(adb.config.dbdir, 'Test3')));
-				return adb;
-			})
-			.then(adb.shutdown)
-			.catch((err: string) => {
-				assert(false, err);
+			l.forEach((name: string) => {
+				t.true(adb.hasSection({section: name}));
 			});
+
+			t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test3')));
+			return adb;
+		})
+		.then(adb.shutdown)
+		.catch((err: string) => {
+			t.fail(err);
+		});
+});
+
+test('Try to create a section that already exists within a database (negative test)', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
 	});
 
-	it('Try to create a section that already exists within a database (negative test)', async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
-		});
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
+	let testArtifact = Artifact.factory('fields', {
+		section: 'Test1'
+	});
+	t.truthy(testArtifact instanceof Artifact);
 
-		let testArtifact = Artifact.factory('fields', {
-			section: 'Test1'
-		});
-		assert(testArtifact instanceof Artifact);
-
-		await adb.add(testArtifact)
-			.then((artifact: Artifact) => {
-				validateArtifact(artifact, {
-					section: 'Test1',
-					type: ArtifactType.S
-				});
-				return adb;
-			})
-			.then(adb.shutdown)
-			.catch((err: string) => {
-				assert(false, err);
+	await adb.add(testArtifact)
+		.then((artifact: Artifact) => {
+			validateArtifact(t, artifact, {
+				section: 'Test1',
+				type: ArtifactType.S
 			});
+			return adb;
+		})
+		.then(adb.shutdown)
+		.catch((err: string) => {
+			t.fail(err);
+		});
+});
+
+test('Try to create an artifact with bad section name (negative test)', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
 	});
 
-	it('Try to create an artifact with bad section name (negative test)', async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
-		});
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let badSectionName = '////badSectionName';
-		let testArtifact = Artifact.factory('fields', {
-			section: badSectionName
-		});
-		assert(testArtifact instanceof Artifact);
-
-		await adb.add(testArtifact)
-			.then((artifact: Artifact) => {
-				assert(false, artifact.toString());
-			})
-			.catch((err: string) => {
-				assert.equal(err, `Invalid section name '${badSectionName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
-			});
+	let badSectionName = '////badSectionName';
+	let testArtifact = Artifact.factory('fields', {
+		section: badSectionName
 	});
+	t.truthy(testArtifact instanceof Artifact);
+
+	await adb.add(testArtifact)
+		.then((artifact: Artifact) => {
+			t.false(artifact.toString());
+		})
+		.catch((err: string) => {
+			t.is(err, `Invalid section name '${badSectionName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
+		});
 });

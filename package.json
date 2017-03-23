@@ -32,9 +32,9 @@
     "@types/fs-extra": "2.0.0",
     "@types/lodash": "^4.14.56",
     "@types/log4js": "0.0.32",
-    "@types/mocha": "^2.2.40",
     "@types/node": "^7.0.8",
     "@types/uuid": "^2.0.29",
+    "ava": "^0.18.2",
     "coveralls": "^2.12.0",
     "empty-dir": "^0.2.1",
     "gulp": "^3.9.1",
@@ -43,11 +43,8 @@
     "gulp-jsdoc3": "^1.0.1",
     "gulp-rename": "^1.2.2",
     "gulp-util": "^3.0.8",
-    "intelli-espower-loader": "^1.0.1",
     "jsdoc": "^3.4.3",
-    "mocha": "^3.2.0",
     "nyc": "^10.1.2",
-    "power-assert": "^1.4.2",
     "tslint": "^4.5.1",
     "typescript": "^2.2.1",
     "util.fixture": "0.0.39",
@@ -64,5 +61,8 @@
     "postinstall": "./node_modules/.bin/pkgwrap --postinstall",
     "report": "./node_modules/.bin/pkgwrap --reporting",
     "test": "./node_modules/.bin/pkgwrap --testing"
+  },
+  "ava": {
+    "concurrency": 5
   }
 }

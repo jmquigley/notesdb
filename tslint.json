@@ -1,6 +1,7 @@
 {
 	"extends": "tslint:recommended",
 	"rules": {
+		"arrow-parens": [true, "ban-single-arg-parens"],
 		"curly": true,
 		"indent": [true, "tabs"],
 		"max-line-length": false,

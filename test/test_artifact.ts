@@ -1,6 +1,6 @@
 'use strict';
 
-import * as assert from 'assert';
+import test from 'ava';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {join} from 'util.join';
@@ -9,322 +9,322 @@ import {
 	artifactComparator, ArtifactType, IArtifactOpts,
 	IArtifactSearch
 } from '../lib/artifact';
-import {validateArtifact} from './helpers';
+import {cleanup, validateArtifact} from './helpers';
 
 const pkg = require('../package.json');
 
-describe(path.basename(__filename), () => {
+test.after.always.cb(t => {
+	cleanup(path.basename(__filename), t);
+});
 
-	// after(() => {
-	// 	debug('final cleanup: test_artifacts');
-	// 	let directories = Fixture.cleanup();
-	// 	directories.forEach((directory: string) => {
-	// 		assert(!fs.existsSync(directory));
-	// 	});
-	// });
+test('Testing artifact with empty creation', t => {
+	let fixture = new Fixture();
+	let artifact = Artifact.factory();
+	artifact.root = fixture.dir;
 
-	it('Testing artifact with empty creation', () => {
-		let fixture = new Fixture();
-		let artifact = Artifact.factory();
-		artifact.root = fixture.dir;
-
-		validateArtifact(artifact, {
-			section: '',
-			notebook: '',
-			filename: '',
-			type: ArtifactType.Unk
-		});
-
-		artifact.created = new Date();
-		artifact.accessed = new Date();
-		artifact.updated = new Date();
-
-		assert(artifact.info() === '||');
-		assert(typeof artifact.toString() === 'string');
-
-		if (pkg.debug) {
-			console.log(artifact.toString());
-		}
-
-		assert(artifact.buffer instanceof Buffer);
-		assert(artifact.root === fixture.dir);
-		assert(artifact.path() === '');
-		assert(artifact.type === ArtifactType.Unk);
-		assert(artifact.isEmpty());
-		assert(artifact.accessed != null && artifact.accessed instanceof Date);
-		assert(artifact.created != null && artifact.created instanceof Date);
-		assert(artifact.updated != null && artifact.updated instanceof Date);
-		assert(artifact.layout);
-		assert(!artifact.loaded);
-		artifact.loaded = true;
-		assert(artifact.loaded);
-		assert(artifact.tags);
-		assert(artifact.tags instanceof Array);
-		assert(artifact.absolute() === join(fixture.dir, artifact.path()));
-
-		artifact.addTag('A');
-		artifact.addTag('A');
-		artifact.addTag('B');
-
-		assert(artifact.tags instanceof Array);
-		assert(artifact.tags.length === 2);
-		assert(artifact.tags[0] === 'A');
-		assert(artifact.tags[1] === 'B');
+	validateArtifact(t, artifact, {
+		section: '',
+		notebook: '',
+		filename: '',
+		type: ArtifactType.Unk
 	});
 
-	it('Testing artifact creation type bitmasking', () => {
-		let opts: IArtifactOpts = {
-			section: 'section',
-			notebook: 'notebook',
-			filename: 'filename'
-		};
-		let a7 = Artifact.factory('fields', opts);
-		opts.type = ArtifactType.SNA;
-		validateArtifact(a7, opts);
+	artifact.created = new Date();
+	artifact.accessed = new Date();
+	artifact.updated = new Date();
 
-		opts = {
-			section: 'section',
-			notebook: 'notebook'
-		};
-		let a3 = Artifact.factory('fields', opts);
-		opts.type = ArtifactType.SN;
-		validateArtifact(a3, opts);
+	t.is(artifact.info(), '||');
+	t.is(typeof artifact.toString(), 'string');
 
-		opts = {
-			section: 'section'
-		};
-		let a1 = Artifact.factory('fields', opts);
-		opts.type = ArtifactType.S;
-		validateArtifact(a1, opts);
+	if (pkg.debug) {
+		console.log(artifact.toString());
+	}
 
-		let a0 = Artifact.factory('empty');
-		validateArtifact(a0, {
-			section: '',
-			notebook: '',
-			filename: '',
-			type: ArtifactType.Unk
-		});
-		assert(a0.isEmpty());
+	t.truthy(artifact.buffer instanceof Buffer);
+	t.is(artifact.root, fixture.dir);
+	t.is(artifact.path(), '');
+	t.is(artifact.type, ArtifactType.Unk);
+	t.true(artifact.isEmpty());
+	t.true(artifact.accessed != null && artifact.accessed instanceof Date);
+	t.true(artifact.created != null && artifact.created instanceof Date);
+	t.true(artifact.updated != null && artifact.updated instanceof Date);
+	t.truthy(artifact.layout);
+	t.true(!artifact.loaded);
+	artifact.loaded = true;
+	t.true(artifact.loaded);
+	t.truthy(artifact.tags);
+	t.truthy(artifact.tags instanceof Array);
+	t.is(artifact.absolute(), join(fixture.dir, artifact.path()));
 
-		a0 = Artifact.factory('fields', {});
-		validateArtifact(a0, {
-			section: '',
-			notebook: '',
-			filename: '',
-			type: ArtifactType.Unk
-		});
-		assert(a0.isEmpty());
+	artifact.addTag('A');
+	artifact.addTag('A');
+	artifact.addTag('B');
+
+	t.truthy(artifact.tags instanceof Array);
+	t.is(artifact.tags.length, 2);
+	t.is(artifact.tags[0], 'A');
+	t.is(artifact.tags[1], 'B');
+});
+
+test('Testing artifact creation type bitmasking', t => {
+	let opts: IArtifactOpts = {
+		section: 'section',
+		notebook: 'notebook',
+		filename: 'filename'
+	};
+	let a7 = Artifact.factory('fields', opts);
+	opts.type = ArtifactType.SNA;
+	validateArtifact(t, a7, opts);
+
+	opts = {
+		section: 'section',
+		notebook: 'notebook'
+	};
+	let a3 = Artifact.factory('fields', opts);
+	opts.type = ArtifactType.SN;
+	validateArtifact(t, a3, opts);
+
+	opts = {
+		section: 'section'
+	};
+	let a1 = Artifact.factory('fields', opts);
+	opts.type = ArtifactType.S;
+	validateArtifact(t, a1, opts);
+
+	let a0 = Artifact.factory('empty');
+	validateArtifact(t, a0, {
+		section: '',
+		notebook: '',
+		filename: '',
+		type: ArtifactType.Unk
+	});
+	t.true(a0.isEmpty());
+
+	a0 = Artifact.factory('fields', {});
+	validateArtifact(t, a0, {
+		section: '',
+		notebook: '',
+		filename: '',
+		type: ArtifactType.Unk
+	});
+	t.true(a0.isEmpty());
+});
+
+test('Testing artifact with factory fields creation', t => {
+	let fixture = new Fixture();
+	let artifact = Artifact.factory('fields', {
+		root: fixture.dir,
+		filename: 'filename',
+		notebook: 'notebook',
+		section: 'section'
 	});
 
-	it('Testing artifact with factory fields creation', () => {
-		let fixture = new Fixture();
-		let artifact = Artifact.factory('fields', {
-			root: fixture.dir,
-			filename: 'filename',
-			notebook: 'notebook',
-			section: 'section'
-		});
-
-		validateArtifact(artifact, {
-			section: 'section',
-			notebook: 'notebook',
-			filename: 'filename',
-			type: ArtifactType.SNA
-		});
-
-		assert(artifact.root === fixture.dir);
-		assert(artifact.path() === 'section/notebook/filename');
-		assert(artifact.hasSection());
-		assert(artifact.hasNotebook());
-		assert(artifact.hasFilename());
+	validateArtifact(t, artifact, {
+		section: 'section',
+		notebook: 'notebook',
+		filename: 'filename',
+		type: ArtifactType.SNA
 	});
 
-	it('Testing artifact with factory path creation', () => {
-		let fixture = new Fixture('simple-db');
-		let artifact = Artifact.factory('path', {
-			root: join(fixture.dir, 'sampledb'),
-			path: join(fixture.dir, 'sampledb', 'Default', 'Default', 'test1.txt')
-		});
+	t.is(artifact.root, fixture.dir);
+	t.is(artifact.path(), 'section/notebook/filename');
+	t.true(artifact.hasSection());
+	t.true(artifact.hasNotebook());
+	t.true(artifact.hasFilename());
+});
 
-		validateArtifact(artifact, {
-			section: 'Default',
-			notebook: 'Default',
-			filename: 'test1.txt',
-			type: ArtifactType.SNA
-		});
+test('Testing artifact with factory path creation', t => {
+	let fixture = new Fixture('simple-db');
+	let artifact = Artifact.factory('path', {
+		root: join(fixture.dir, 'sampledb'),
+		path: join(fixture.dir, 'sampledb', 'Default', 'Default', 'test1.txt')
 	});
 
-	it('Testing artifact with factory treeitem creation', () => {
-		let fixture = new Fixture();
-		let artifact = Artifact.factory('treeitem', {
-			treeitem: 'section/notebook/filename',
-			root: fixture.dir
-		});
-
-		validateArtifact(artifact, {
-			section: 'section',
-			notebook: 'notebook',
-			filename: 'filename',
-			type: ArtifactType.SNA
-		});
-
-		assert(artifact.root === fixture.dir);
+	validateArtifact(t, artifact, {
+		section: 'Default',
+		notebook: 'Default',
+		filename: 'test1.txt',
+		type: ArtifactType.SNA
 	});
 
-	it('Testing artifact with factory treeitem section only creation', () => {
-		let fixture = new Fixture();
-		let artifact = Artifact.factory('treeitem', {
-			treeitem: 'section',
-			root: fixture.dir
-		});
+	t.pass();
+});
 
-		validateArtifact(artifact, {
-			section: 'section',
-			notebook: 'Default',
-			type: ArtifactType.SN
-		});
-
-		assert(artifact.root === fixture.dir);
+test('Testing artifact with factory treeitem creation', t => {
+	let fixture = new Fixture();
+	let artifact = Artifact.factory('treeitem', {
+		treeitem: 'section/notebook/filename',
+		root: fixture.dir
 	});
 
-	it('Testing artifact with factory treeitem section & notebook only creation', () => {
-		let fixture = new Fixture();
-		let artifact = Artifact.factory('treeitem', {
-			treeitem: 'section/notebook/',
-			root: fixture.dir
-		});
-
-		validateArtifact(artifact, {
-			section: 'section',
-			notebook: 'notebook',
-			type: ArtifactType.SN
-		});
+	validateArtifact(t, artifact, {
+		section: 'section',
+		notebook: 'notebook',
+		filename: 'filename',
+		type: ArtifactType.SNA
 	});
 
-	it('Testing artifact with factory treeitem too many items on creation', () => {
-		let fixture = new Fixture();
-		let artifact = Artifact.factory('treeitem', {
-			treeitem: 'section/notebook/filename/blah1/blah2',
-			root: fixture.dir
-		});
+	t.is(artifact.root, fixture.dir);
+});
 
-		validateArtifact(artifact, {
-			section: 'section',
-			notebook: 'notebook',
-			filename: 'filename',
-			type: ArtifactType.SNA
-		});
+test('Testing artifact with factory treeitem section only creation', t => {
+	let fixture = new Fixture();
+	let artifact = Artifact.factory('treeitem', {
+		treeitem: 'section',
+		root: fixture.dir
 	});
 
-	it('Test with an unknown mode sent to factory', () => {
-		let artifact = Artifact.factory('blahblahblah');
-
-		validateArtifact(artifact, {});
+	validateArtifact(t, artifact, {
+		section: 'section',
+		notebook: 'Default',
+		type: ArtifactType.SN
 	});
 
-	it('Testing the dirty flag', () => {
-		let artifact = Artifact.factory('fields', {
-			filename: 'filename',
-			notebook: 'notebook',
-			section: 'section'
-		});
+	t.is(artifact.root, fixture.dir);
+});
 
-		validateArtifact(artifact, {
-			section: 'section',
-			notebook: 'notebook',
-			filename: 'filename',
-			type: ArtifactType.SNA
-		});
-
-		assert(!artifact.isDirty());
-		artifact.makeDirty();
-		assert(artifact.isDirty());
-		artifact.makeClean();
-		assert(!artifact.isDirty());
+test('Testing artifact with factory treeitem section & notebook only creation', t => {
+	let fixture = new Fixture();
+	let artifact = Artifact.factory('treeitem', {
+		treeitem: 'section/notebook/',
+		root: fixture.dir
 	});
 
-	it('Testing has functions', () => {
-		let artifact = Artifact.factory();
-
-		validateArtifact(artifact, {});
-
-		assert(!artifact.hasSection());
-		assert(!artifact.hasNotebook());
-		assert(!artifact.hasFilename());
+	validateArtifact(t, artifact, {
+		section: 'section',
+		notebook: 'notebook',
+		type: ArtifactType.SN
 	});
 
-	it('Test bad root on artifact (negative test)', () => {
-		let artifact = Artifact.factory();
+	t.pass();
+});
 
-		validateArtifact(artifact, {});
-
-		let root = 'aksjdflkasjdflskjdf';
-		try {
-			artifact.root = root;
-			assert(false, 'Bad root should not pass');
-		} catch (err) {
-			assert.equal(err.message, `Invalid root path for artifact: ${root}`);
-		}
+test('Testing artifact with factory treeitem too many items on creation', t => {
+	let fixture = new Fixture();
+	let artifact = Artifact.factory('treeitem', {
+		treeitem: 'section/notebook/filename/blah1/blah2',
+		root: fixture.dir
 	});
 
-	it('Test artifact data append', () => {
-		let artifact = Artifact.factory();
-
-		validateArtifact(artifact, {});
-
-		assert(artifact && artifact instanceof Artifact);
-		assert.equal(artifact.buf, '');
-
-		artifact.buf += 'Foo';
-		assert.equal(artifact.buf, 'Foo');
-
-		artifact.buf += 'Bar';
-		assert.equal(artifact.buf, 'FooBar');
+	validateArtifact(t, artifact, {
+		section: 'section',
+		notebook: 'notebook',
+		filename: 'filename',
+		type: ArtifactType.SNA
 	});
 
-	it('Test comparator function', () => {
-		let a1 = Artifact.factory('fields', {
-			filename: 'a',
-			notebook: 'a',
-			section: 'a'
-		});
+	t.pass();
+});
 
-		let a2 = Artifact.factory('fields', {
-			filename: 'b',
-			notebook: 'b',
-			section: 'b'
-		});
+test('Test with an unknown mode sent to factory', t => {
+	let artifact = Artifact.factory('blahblahblah');
+	validateArtifact(t, artifact, {});
 
-		let a3 = Artifact.factory('fields', {
-			filename: 'c',
-			notebook: 'c',
-			section: 'c'
-		});
+	t.pass();
+});
 
-		assert.equal(artifactComparator(a1, a1), 0);
-		assert.equal(artifactComparator(a2, a1), 1);
-		assert.equal(artifactComparator(a1, a3), -1);
+test('Testing the dirty flag', t => {
+	let artifact = Artifact.factory('fields', {
+		filename: 'filename',
+		notebook: 'notebook',
+		section: 'section'
 	});
 
-	it('Test the isEqual function', () => {
-		let s1: IArtifactSearch = {
-			filename: 'a',
-			notebook: 'a',
-			section: 'a'
-		};
-		let a1 = Artifact.factory('fields', s1);
-
-		let s2: IArtifactSearch = {
-			filename: 'b',
-			notebook: 'b',
-			section: 'b'
-		};
-		let a2 = Artifact.factory('fields', s2);
-
-		assert(a1.isEqual(a1));
-		assert(!a1.isEqual(a2));
-
-		assert(Artifact.isDuplicateSearch(s1, s1));
-		assert(!Artifact.isDuplicateSearch(s1, s2));
+	validateArtifact(t, artifact, {
+		section: 'section',
+		notebook: 'notebook',
+		filename: 'filename',
+		type: ArtifactType.SNA
 	});
+
+	t.false(artifact.isDirty());
+	artifact.makeDirty();
+	t.true(artifact.isDirty());
+	artifact.makeClean();
+	t.false(artifact.isDirty());
+});
+
+test('Testing has functions', t => {
+	let artifact = Artifact.factory();
+
+	validateArtifact(t, artifact, {});
+
+	t.false(artifact.hasSection());
+	t.false(artifact.hasNotebook());
+	t.false(artifact.hasFilename());
+});
+
+test('Test bad root on artifact (negative test)', t => {
+	let artifact = Artifact.factory();
+
+	validateArtifact(t, artifact, {});
+
+	let root = 'aksjdflkasjdflskjdf';
+	try {
+		artifact.root = root;
+		t.fail('Bad root should not pass');
+	} catch (err) {
+		t.is(err.message, `Invalid root path for artifact: ${root}`);
+	}
+});
+
+test('Test artifact data append', t => {
+	let artifact = Artifact.factory();
+
+	validateArtifact(t, artifact, {});
+
+	t.truthy(artifact && artifact instanceof Artifact);
+	t.is(artifact.buf, '');
+
+	artifact.buf += 'Foo';
+	t.is(artifact.buf, 'Foo');
+
+	artifact.buf += 'Bar';
+	t.is(artifact.buf, 'FooBar');
+});
+
+test('Test comparator function', t => {
+	let a1 = Artifact.factory('fields', {
+		filename: 'a',
+		notebook: 'a',
+		section: 'a'
+	});
+
+	let a2 = Artifact.factory('fields', {
+		filename: 'b',
+		notebook: 'b',
+		section: 'b'
+	});
+
+	let a3 = Artifact.factory('fields', {
+		filename: 'c',
+		notebook: 'c',
+		section: 'c'
+	});
+
+	t.is(artifactComparator(a1, a1), 0);
+	t.is(artifactComparator(a2, a1), 1);
+	t.is(artifactComparator(a1, a3), -1);
+});
+
+test('Test the isEqual function', t => {
+	let s1: IArtifactSearch = {
+		filename: 'a',
+		notebook: 'a',
+		section: 'a'
+	};
+	let a1 = Artifact.factory('fields', s1);
+
+	let s2: IArtifactSearch = {
+		filename: 'b',
+		notebook: 'b',
+		section: 'b'
+	};
+	let a2 = Artifact.factory('fields', s2);
+
+	t.true(a1.isEqual(a1));
+	t.false(a1.isEqual(a2));
+
+	t.true(Artifact.isDuplicateSearch(s1, s1));
+	t.false(Artifact.isDuplicateSearch(s1, s2));
 });

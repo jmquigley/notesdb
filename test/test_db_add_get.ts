@@ -1,301 +1,288 @@
 'use strict';
 
-import * as assert from 'assert';
+import test from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
 import {Artifact, NotesDB} from '../index';
 import {ArtifactType, IArtifactSearch} from '../lib/artifact';
-import {validateArtifact, validateDB} from './helpers';
+import {cleanup, validateArtifact, validateDB} from './helpers';
 
-describe(path.basename(__filename), () => {
+test.after.always.cb(t => {
+	cleanup(path.basename(__filename), t);
+});
 
-	// after('final cleanup', (done) => {
-	// 	Fixture.cleanup((err: Error, directories: string[]) => {
-	// 		if (err) {
-	// 			return done(failure);
-	// 		}
-	//
-	// 		directories.forEach((directory: string) => {
-	// 			assert(!fs.existsSync(directory));
-	// 		});
-	//
-	// 		return done();
-	// 	});
-	// });
+test('Create a new artifact file within the database', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
 
-	it('Create a new artifact file within the database', async () => {
-		let fixture = new Fixture('simple-db');
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	let testArtifact = {
+		section: 'Test3',
+		notebook: 'notebook',
+		filename: 'test file 1.txt'
+	};
+
+	await adb.add(testArtifact)
+		.then((artifact: Artifact) => {
+			validateArtifact(t, artifact, {
+				section: 'Test3',
+				notebook: 'notebook',
+				filename: 'test file 1.txt',
+				type: ArtifactType.SNA
+			});
+			return adb.saveArtifact(artifact);
+		})
+		.then((artifact: Artifact) => {
+			t.truthy(artifact.toString());
+			return adb;
+		})
+		.then(adb.shutdown)
+		.catch((err: string) => {
+			t.fail(err);
+		});
+});
+
+test('Try to add an artifact with a bad name to the database (negative test)', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	let badFileName = '////badfilename';
+	let testArtifact = {
+		section: 'Test3',
+		notebook: 'notebook',
+		filename: badFileName
+	};
+
+	await adb.add(testArtifact)
+		.then((artifact: Artifact) => {
+			t.fail(artifact.toString());
+		})
+		.catch((err: string) => {
+			t.is(err, `Invalid filename name '${badFileName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
+		});
+});
+
+test('Try to add a bad artifact to the database (negative test)', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	let testArtifact = Artifact.factory();
+	testArtifact.type = 99;  // set an invalid type to force failure
+
+	await adb.add(testArtifact)
+		.then((artifact: Artifact) => {
+			t.fail(artifact.toString());
+		})
+		.catch((err: string) => {
+			t.is(err, 'Trying to add invalid artifact to DB');
+		});
+});
+
+test('Try to create a null artifact (negative test)', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
+	});
+
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	await adb.add(null)
+		.then((artifact: Artifact) => {
+			t.fail(artifact.toString());
+		})
+		.catch((err: string) => {
+			t.is(err, 'Trying to add invalid artifact to DB');
+		});
+});
+
+test('Try to load a binder with a bad artifact name (negative test)', t => {
+	let fixture = new Fixture('bad-db-artifact');
+	let badFileName = '%%%%badfile.txt';
+
+	try {
 		let adb = new NotesDB({
+			binderName: 'sampledb',
 			root: fixture.dir
 		});
+		t.fail(adb.toString());
+	} catch (err) {
+		t.is(err.message, `Invalid filename name '${badFileName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
+	}
+});
 
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let testArtifact = {
-			section: 'Test3',
-			notebook: 'notebook',
-			filename: 'test file 1.txt'
-		};
-
-		await adb.add(testArtifact)
-			.then((artifact: Artifact) => {
-				validateArtifact(artifact, {
-					section: 'Test3',
-					notebook: 'notebook',
-					filename: 'test file 1.txt',
-					type: ArtifactType.SNA
-				});
-				return adb.saveArtifact(artifact);
-			})
-			.then((artifact: Artifact) => {
-				assert(artifact.toString());
-				return adb;
-			})
-			.then(adb.shutdown)
-			.catch((err: string) => {
-				assert(false, err);
-			});
+test('Get an existing artifact from the schema', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
 	});
 
-	it('Try to add an artifact with a bad name to the database (negative test)', async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	let lookup: IArtifactSearch = {
+		section: 'Default',
+		notebook: 'Default',
+		filename: 'test1.txt'
+	};
+
+	await adb.get(lookup)
+		.then((artifact: Artifact) => {
+			t.is(artifact.buf, 'Test File #1\n');
+			t.true(artifact.loaded);
+
+			// Retrieve the same artifact again to show it's indepotent
+			// (and loaded).  This return is fed to the next "thenable"
+			return adb.get(lookup);
+		})
+		.then((artifact: Artifact) => {
+			t.is(artifact.buf, 'Test File #1\n');
+			t.true(artifact.loaded);
+			return adb;
+		})
+		.then(adb.shutdown)
+		.catch((err: string) => {
+			t.fail(err);
 		});
+});
 
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let badFileName = '////badfilename';
-		let testArtifact = {
-			section: 'Test3',
-			notebook: 'notebook',
-			filename: badFileName
-		};
-
-		await adb.add(testArtifact)
-			.then((artifact: Artifact) => {
-				assert(false, artifact.toString());
-			})
-			.catch((err: string) => {
-				assert.equal(err, `Invalid filename name '${badFileName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
-			});
+test(`Try to retrieve an artifact that doesn't exist`, async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir
 	});
 
-	it('Try to add a bad artifact to the database (negative test)', async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	let lookup: IArtifactSearch = {
+		section: 'Missing',
+		notebook: 'Missing',
+		filename: 'test1.txt'
+	};
+
+	await adb.get(lookup)
+		.then((artifact: Artifact) => {
+			t.fail(artifact.toString());
+		})
+		.catch((err: string) => {
+			t.is(err, `Artifact doesn't exist: Missing|Missing|test1.txt`);
 		});
+});
 
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let testArtifact = Artifact.factory();
-		testArtifact.type = 99;  // set an invalid type to force failure
-
-		await adb.add(testArtifact)
-			.then((artifact: Artifact) => {
-				assert(false, artifact.toString());
-			})
-			.catch((err: string) => {
-				assert.equal(err, 'Trying to add invalid artifact to DB');
-			});
+test('Create a new artifact, update it, and call the save', async t => {
+	let fixture = new Fixture('empty-db');
+	let adb = new NotesDB({
+		root: fixture.dir
 	});
 
-	it('Try to create a null artifact (negative test)', async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	let testArtifact = {
+		section: 'Test1',
+		notebook: 'notebook1',
+		filename: 'somefile.txt'
+	};
+
+	let content: string = 'Adding content';
+	await adb.add(testArtifact)
+		.then((artifact: Artifact) => {
+			t.false(artifact.isDirty());
+			artifact.buf += content;
+			t.true(artifact.isDirty());
+			return artifact;
+		})
+		.then(adb.saveArtifact)
+		.then((artifact: Artifact) => {
+			let data: string = fs.readFileSync(artifact.absolute()).toString();
+			t.is(data, content);
+
+			t.false(artifact.isDirty());
+			artifact.buf += content;
+			t.true(artifact.isDirty());
+			return artifact;
+		})
+		.then(adb.saveArtifact)
+		.then((artifact: Artifact) => {
+			let data: string = fs.readFileSync(artifact.absolute()).toString();
+			t.is(data, `${content}${content}`);
+			return adb;
+		})
+		.then(adb.shutdown)
+		.catch((err: string) => {
+			t.fail(err);
 		});
+});
 
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		await adb.add(null)
-			.then((artifact: Artifact) => {
-				assert(false, artifact.toString());
-			})
-			.catch((err: string) => {
-				assert.equal(err, 'Trying to add invalid artifact to DB');
-			});
+test('Test the automatic ejection from recents list', async t => {
+	let fixture = new Fixture('simple-db');
+	let adb = new NotesDB({
+		root: fixture.dir,
+		maxRecents: 1 // make the recents small
 	});
 
-	it('Try to load a binder with a bad artifact name (negative test)', () => {
-		let fixture = new Fixture('bad-db-artifact');
-		let badFileName = '%%%%badfile.txt';
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-		try {
-			let adb = new NotesDB({
-				binderName: 'sampledb',
-				root: fixture.dir
+	let ejected: Artifact = null;
+
+	await adb.get({section: 'Default', notebook: 'Default', filename: 'test1.txt'})
+		.then((artifact: Artifact) => {
+			validateArtifact(t, artifact, {
+				section: 'Default',
+				notebook: 'Default',
+				filename: 'test1.txt',
+				type: ArtifactType.SNA
 			});
-			assert(false, adb.toString());
-		} catch (err) {
-			assert.equal(err.message, `Invalid filename name '${badFileName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
-		}
-	});
 
-	it('Get an existing artifact from the schema', async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
+			ejected = artifact;
+			t.false(artifact.isDirty());
+			artifact.buf += 'Content change';
+			t.true(artifact.isDirty());
+
+			// This call should eject the first file from recents and save it.
+			return adb.get({section: 'Default', notebook: 'notebook1', filename: 'test2.txt'});
+		})
+		.then((artifact: Artifact) => {
+			validateArtifact(t, artifact, {
+				section: 'Default',
+				notebook: 'notebook1',
+				filename: 'test2.txt',
+				type: ArtifactType.SNA
+			});
+
+			// This wait allows the event loop to continue and process the
+			// remove node event before moving on to the next thenable
+			return waitPromise(3, adb.get({section: 'Test1', notebook: 'Default', filename: 'test3.txt'}));
+		})
+		.then((artifact: Artifact) => {
+			validateArtifact(t, artifact, {
+				section: 'Test1',
+				notebook: 'Default',
+				filename: 'test3.txt',
+				type: ArtifactType.SNA
+			});
+			return adb;
+		})
+		.then((padb: NotesDB) => {
+			t.is(padb.recents.length, 1);
+			t.false(ejected.isDirty());
+			let data: string = fs.readFileSync(ejected.absolute()).toString();
+			t.is(data, 'Test File #1\nContent change');
+			t.is(ejected.buf, data);
+			return padb;
+		})
+		.then(adb.shutdown)
+		.catch((err: string) => {
+			t.fail(err);
 		});
-
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let lookup: IArtifactSearch = {
-			section: 'Default',
-			notebook: 'Default',
-			filename: 'test1.txt'
-		};
-
-		await adb.get(lookup)
-			.then((artifact: Artifact) => {
-				assert.equal(artifact.buf, 'Test File #1\n');
-				assert(artifact.loaded);
-
-				// Retrieve the same artifact again to show it's indepotent
-				// (and loaded).  This return is fed to the next "thenable"
-				return adb.get(lookup);
-			})
-			.then((artifact: Artifact) => {
-				assert.equal(artifact.buf, 'Test File #1\n');
-				assert(artifact.loaded);
-				return adb;
-			})
-			.then(adb.shutdown)
-			.catch((err: string) => {
-				assert(false, err);
-			});
-	});
-
-	it(`Try to retrieve an artifact that doesn't exist`, async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir
-		});
-
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let lookup: IArtifactSearch = {
-			section: 'Missing',
-			notebook: 'Missing',
-			filename: 'test1.txt'
-		};
-
-		await adb.get(lookup)
-			.then((artifact: Artifact) => {
-				assert(false, artifact.toString());
-			})
-			.catch((err: string) => {
-				assert.equal(err, `Artifact doesn't exist: Missing|Missing|test1.txt`);
-			});
-	});
-
-	it('Create a new artifact, update it, and call the save', async () => {
-		let fixture = new Fixture('empty-db');
-		let adb = new NotesDB({
-			root: fixture.dir
-		});
-
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let testArtifact = {
-			section: 'Test1',
-			notebook: 'notebook1',
-			filename: 'somefile.txt'
-		};
-
-		let content: string = 'Adding content';
-		await adb.add(testArtifact)
-			.then((artifact: Artifact) => {
-				assert(!artifact.isDirty());
-				artifact.buf += content;
-				assert(artifact.isDirty());
-				return artifact;
-			})
-			.then(adb.saveArtifact)
-			.then((artifact: Artifact) => {
-				let data: string = fs.readFileSync(artifact.absolute()).toString();
-				assert.equal(data, content);
-
-				assert(!artifact.isDirty());
-				artifact.buf += content;
-				assert(artifact.isDirty());
-				return artifact;
-			})
-			.then(adb.saveArtifact)
-			.then((artifact: Artifact) => {
-				let data: string = fs.readFileSync(artifact.absolute()).toString();
-				assert.equal(data, `${content}${content}`);
-				return adb;
-			})
-			.then(adb.shutdown)
-			.catch((err: string) => {
-				assert(false, err);
-			});
-	});
-
-	it('Test the automatic ejection from recents list', async () => {
-		let fixture = new Fixture('simple-db');
-		let adb = new NotesDB({
-			root: fixture.dir,
-			maxRecents: 1 // make the recents small
-		});
-
-		validateDB(adb, 'sampledb', fixture.dir, adb.initialized);
-
-		let ejected: Artifact = null;
-
-		await adb.get({section: 'Default', notebook: 'Default', filename: 'test1.txt'})
-			.then((artifact: Artifact) => {
-				validateArtifact(artifact, {
-					section: 'Default',
-					notebook: 'Default',
-					filename: 'test1.txt',
-					type: ArtifactType.SNA
-				});
-
-				ejected = artifact;
-				assert(!artifact.isDirty());
-				artifact.buf += 'Content change';
-				assert(artifact.isDirty());
-
-				// This call should eject the first file from recents and save it.
-				return adb.get({section: 'Default', notebook: 'notebook1', filename: 'test2.txt'});
-			})
-			.then((artifact: Artifact) => {
-				validateArtifact(artifact, {
-					section: 'Default',
-					notebook: 'notebook1',
-					filename: 'test2.txt',
-					type: ArtifactType.SNA
-				});
-
-				// This wait allows the event loop to continue and process the
-				// remove node event before moving on to the next thenable
-				return waitPromise(3, adb.get({section: 'Test1', notebook: 'Default', filename: 'test3.txt'}));
-			})
-			.then((artifact: Artifact) => {
-				validateArtifact(artifact, {
-					section: 'Test1',
-					notebook: 'Default',
-					filename: 'test3.txt',
-					type: ArtifactType.SNA
-				});
-				return adb;
-			})
-			.then((padb: NotesDB) => {
-				assert.equal(padb.recents.length, 1);
-				assert(!ejected.isDirty());
-				let data: string = fs.readFileSync(ejected.absolute()).toString();
-				assert.equal(data, 'Test File #1\nContent change');
-				assert.equal(ejected.buf, data);
-				return padb;
-			})
-			.then(adb.shutdown)
-			.catch((err: string) => {
-				assert(false, err);
-			});
-	});
 });

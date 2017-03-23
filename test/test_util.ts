@@ -1,79 +1,75 @@
 'use strict';
 
-import * as assert from 'assert';
+import test from 'ava';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
 import * as log4js from 'log4js';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import * as uuid from 'uuid';
+import {cleanup} from './helpers';
 import {IAppenderList} from '../lib/notesdb';
 
 const util = require('../lib/util');
 const pkg = require('../package.json');
 
-describe(path.basename(__filename), () => {
+test.after.always.cb(t => {
+	cleanup(path.basename(__filename), t);
+});
 
-	// after(() => {
-	// 	debug('final cleanup: test_util');
-	// 	let directories = Fixture.cleanup();
-	// 	directories.forEach((directory: string) => {
-	// 		assert(!fs.existsSync(directory));
-	// 	});
-	// });
+test('Adding console logger to log4js', t => {
+	let logger = _.cloneDeep(log4js);
+	t.truthy(logger);
 
-	it('Adding console logger to log4js', () => {
-		let logger = _.cloneDeep(log4js);
-		assert(logger);
+	let config: IAppenderList = {
+		appenders: []
+	};
 
-		let config: IAppenderList = {
-			appenders: []
-		};
+	// this tries it with debug=true twice, and with it false twice.  It will
+	// test the debug flag, and it will also attempt to add the console twice
+	// testing the condition withing the filter.
+	_.times(4, () => {
+		util.addConsole(config);
+		logger.configure(config);
 
-		// this tries it with debug=true twice, and with it false twice.  It will
-		// test the debug flag, and it will also attempt to add the console twice
-		// testing the condition withing the filter.
-		_.times(4, () => {
-			util.addConsole(config);
-			logger.configure(config);
+		if (pkg.debug) {
+			t.is(config.appenders.length, 1);
+			t.is(config.appenders[0].type, 'console');
+		}
+		pkg.debug = !pkg.debug;
+	});
+});
 
-			if (pkg.debug) {
-				assert.equal(config.appenders.length, 1);
-				assert.equal(config.appenders[0].type, 'console');
-			}
-			pkg.debug = !pkg.debug;
-		});
+test('Directory retrieval process', t => {
+	let fixture = new Fixture('tmpdir');
+	let root: string = path.join(fixture.dir, uuid.v4());
+	let dirs: string[] = [];
+
+	_.times(5, () => {
+		let dst: string = path.join(root, uuid.v4());
+		fs.mkdirsSync(dst);
+		dirs.push(dst);
 	});
 
-	it('Directory retrieval process', () => {
-		let fixture = new Fixture('tmpdir');
-		let root: string = path.join(fixture.dir, uuid.v4());
-		let dirs: string[] = [];
-
-		_.times(5, () => {
-			let dst: string = path.join(root, uuid.v4());
-			fs.mkdirsSync(dst);
-			dirs.push(dst);
-		});
-
-		util.getDirectories(root).forEach((directory: string) => {
-			assert(dirs.indexOf(path.join(root, directory)) > -1);
-		});
+	util.getDirectories(root).forEach((directory: string) => {
+		t.true(dirs.indexOf(path.join(root, directory)) > -1);
 	});
+});
 
-	it('Get UUID with no dashes', () => {
-		let val = util.getUUID(true);
+test('Get UUID with no dashes', t => {
+	let val = util.getUUID(true);
 
-		assert(val && typeof val === 'string');
-		assert(val.indexOf('-') === -1);
-		assert(val.length === 32);
-	});
+	t.truthy(val);
+	t.is(typeof val, 'string');
+	t.is(val.indexOf('-'), -1);
+	t.is(val.length, 32);
+});
 
-	it('Get UUID with dashes', () => {
-		let val = util.getUUID();
+test('Get UUID with dashes', t => {
+	let val = util.getUUID();
 
-		assert(val && typeof val === 'string');
-		assert(val.indexOf('-') > -1);
-		assert(val.length === 36);
-	});
+	t.truthy(val);
+	t.is(typeof val, 'string');
+	t.true(val.indexOf('-') > -1);
+	t.is(val.length, 36);
 });
