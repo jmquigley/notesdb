@@ -7,8 +7,8 @@ import * as log4js from 'log4js';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import * as uuid from 'uuid';
-import {cleanup} from './helpers';
 import {IAppenderList} from '../lib/notesdb';
+import {cleanup} from './helpers';
 
 const util = require('../lib/util');
 const pkg = require('../package.json');

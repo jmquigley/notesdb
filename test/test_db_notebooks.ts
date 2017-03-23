@@ -111,7 +111,7 @@ test('Create a notebook within an existing database', async t => {
 			section: sectionName,
 			notebook: l[1]
 		}))])
-		.then((artifacts) => {
+		.then(artifacts => {
 			t.truthy(artifacts instanceof Array);
 			t.is(artifacts.length, 2);
 			return adb;

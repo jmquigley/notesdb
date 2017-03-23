@@ -39,12 +39,12 @@ gulp.task('markdown', (cb: Function) => {
 	return gulp.src('lib/*.js')
 		.pipe(gulpJsdoc2md(cb))
 		.on('error', (err: Error) => {
-			gutil.log(gutil.colors.red('jsdoc2md failed'), err.message)
+			gutil.log(gutil.colors.red('jsdoc2md failed'), err.message);
 		})
 		.pipe(rename((path: any) => {
-			path.extname = '.md'
+			path.extname = '.md';
 		}))
-		.pipe(gulp.dest('docs'))
+		.pipe(gulp.dest('docs'));
 });
 
 gulp.task('docs', ['site', 'markdown'], () => {});
