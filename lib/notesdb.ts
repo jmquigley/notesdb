@@ -13,6 +13,8 @@ import * as log4js from 'log4js';
 import * as path from 'path';
 import {Deque} from 'util.ds';
 import {join, normalize} from 'util.join';
+import {IRejectFn, IResolveFn} from 'util.promise';
+import {INilCallback, nil} from 'util.toolbox';
 import {Artifact, artifactComparator, ArtifactType, IArtifactMeta, IArtifactSearch} from './artifact';
 
 const walk = require('klaw-sync');
@@ -21,7 +23,7 @@ const util = require('./util');
 const defRoot = join('~/', '.notesdb');
 const validNameChars = `-\\.+@_!$&0-9a-zA-Z `; // regex [] pattern
 
-let defIgnoreList = ['.DS_Store', '.placeholder', 'Trash'];
+const defIgnoreList: string[] = ['.DS_Store', '.placeholder', 'Trash'];
 
 export interface INotebook {
 	[key: string]: Artifact;
@@ -39,7 +41,7 @@ export interface ISchema {
 export interface INotesDBOpts {
 	binderName?: string;
 	configRoot?: string;
-	env?: Object;
+	env?: object;
 	ignore?: string[];
 	root?: string;
 	bufSize?: number;
@@ -135,7 +137,7 @@ export class NotesDB extends EventEmitter {
 	constructor(opts?: INotesDBOpts) {
 		super();
 
-		let self = this;
+		const self = this;
 
 		opts = Object.assign({
 			binderName: 'adb',
@@ -152,7 +154,7 @@ export class NotesDB extends EventEmitter {
 			opts.configRoot = opts.root;
 		}
 
-		let configFile = join(opts.configRoot, 'config.json');
+		const configFile = join(opts.configRoot, 'config.json');
 		self.ignore = _.union(opts.ignore, defIgnoreList);
 
 		if (fs.existsSync(configFile)) {
@@ -237,7 +239,7 @@ export class NotesDB extends EventEmitter {
 	 * @returns {Promise} a javascript promise object
 	 */
 	public add(opts: IArtifactSearch, area: string = NS.notes, self = this) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
 			let artifact: Artifact = null;
 			if (opts instanceof Artifact) {
 				artifact = opts;
@@ -295,7 +297,7 @@ export class NotesDB extends EventEmitter {
 
 			try {
 				schema.forEach((it: string) => {
-					let artifact = Artifact.factory('fields', {
+					const artifact = Artifact.factory('fields', {
 						section: it,
 						root: self.config.dbdir
 					});
@@ -354,11 +356,11 @@ export class NotesDB extends EventEmitter {
 	 * @returns {Promise} a javascript promise object
 	 */
 	public find(search: string, self = this) {
-		let regex = new RegExp(search);
+		const regex = new RegExp(search);
 
 		function searchArtifact(artifact: Artifact) {
 			return new Promise((resolve, reject) => {
-				let filename: string = join(self.config.dbdir, artifact.path());
+				const filename: string = join(self.config.dbdir, artifact.path());
 				fs.readFile(filename, (err, data) => {
 					if (err) {
 						reject(err.message);
@@ -373,13 +375,13 @@ export class NotesDB extends EventEmitter {
 			});
 		}
 
-		return new Promise((resolve, reject) => {
-			let promise: any[] = [];
-			for (let artifact of self._artifacts.values()) {
-				promise.push(searchArtifact(artifact));
+		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
+			const promises: Array<Promise<any>> = [];
+			for (const artifact of self._artifacts.values()) {
+				promises.push(searchArtifact(artifact));
 			}
 
-			Promise.all(promise)
+			Promise.all(promises)
 				.then((artifacts: Artifact[]) => {
 					resolve(artifacts.filter(n => {
 						return n != null;
@@ -412,14 +414,14 @@ export class NotesDB extends EventEmitter {
 	 */
 	public get(opts: IArtifactSearch, area: string = NS.notes, self = this) {
 		return new Promise((resolve, reject) => {
-			let type: ArtifactType = Artifact.isType(opts);
+			const type: ArtifactType = Artifact.isType(opts);
 
 			if (type === ArtifactType.SNA && self.hasArtifact(opts)) {
-				let artifact = self._schema[area][opts.section][opts.notebook][opts.filename];
-				let absolute = artifact.absolute();
+				const artifact = self._schema[area][opts.section][opts.notebook][opts.filename];
+				const absolute = artifact.absolute();
 
 				if (fs.existsSync(absolute) && !artifact.loaded) {
-					let inp = fs.createReadStream(absolute);
+					const inp = fs.createReadStream(absolute);
 
 					inp.on('close', () => {
 						artifact.loaded = true;
@@ -454,7 +456,7 @@ export class NotesDB extends EventEmitter {
 				}
 			} else if ((type === ArtifactType.SN && self.hasNotebook(opts, area)) ||
 				(type === ArtifactType.S && self.hasSection(opts, area))) {
-				let artifact = Artifact.factory('fields', opts);
+				const artifact = Artifact.factory('fields', opts);
 				artifact.root = self.config.dbdir;
 				if (!self.recents.contains(artifact)) {
 					self.recents.enqueue(artifact);
@@ -534,7 +536,7 @@ export class NotesDB extends EventEmitter {
 	 * @returns {Array} a list of notebook names as strings
 	 */
 	public notebooks(sectionName: string, area: string = NS.notes, self = this): string[] {
-		let notebooks: string[] = [];
+		const notebooks: string[] = [];
 
 		if (!self.initialized) {
 			throw new Error('Trying to retrieve notebooks from an unitialized database.');
@@ -682,9 +684,9 @@ export class NotesDB extends EventEmitter {
 	 */
 	public restore(opts: IArtifactSearch, self = this) {
 		return new Promise((resolve, reject) => {
-			let dstArtifact: Artifact = Artifact.factory('fields', opts);
+			const dstArtifact: Artifact = Artifact.factory('fields', opts);
 			dstArtifact.root = self.config.dbdir;
-			let srcArtifact: Artifact = dstArtifact.clone();
+			const srcArtifact: Artifact = dstArtifact.clone();
 			srcArtifact.root = join(self.config.dbdir, 'Trash');
 
 			// Compute the garbage can file/directory location
@@ -774,7 +776,7 @@ export class NotesDB extends EventEmitter {
 	 * @returns {Array} a list of section names as strings
 	 */
 	public sections(area: string = NS.notes, self = this): string[] {
-		let sections: string[] = [];
+		const sections: string[] = [];
 
 		if (!self.initialized) {
 			throw new Error('Trying to retrieve sections from an ' +
@@ -796,9 +798,9 @@ export class NotesDB extends EventEmitter {
 	 * @returns {Promise} a javascript promise object
 	 */
 	public shutdown(self = this) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
 			try {
-				self.saveBinder((err: string) => {
+				self.saveBinder((err: Error) => {
 					if (err) {
 						reject(err);
 					}
@@ -808,7 +810,7 @@ export class NotesDB extends EventEmitter {
 					resolve('The database is shutdown.');
 				});
 			} catch (err) {
-				reject(err.message);
+				reject(err);
 			}
 		});
 	}
@@ -820,7 +822,7 @@ export class NotesDB extends EventEmitter {
 	 * @param self {NotesDB} a reference to the notes database instance
 	 */
 	public toString(self = this) {
-		let obj = {
+		const obj = {
 			config: self.config,
 			schema: self.schema
 		};
@@ -844,7 +846,7 @@ export class NotesDB extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			self.get(opts)
 				.then((srcArtifact: Artifact) => {
-					let dstArtifact: Artifact = srcArtifact.clone();
+					const dstArtifact: Artifact = srcArtifact.clone();
 					dstArtifact.root = join(self.config.dbdir, 'Trash');
 					if (fs.existsSync(dstArtifact.absolute())) {
 						dstArtifact.makeUnique();
@@ -969,7 +971,7 @@ export class NotesDB extends EventEmitter {
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
-	private createArtifact(artifact: Artifact, resolve: Function, reject: Function, area: string = NS.notes, self = this) {
+	private createArtifact(artifact: Artifact, resolve: IResolveFn, reject: IRejectFn, area: string = NS.notes, self = this) {
 		if (artifact.hasSection() &&
 			artifact.hasNotebook() &&
 			artifact.hasFilename() &&
@@ -1022,8 +1024,8 @@ export class NotesDB extends EventEmitter {
 	 * @private
 	 */
 	private createInitialConfig(opts: INotesDBOpts): IConfigDB {
-		let configFile: string = join(opts.configRoot || './', 'config.json');
-		let metaFile: string = join(opts.configRoot || './', 'meta.json');
+		const configFile: string = join(opts.configRoot || './', 'config.json');
+		const metaFile: string = join(opts.configRoot || './', 'meta.json');
 
 		return {
 			binderName: opts.binderName || 'adb',
@@ -1165,7 +1167,7 @@ export class NotesDB extends EventEmitter {
 	 */
 	private loadBinder(area: string = NS.notes, self = this) {
 		let directory = '';
-		let trashIndex = self.ignore.indexOf('Trash');
+		const trashIndex = self.ignore.indexOf('Trash');
 
 		if (area === NS.trash) {
 			directory = 'Trash';
@@ -1179,7 +1181,7 @@ export class NotesDB extends EventEmitter {
 		}
 
 		self.tree(directory).forEach((it: string) => {
-			let artifact = Artifact.factory('treeitem', {
+			const artifact = Artifact.factory('treeitem', {
 				treeitem: it,
 				root: self.config.dbdir
 			});
@@ -1230,12 +1232,12 @@ export class NotesDB extends EventEmitter {
 	 * @param self {NotesDB} a reference to the NotesDB instance
 	 * @private
 	 */
-	private saveBinder(cb: Function = null, self = this) {
-		let promises: any = [];
+	private saveBinder(cb: INilCallback = nil, self = this) {
+		const promises: any = [];
 
 		promises.push(new Promise((resolve, reject) => {
 			self.log.debug(`Saving configuration: ${self.config.configFile}`);
-			let data = JSON.stringify(self.config, null, '\t');
+			const data = JSON.stringify(self.config, null, '\t');
 			fs.writeFile(self.config.configFile, data, err => {
 				if (err) {
 					reject(err.message);
@@ -1246,7 +1248,7 @@ export class NotesDB extends EventEmitter {
 
 		promises.push(new Promise((resolve, reject) => {
 			self.log.debug(`Saving meta data: ${self.config.metaFile}`);
-			let data = JSON.stringify(self.meta, null, '\t');
+			const data = JSON.stringify(self.meta, null, '\t');
 			fs.writeFile(self.config.metaFile, data, err => {
 				if (err) {
 					reject(err.message);
@@ -1255,7 +1257,7 @@ export class NotesDB extends EventEmitter {
 			});
 		}));
 
-		for (let artifact of self.artifacts.values()) {
+		for (const artifact of self.artifacts.values()) {
 			promises.push(self.saveArtifact(artifact));
 		}
 
@@ -1283,8 +1285,8 @@ export class NotesDB extends EventEmitter {
 	 */
 	private tree(directory: string = '', self = this) {
 		directory = (directory === '') ? self.config.dbdir : join(self.config.dbdir, directory);
-		let l: string[] = [];
-		let files = walk(directory, {ignore: self.ignore});
+		const l: string[] = [];
+		const files = walk(directory, {ignore: self.ignore});
 
 		files.forEach((file: any) => {
 			l.push(normalize(file.path).replace(`${directory}/`, ''));

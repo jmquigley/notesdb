@@ -20,7 +20,7 @@ export function validateDB(t: any, notesDB: NotesDB, binderName: string , root: 
 	t.is(notesDB.config.binderName, binderName);
 	t.is(notesDB.config.root, root);
 
-	let p = normalize(path.join(root, binderName));
+	const p = normalize(path.join(root, binderName));
 	t.is(notesDB.config.dbdir, p);
 	t.true(fs.existsSync(notesDB.configFile));
 	t.true(fs.existsSync(notesDB.config.metaFile));

@@ -128,7 +128,7 @@ export class Artifact {
 		switch (mode) {
 			case 'fields':
 				if (opts != null) {
-					let args: IArtifactOpts = opts;
+					const args: IArtifactOpts = opts;
 
 					artifact.section = args.section || '';
 					artifact.notebook = args.notebook || '';
@@ -154,7 +154,7 @@ export class Artifact {
 			case 'treeitem':
 				if (opts != null) {
 					if (opts.hasOwnProperty('treeitem')) {
-						let s: string = opts.treeitem || '';
+						const s: string = opts.treeitem || '';
 						a = s.split(/\/|\\/);
 
 						artifact.section = a[0] || 'Default';
@@ -270,7 +270,7 @@ export class Artifact {
 	 * the last element of the path.
 	 */
 	public makeUnique(): Artifact {
-		let ts: string = `.${timestamp()}`;
+		const ts: string = `.${timestamp()}`;
 		if (this.type === ArtifactType.SNA) {
 			this.filename += ts;
 		} else if (this.type === ArtifactType.SN) {

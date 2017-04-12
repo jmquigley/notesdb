@@ -21,7 +21,7 @@ const pkg = require('../package.json');
  */
 export function addConsole(logger: IAppenderList): void {
 	if (pkg.debug) {
-		let obj = logger.appenders.filter((appender: IAppender) => {
+		const obj = logger.appenders.filter((appender: IAppender) => {
 			return appender.type === 'console';
 		})[0];
 
