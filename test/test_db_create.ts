@@ -17,8 +17,8 @@ test.after.always.cb(t => {
 });
 
 test('The database toString() function', t => {
-	let fixture = new Fixture('empty-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('empty-db');
+	const adb = new NotesDB({
 		binderName: 'sampledb',
 		configRoot: fixture.dir,
 		root: fixture.dir
@@ -26,7 +26,7 @@ test('The database toString() function', t => {
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let s = adb.toString();
+	const s = adb.toString();
 	t.is(typeof s, 'string');
 
 	if (pkg.debug) {
@@ -35,9 +35,9 @@ test('The database toString() function', t => {
 });
 
 test('Create a new database with a custom configuration', t => {
-	let fixture = new Fixture();
-	let dir = path.join(fixture.dir, uuid.v4());
-	let adb = new NotesDB({
+	const fixture = new Fixture();
+	const dir = path.join(fixture.dir, uuid.v4());
+	const adb = new NotesDB({
 		root: dir
 	});
 
@@ -46,8 +46,8 @@ test('Create a new database with a custom configuration', t => {
 });
 
 test('Create an initial binder', async t => {
-	let fixture = new Fixture('empty-db');
-	let notesDB = new NotesDB({
+	const fixture = new Fixture('empty-db');
+	const notesDB = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -55,8 +55,8 @@ test('Create an initial binder', async t => {
 
 	await notesDB.create(['Test1', 'Test2'])
 		.then((adb: NotesDB) => {
-			let sections = adb.sections();
-			let l = [
+			const sections = adb.sections();
+			const l = [
 				'Default',
 				'Test1',
 				'Test2',
@@ -77,8 +77,8 @@ test('Create an initial binder', async t => {
 });
 
 test('Create an initial binder with empty schema', async t => {
-	let fixture = new Fixture('empty-db');
-	let notesDB = new NotesDB({
+	const fixture = new Fixture('empty-db');
+	const notesDB = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -95,11 +95,11 @@ test('Create an initial binder with empty schema', async t => {
 });
 
 test('Try to create a binder with a bad name (negative test)', t => {
-	let fixture = new Fixture('tmpdir');
-	let binderName: string = '////testdb';
+	const fixture = new Fixture('tmpdir');
+	const binderName: string = '////testdb';
 
 	try {
-		let adb = new NotesDB({
+		const adb = new NotesDB({
 			binderName: binderName,
 			root: fixture.dir
 		});
@@ -110,11 +110,11 @@ test('Try to create a binder with a bad name (negative test)', t => {
 });
 
 test('Create a binder with a bad initial section name', async t => {
-	let fixture = new Fixture('empty-db');
-	let notesDB = new NotesDB({
+	const fixture = new Fixture('empty-db');
+	const notesDB = new NotesDB({
 		root: fixture.dir
 	});
-	let binderName: string = '////Test1';
+	const binderName: string = '////Test1';
 
 	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
 
@@ -128,8 +128,8 @@ test('Create a binder with a bad initial section name', async t => {
 });
 
 test('Open existing database with defaultConfigFile location', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -185,10 +185,10 @@ test('Open existing database with defaultConfigFile location', async t => {
 });
 
 test('Try to load existing database with missing config file (negative test)', t => {
-	let fixture = new Fixture('missing-db-config');
+	const fixture = new Fixture('missing-db-config');
 
 	try {
-		let adb = new NotesDB({
+		const adb = new NotesDB({
 			root: fixture.dir
 		});
 		t.fail(adb.toString());
@@ -198,10 +198,10 @@ test('Try to load existing database with missing config file (negative test)', t
 });
 
 test('Try to load existing database with missing root directory (negative test)', t => {
-	let fixture = new Fixture('missing-db-root');
+	const fixture = new Fixture('missing-db-root');
 
 	try {
-		let adb = new NotesDB({
+		const adb = new NotesDB({
 			root: fixture.dir
 		});
 		t.fail(adb.toString());
@@ -211,10 +211,10 @@ test('Try to load existing database with missing root directory (negative test)'
 });
 
 test('Try to create a database with a missing dbdir in the config (negative test)', t => {
-	let fixture = new Fixture('missing-db-dbdir');
+	const fixture = new Fixture('missing-db-dbdir');
 
 	try {
-		let adb = new NotesDB({
+		const adb = new NotesDB({
 			root: fixture.dir
 		});
 		t.fail(adb.toString());
@@ -224,8 +224,8 @@ test('Try to create a database with a missing dbdir in the config (negative test
 });
 
 test('Test trying to save a bad configuration file (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -242,8 +242,8 @@ test('Test trying to save a bad configuration file (negative test)', async t => 
 });
 
 test('Test trying to save a bad metadata file (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -260,8 +260,8 @@ test('Test trying to save a bad metadata file (negative test)', async t => {
 });
 
 test('Test the timed save facility', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir,
 		saveInterval: 1000
 	});
@@ -280,16 +280,16 @@ test('Test the timed save facility', async t => {
 });
 
 test('Test the reload function', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let filename = 'outside.txt';
-	let data = 'Test outside data file';
-	let lookup: IArtifactSearch = {
+	const filename = 'outside.txt';
+	const data = 'Test outside data file';
+	const lookup: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: filename
@@ -316,8 +316,8 @@ test('Test the reload function', async t => {
 });
 
 test('Try to add an empty item to an existing database', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -333,8 +333,8 @@ test('Try to add an empty item to an existing database', async t => {
 });
 
 test('Test has functions for NotesDB', t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -356,16 +356,16 @@ test('Test has functions for NotesDB', t => {
 });
 
 test('Test simple database with additional ignored directories', t => {
-	let fixture = new Fixture('simple-db-with-ignored');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db-with-ignored');
+	const adb = new NotesDB({
 		root: fixture.dir,
 		ignore: ['Attachments', 'Images']
 	});
-	let l: string[] = ['Test1', 'Test2'];
+	const l: string[] = ['Test1', 'Test2'];
 
-	let sections: string[] = adb.sections();
+	const sections: string[] = adb.sections();
 	t.is(sections.length, 2);
-	for (let section of sections) {
+	for (const section of sections) {
 		t.true(l.indexOf(section) !== -1);
 	}
 

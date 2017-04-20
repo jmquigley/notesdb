@@ -18,10 +18,10 @@ test.after.always.cb(t => {
 });
 
 test('Adding console logger to log4js', t => {
-	let logger = _.cloneDeep(log4js);
+	const logger = _.cloneDeep(log4js);
 	t.truthy(logger);
 
-	let config: IAppenderList = {
+	const config: IAppenderList = {
 		appenders: []
 	};
 
@@ -41,12 +41,12 @@ test('Adding console logger to log4js', t => {
 });
 
 test('Directory retrieval process', t => {
-	let fixture = new Fixture('tmpdir');
-	let root: string = path.join(fixture.dir, uuid.v4());
-	let dirs: string[] = [];
+	const fixture = new Fixture('tmpdir');
+	const root: string = path.join(fixture.dir, uuid.v4());
+	const dirs: string[] = [];
 
 	_.times(5, () => {
-		let dst: string = path.join(root, uuid.v4());
+		const dst: string = path.join(root, uuid.v4());
 		fs.mkdirsSync(dst);
 		dirs.push(dst);
 	});
@@ -57,7 +57,7 @@ test('Directory retrieval process', t => {
 });
 
 test('Get UUID with no dashes', t => {
-	let val = util.getUUID(true);
+	const val = util.getUUID(true);
 
 	t.truthy(val);
 	t.is(typeof val, 'string');
@@ -66,7 +66,7 @@ test('Get UUID with no dashes', t => {
 });
 
 test('Get UUID with dashes', t => {
-	let val = util.getUUID();
+	const val = util.getUUID();
 
 	t.truthy(val);
 	t.is(typeof val, 'string');

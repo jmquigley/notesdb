@@ -14,19 +14,19 @@ test.after.always.cb(t => {
 });
 
 test('Get an existing artifact from the schema', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
 	};
-	let metaPath: string = `${lookup.section}/${lookup.notebook}/${lookup.filename}`;
+	const metaPath: string = `${lookup.section}/${lookup.notebook}/${lookup.filename}`;
 
 	await adb.get(lookup)
 		.then((artifact: Artifact) => {
@@ -39,8 +39,8 @@ test('Get an existing artifact from the schema', async t => {
 			t.is(artifact.buf, 'Test File #1\n');
 			t.true(artifact.loaded);
 
-			let tags = artifact.tags;
-			let l = ['A', 'B'];
+			const tags = artifact.tags;
+			const l = ['A', 'B'];
 
 			l.forEach((tag: string) => {
 				t.true(tags.indexOf(tag) !== -1);
@@ -53,10 +53,10 @@ test('Get an existing artifact from the schema', async t => {
 		.then((msg: string) => {
 			t.is(msg, 'The database is shutdown.');
 
-			let metaFile = path.join(adb.config.configRoot, 'meta.json');
-			let metadata = JSON.parse(fs.readFileSync(metaFile).toString());
+			const metaFile = path.join(adb.config.configRoot, 'meta.json');
+			const metadata = JSON.parse(fs.readFileSync(metaFile).toString());
 
-			let l = ['A', 'B', 'C'];
+			const l = ['A', 'B', 'C'];
 
 			l.forEach((tag: string) => {
 				t.true(metadata[metaPath].tags.indexOf(tag) !== -1);
@@ -68,19 +68,19 @@ test('Get an existing artifact from the schema', async t => {
 });
 
 test('Test artifact update time change after change', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
 	};
-	let before: string = JSON.stringify(adb.meta, null, '\t');
+	const before: string = JSON.stringify(adb.meta, null, '\t');
 	let after: string = '';
 
 	await adb.get(lookup)
@@ -101,11 +101,11 @@ test('Test artifact update time change after change', async t => {
 		.then(adb.shutdown)
 		.then((msg: string) => {
 			t.is(msg, 'The database is shutdown.');
-			let metaFile = path.join(adb.config.configRoot, 'meta.json');
+			const metaFile = path.join(adb.config.configRoot, 'meta.json');
 			after = JSON.parse(fs.readFileSync(metaFile).toString());
 			t.true(before !== after);
 
-			let data: string = fs.readFileSync(path.join(adb.config.dbdir,
+			const data: string = fs.readFileSync(path.join(adb.config.dbdir,
 			lookup.section, lookup.notebook, lookup.filename)).toString();
 
 			t.is(data, 'Test File #1\nAdded Content');

@@ -14,14 +14,14 @@ test.after.always.cb(t => {
 });
 
 test('Create a new artifact file within the database', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let testArtifact = {
+	const testArtifact = {
 		section: 'Test3',
 		notebook: 'notebook',
 		filename: 'test file 1.txt'
@@ -48,15 +48,15 @@ test('Create a new artifact file within the database', async t => {
 });
 
 test('Try to add an artifact with a bad name to the database (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let badFileName = '////badfilename';
-	let testArtifact = {
+	const badFileName = '////badfilename';
+	const testArtifact = {
 		section: 'Test3',
 		notebook: 'notebook',
 		filename: badFileName
@@ -72,14 +72,14 @@ test('Try to add an artifact with a bad name to the database (negative test)', a
 });
 
 test('Try to add a bad artifact to the database (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let testArtifact = Artifact.factory();
+	const testArtifact = Artifact.factory();
 	testArtifact.type = 99;  // set an invalid type to force failure
 
 	await adb.add(testArtifact)
@@ -92,8 +92,8 @@ test('Try to add a bad artifact to the database (negative test)', async t => {
 });
 
 test('Try to create a null artifact (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -109,11 +109,11 @@ test('Try to create a null artifact (negative test)', async t => {
 });
 
 test('Try to load a binder with a bad artifact name (negative test)', t => {
-	let fixture = new Fixture('bad-db-artifact');
-	let badFileName = '%%%%badfile.txt';
+	const fixture = new Fixture('bad-db-artifact');
+	const badFileName = '%%%%badfile.txt';
 
 	try {
-		let adb = new NotesDB({
+		const adb = new NotesDB({
 			binderName: 'sampledb',
 			root: fixture.dir
 		});
@@ -124,14 +124,14 @@ test('Try to load a binder with a bad artifact name (negative test)', t => {
 });
 
 test('Get an existing artifact from the schema', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
@@ -158,14 +158,14 @@ test('Get an existing artifact from the schema', async t => {
 });
 
 test(`Try to retrieve an artifact that doesn't exist`, async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Missing',
 		notebook: 'Missing',
 		filename: 'test1.txt'
@@ -181,20 +181,20 @@ test(`Try to retrieve an artifact that doesn't exist`, async t => {
 });
 
 test('Create a new artifact, update it, and call the save', async t => {
-	let fixture = new Fixture('empty-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('empty-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let testArtifact = {
+	const testArtifact = {
 		section: 'Test1',
 		notebook: 'notebook1',
 		filename: 'somefile.txt'
 	};
 
-	let content: string = 'Adding content';
+	const content: string = 'Adding content';
 	await adb.add(testArtifact)
 		.then((artifact: Artifact) => {
 			t.false(artifact.isDirty());
@@ -204,7 +204,7 @@ test('Create a new artifact, update it, and call the save', async t => {
 		})
 		.then(adb.saveArtifact)
 		.then((artifact: Artifact) => {
-			let data: string = fs.readFileSync(artifact.absolute()).toString();
+			const data: string = fs.readFileSync(artifact.absolute()).toString();
 			t.is(data, content);
 
 			t.false(artifact.isDirty());
@@ -214,7 +214,7 @@ test('Create a new artifact, update it, and call the save', async t => {
 		})
 		.then(adb.saveArtifact)
 		.then((artifact: Artifact) => {
-			let data: string = fs.readFileSync(artifact.absolute()).toString();
+			const data: string = fs.readFileSync(artifact.absolute()).toString();
 			t.is(data, `${content}${content}`);
 			return adb;
 		})
@@ -225,8 +225,8 @@ test('Create a new artifact, update it, and call the save', async t => {
 });
 
 test('Test the automatic ejection from recents list', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir,
 		maxRecents: 1 // make the recents small
 	});
@@ -276,7 +276,7 @@ test('Test the automatic ejection from recents list', async t => {
 		.then((padb: NotesDB) => {
 			t.is(padb.recents.length, 1);
 			t.false(ejected.isDirty());
-			let data: string = fs.readFileSync(ejected.absolute()).toString();
+			const data: string = fs.readFileSync(ejected.absolute()).toString();
 			t.is(data, 'Test File #1\nContent change');
 			t.is(ejected.buf, data);
 			return padb;

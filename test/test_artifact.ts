@@ -18,8 +18,8 @@ test.after.always.cb(t => {
 });
 
 test('Testing artifact with empty creation', t => {
-	let fixture = new Fixture();
-	let artifact = Artifact.factory();
+	const fixture = new Fixture();
+	const artifact = Artifact.factory();
 	artifact.root = fixture.dir;
 
 	validateArtifact(t, artifact, {
@@ -72,7 +72,7 @@ test('Testing artifact creation type bitmasking', t => {
 		notebook: 'notebook',
 		filename: 'filename'
 	};
-	let a7 = Artifact.factory('fields', opts);
+	const a7 = Artifact.factory('fields', opts);
 	opts.type = ArtifactType.SNA;
 	validateArtifact(t, a7, opts);
 
@@ -80,14 +80,14 @@ test('Testing artifact creation type bitmasking', t => {
 		section: 'section',
 		notebook: 'notebook'
 	};
-	let a3 = Artifact.factory('fields', opts);
+	const a3 = Artifact.factory('fields', opts);
 	opts.type = ArtifactType.SN;
 	validateArtifact(t, a3, opts);
 
 	opts = {
 		section: 'section'
 	};
-	let a1 = Artifact.factory('fields', opts);
+	const a1 = Artifact.factory('fields', opts);
 	opts.type = ArtifactType.S;
 	validateArtifact(t, a1, opts);
 
@@ -111,8 +111,8 @@ test('Testing artifact creation type bitmasking', t => {
 });
 
 test('Testing artifact with factory fields creation', t => {
-	let fixture = new Fixture();
-	let artifact = Artifact.factory('fields', {
+	const fixture = new Fixture();
+	const artifact = Artifact.factory('fields', {
 		root: fixture.dir,
 		filename: 'filename',
 		notebook: 'notebook',
@@ -134,8 +134,8 @@ test('Testing artifact with factory fields creation', t => {
 });
 
 test('Testing artifact with factory path creation', t => {
-	let fixture = new Fixture('simple-db');
-	let artifact = Artifact.factory('path', {
+	const fixture = new Fixture('simple-db');
+	const artifact = Artifact.factory('path', {
 		root: join(fixture.dir, 'sampledb'),
 		path: join(fixture.dir, 'sampledb', 'Default', 'Default', 'test1.txt')
 	});
@@ -151,8 +151,8 @@ test('Testing artifact with factory path creation', t => {
 });
 
 test('Testing artifact with factory treeitem creation', t => {
-	let fixture = new Fixture();
-	let artifact = Artifact.factory('treeitem', {
+	const fixture = new Fixture();
+	const artifact = Artifact.factory('treeitem', {
 		treeitem: 'section/notebook/filename',
 		root: fixture.dir
 	});
@@ -168,8 +168,8 @@ test('Testing artifact with factory treeitem creation', t => {
 });
 
 test('Testing artifact with factory treeitem section only creation', t => {
-	let fixture = new Fixture();
-	let artifact = Artifact.factory('treeitem', {
+	const fixture = new Fixture();
+	const artifact = Artifact.factory('treeitem', {
 		treeitem: 'section',
 		root: fixture.dir
 	});
@@ -184,8 +184,8 @@ test('Testing artifact with factory treeitem section only creation', t => {
 });
 
 test('Testing artifact with factory treeitem section & notebook only creation', t => {
-	let fixture = new Fixture();
-	let artifact = Artifact.factory('treeitem', {
+	const fixture = new Fixture();
+	const artifact = Artifact.factory('treeitem', {
 		treeitem: 'section/notebook/',
 		root: fixture.dir
 	});
@@ -200,8 +200,8 @@ test('Testing artifact with factory treeitem section & notebook only creation', 
 });
 
 test('Testing artifact with factory treeitem too many items on creation', t => {
-	let fixture = new Fixture();
-	let artifact = Artifact.factory('treeitem', {
+	const fixture = new Fixture();
+	const artifact = Artifact.factory('treeitem', {
 		treeitem: 'section/notebook/filename/blah1/blah2',
 		root: fixture.dir
 	});
@@ -217,14 +217,14 @@ test('Testing artifact with factory treeitem too many items on creation', t => {
 });
 
 test('Test with an unknown mode sent to factory', t => {
-	let artifact = Artifact.factory('blahblahblah');
+	const artifact = Artifact.factory('blahblahblah');
 	validateArtifact(t, artifact, {});
 
 	t.pass();
 });
 
 test('Testing the dirty flag', t => {
-	let artifact = Artifact.factory('fields', {
+	const artifact = Artifact.factory('fields', {
 		filename: 'filename',
 		notebook: 'notebook',
 		section: 'section'
@@ -245,7 +245,7 @@ test('Testing the dirty flag', t => {
 });
 
 test('Testing has functions', t => {
-	let artifact = Artifact.factory();
+	const artifact = Artifact.factory();
 
 	validateArtifact(t, artifact, {});
 
@@ -255,11 +255,11 @@ test('Testing has functions', t => {
 });
 
 test('Test bad root on artifact (negative test)', t => {
-	let artifact = Artifact.factory();
+	const artifact = Artifact.factory();
 
 	validateArtifact(t, artifact, {});
 
-	let root = 'aksjdflkasjdflskjdf';
+	const root = 'aksjdflkasjdflskjdf';
 	try {
 		artifact.root = root;
 		t.fail('Bad root should not pass');
@@ -269,7 +269,7 @@ test('Test bad root on artifact (negative test)', t => {
 });
 
 test('Test artifact data append', t => {
-	let artifact = Artifact.factory();
+	const artifact = Artifact.factory();
 
 	validateArtifact(t, artifact, {});
 
@@ -284,19 +284,19 @@ test('Test artifact data append', t => {
 });
 
 test('Test comparator function', t => {
-	let a1 = Artifact.factory('fields', {
+	const a1 = Artifact.factory('fields', {
 		filename: 'a',
 		notebook: 'a',
 		section: 'a'
 	});
 
-	let a2 = Artifact.factory('fields', {
+	const a2 = Artifact.factory('fields', {
 		filename: 'b',
 		notebook: 'b',
 		section: 'b'
 	});
 
-	let a3 = Artifact.factory('fields', {
+	const a3 = Artifact.factory('fields', {
 		filename: 'c',
 		notebook: 'c',
 		section: 'c'
@@ -308,19 +308,19 @@ test('Test comparator function', t => {
 });
 
 test('Test the isEqual function', t => {
-	let s1: IArtifactSearch = {
+	const s1: IArtifactSearch = {
 		filename: 'a',
 		notebook: 'a',
 		section: 'a'
 	};
-	let a1 = Artifact.factory('fields', s1);
+	const a1 = Artifact.factory('fields', s1);
 
-	let s2: IArtifactSearch = {
+	const s2: IArtifactSearch = {
 		filename: 'b',
 		notebook: 'b',
 		section: 'b'
 	};
-	let a2 = Artifact.factory('fields', s2);
+	const a2 = Artifact.factory('fields', s2);
 
 	t.true(a1.isEqual(a1));
 	t.false(a1.isEqual(a2));

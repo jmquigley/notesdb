@@ -13,15 +13,15 @@ test.after.always.cb(t => {
 });
 
 test('Try to get sections from an unitialized database', t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	adb.initialized = false;
 
 	try {
-		let sections = adb.sections();
+		const sections = adb.sections();
 		t.fail(sections.toString());
 	} catch (err) {
 		t.is(err.message, `Trying to retrieve sections from an unitialized database.`);
@@ -29,14 +29,14 @@ test('Try to get sections from an unitialized database', t => {
 });
 
 test('Create a new section within an existing database', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let testArtifact = Artifact.factory('fields', {section: 'Test3'});
+	const testArtifact = Artifact.factory('fields', {section: 'Test3'});
 	t.truthy(testArtifact instanceof Artifact);
 
 	await adb.add(testArtifact)
@@ -45,11 +45,11 @@ test('Create a new section within an existing database', async t => {
 				section: 'Test3',
 				type: ArtifactType.S
 			});
-			let sections = adb.sections();
+			const sections = adb.sections();
 			t.truthy(sections instanceof Array);
 			t.is(sections.length, 5);
 
-			let l = [
+			const l = [
 				'Default',
 				'Test1',
 				'Test2',
@@ -71,14 +71,14 @@ test('Create a new section within an existing database', async t => {
 });
 
 test('Try to create a section that already exists within a database (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let testArtifact = Artifact.factory('fields', {
+	const testArtifact = Artifact.factory('fields', {
 		section: 'Test1'
 	});
 	t.truthy(testArtifact instanceof Artifact);
@@ -98,15 +98,15 @@ test('Try to create a section that already exists within a database (negative te
 });
 
 test('Try to create an artifact with bad section name (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let badSectionName = '////badSectionName';
-	let testArtifact = Artifact.factory('fields', {
+	const badSectionName = '////badSectionName';
+	const testArtifact = Artifact.factory('fields', {
 		section: badSectionName
 	});
 	t.truthy(testArtifact instanceof Artifact);

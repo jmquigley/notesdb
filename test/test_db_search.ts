@@ -11,8 +11,8 @@ test.after.always.cb(t => {
 });
 
 test('Test simple search for #1 in simple dB', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -31,8 +31,8 @@ test('Test simple search for #1 in simple dB', async t => {
 });
 
 test(`Test regex search for 'File #[0-9]' in simple dB`, async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 

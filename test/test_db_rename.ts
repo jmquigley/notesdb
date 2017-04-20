@@ -13,20 +13,20 @@ test.after.always.cb(t => {
 });
 
 test('Renames an artifact (full path)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let src: IArtifactSearch = {
+	const src: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
 	};
 
-	let dst: IArtifactSearch = {
+	const dst: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1-copy.txt'
@@ -53,20 +53,20 @@ test('Renames an artifact (full path)', async t => {
 });
 
 test('Renames an artifact (different intermediate paths)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let src: IArtifactSearch = {
+	const src: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
 	};
 
-	let dst: IArtifactSearch = {
+	const dst: IArtifactSearch = {
 		section: 'Renamed Default',
 		notebook: 'Renamed Notebook',
 		filename: 'test1-copy.txt'
@@ -93,18 +93,18 @@ test('Renames an artifact (different intermediate paths)', async t => {
 });
 
 test('Rename a section', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let src: IArtifactSearch = {
+	const src: IArtifactSearch = {
 		section: 'Default'
 	};
 
-	let dst: IArtifactSearch = {
+	const dst: IArtifactSearch = {
 		section: 'RenamedDefault'
 	};
 
@@ -129,19 +129,19 @@ test('Rename a section', async t => {
 });
 
 test('Rename a notebook', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let src: IArtifactSearch = {
+	const src: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default'
 	};
 
-	let dst: IArtifactSearch = {
+	const dst: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Renamed Notebook'
 	};
@@ -167,18 +167,18 @@ test('Rename a notebook', async t => {
 });
 
 test('Rename a section with the same name (negative test, with warning)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let src: IArtifactSearch = {
+	const src: IArtifactSearch = {
 		section: 'Default'
 	};
 
-	let dst: IArtifactSearch = {
+	const dst: IArtifactSearch = {
 		section: 'Default'
 	};
 
@@ -192,19 +192,19 @@ test('Rename a section with the same name (negative test, with warning)', async 
 });
 
 test('Rename artifact to an invalid name type (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let src: IArtifactSearch = {
+	const src: IArtifactSearch = {
 		section: 'Default'
 	};
 
-	let badSectionName = '////Default';
-	let dst: IArtifactSearch = {
+	const badSectionName = '////Default';
+	const dst: IArtifactSearch = {
 		section: badSectionName
 	};
 
@@ -218,18 +218,18 @@ test('Rename artifact to an invalid name type (negative test)', async t => {
 });
 
 test('Perform rename where the src and dst types are a mismatch (negative test)', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let src: IArtifactSearch = {
+	const src: IArtifactSearch = {
 		section: 'Default'
 	};
 
-	let dst: IArtifactSearch = {
+	const dst: IArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default'
 	};

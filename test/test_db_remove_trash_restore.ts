@@ -17,19 +17,19 @@ test.after.always.cb(t => {
 });
 
 test('Send an item to the trash from the database and then restore it', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'test4.txt'
 	};
-	let artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook, lookup.filename);
+	const artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook, lookup.filename);
 
 	await adb.trash(lookup)
 		.then((artifact: Artifact) => {
@@ -52,18 +52,18 @@ test('Send an item to the trash from the database and then restore it', async t 
 });
 
 test('Send a notebook in the binder to the trash and then restore it', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default'
 	};
-	let notebookName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
+	const notebookName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
 
 	await adb.trash(lookup)
 		.then((artifact: Artifact) => {
@@ -86,17 +86,17 @@ test('Send a notebook in the binder to the trash and then restore it', async t =
 });
 
 test('Try to send a section from the binder to the trash and restore it', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2'
 	};
-	let sectionName = path.join(adb.config.dbdir, 'Trash', lookup.section);
+	const sectionName = path.join(adb.config.dbdir, 'Trash', lookup.section);
 
 	await adb.trash(lookup)
 		.then((artifact: Artifact) => {
@@ -119,19 +119,19 @@ test('Try to send a section from the binder to the trash and restore it', async 
 });
 
 test('Try to restore a deleted item with a duplicate/collision', async t => {
-	let fixture = new Fixture('duplicate-trash');
-	let adb = new NotesDB({
+	const fixture = new Fixture('duplicate-trash');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'test4.txt'
 	};
-	let artifactName: string = join(adb.config.dbdir, lookup.section, lookup.notebook, lookup.filename);
+	const artifactName: string = join(adb.config.dbdir, lookup.section, lookup.notebook, lookup.filename);
 
 	await adb.restore(lookup)
 		.then((artifact: Artifact) => {
@@ -150,17 +150,17 @@ test('Try to restore a deleted item with a duplicate/collision', async t => {
 });
 
 test('Try to send a section with duplicate/collision to the Trash', async t => {
-	let fixture = new Fixture('duplicate-trash');
-	let adb = new NotesDB({
+	const fixture = new Fixture('duplicate-trash');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2'
 	};
-	let artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section);
+	const artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section);
 
 	await adb.trash(lookup)
 		.then((artifact: Artifact) => {
@@ -174,18 +174,18 @@ test('Try to send a section with duplicate/collision to the Trash', async t => {
 });
 
 test('Try to send a notebook with duplicate/collision to the Trash', async t => {
-	let fixture = new Fixture('duplicate-trash');
-	let adb = new NotesDB({
+	const fixture = new Fixture('duplicate-trash');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default'
 	};
-	let artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
+	const artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook);
 
 	await adb.trash(lookup)
 		.then((artifact: Artifact) => {
@@ -199,8 +199,8 @@ test('Try to send a notebook with duplicate/collision to the Trash', async t => 
 });
 
 test('Test the garbage empty process', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -229,8 +229,8 @@ test('Test the garbage empty process', async t => {
 });
 
 test('Test garbage empty with bad trash directory', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -246,19 +246,19 @@ test('Test garbage empty with bad trash directory', async t => {
 });
 
 test(`Try to restore artifact that doesn't exists`, async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'asdfasdgadsgadf'
 	};
-	let info: string = `${lookup.section}|${lookup.notebook}|${lookup.filename}`;
+	const info: string = `${lookup.section}|${lookup.notebook}|${lookup.filename}`;
 
 	await adb.restore(lookup)
 		.then((artifact: Artifact) => {
@@ -270,14 +270,14 @@ test(`Try to restore artifact that doesn't exists`, async t => {
 });
 
 test('Test immediate deletion of artifact from the schema', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'test4.txt'
@@ -296,14 +296,14 @@ test('Test immediate deletion of artifact from the schema', async t => {
 });
 
 test('Test immediate deletion of notebook from the schema', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default'
 	};
@@ -321,14 +321,14 @@ test('Test immediate deletion of notebook from the schema', async t => {
 });
 
 test('Test immediate deletion of section from the schema', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let lookup: IArtifactSearch = {
+	const lookup: IArtifactSearch = {
 		section: 'Test2'
 	};
 

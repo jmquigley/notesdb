@@ -13,8 +13,8 @@ test.after.always.cb(t => {
 });
 
 test('Load a database with file in the sections directory', t => {
-	let fixture = new Fixture('invalid-section');
-	let adb = new NotesDB({
+	const fixture = new Fixture('invalid-section');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -26,8 +26,8 @@ test('Load a database with file in the sections directory', t => {
 });
 
 test('Load a database with file in the notebooks directory', t => {
-	let fixture = new Fixture('invalid-notebook');
-	let adb = new NotesDB({
+	const fixture = new Fixture('invalid-notebook');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -39,14 +39,14 @@ test('Load a database with file in the notebooks directory', t => {
 });
 
 test('Get the list of notebooks from a database', t => {
-	let fixture = new Fixture('simple-db');
-	let notesDB = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const notesDB = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
-	let notebooks = notesDB.notebooks('Default');
-	let l = [
+	const notebooks = notesDB.notebooks('Default');
+	const l = [
 		'Default',
 		'notebook1'
 	];
@@ -57,8 +57,8 @@ test('Get the list of notebooks from a database', t => {
 });
 
 test('Try to get a notebook from an uninitialized database', t => {
-	let fixture = new Fixture('empty-db');
-	let notesDB = new NotesDB({
+	const fixture = new Fixture('empty-db');
+	const notesDB = new NotesDB({
 		root: fixture.dir
 	});
 
@@ -66,7 +66,7 @@ test('Try to get a notebook from an uninitialized database', t => {
 	notesDB.initialized = false;
 
 	try {
-		let notebooks = notesDB.notebooks('Default');
+		const notebooks = notesDB.notebooks('Default');
 		t.fail(notebooks.toString());
 	} catch (err) {
 		t.is(err.message, 'Trying to retrieve notebooks from an unitialized database.');
@@ -74,15 +74,15 @@ test('Try to get a notebook from an uninitialized database', t => {
 });
 
 test('Try to get a notebook from a section that does not exist', t => {
-	let fixture = new Fixture('empty-db');
-	let notesDB = new NotesDB({
+	const fixture = new Fixture('empty-db');
+	const notesDB = new NotesDB({
 		root: fixture.dir
 	});
 
 	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
 
 	try {
-		let notebooks = notesDB.notebooks('////Test1');
+		const notebooks = notesDB.notebooks('////Test1');
 		t.fail(notebooks.toString());
 	} catch (err) {
 		t.is(err.message, `Section '////Test1' not found in binder.`);
@@ -90,12 +90,12 @@ test('Try to get a notebook from a section that does not exist', t => {
 });
 
 test('Create a notebook within an existing database', async t => {
-	let fixture = new Fixture('empty-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('empty-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
-	let sectionName = 'Test1';
-	let l = [
+	const sectionName = 'Test1';
+	const l = [
 		'notebook1',
 		'notebook2'
 	];
@@ -117,7 +117,7 @@ test('Create a notebook within an existing database', async t => {
 			return adb;
 		})
 		.then((padb: NotesDB) => {
-			let notebooks: string[] = padb.notebooks(sectionName);
+			const notebooks: string[] = padb.notebooks(sectionName);
 			t.truthy(notebooks instanceof Array);
 			t.is(notebooks.length, 2);
 
@@ -140,16 +140,16 @@ test('Create a notebook within an existing database', async t => {
 });
 
 test('Try to create a notebook that already exists', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
-	let sectionName = 'Default';
-	let notebookName = 'notebook1';
+	const sectionName = 'Default';
+	const notebookName = 'notebook1';
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let testArtifact = Artifact.factory('fields', {
+	const testArtifact = Artifact.factory('fields', {
 		section: sectionName,
 		notebook: notebookName
 	});
@@ -171,16 +171,16 @@ test('Try to create a notebook that already exists', async t => {
 });
 
 test('Trying to create notebook with a bad name', async t => {
-	let fixture = new Fixture('simple-db');
-	let adb = new NotesDB({
+	const fixture = new Fixture('simple-db');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
-	let sectionName = 'Default';
-	let notebookName = '////notebook1';
+	const sectionName = 'Default';
+	const notebookName = '////notebook1';
 
 	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	let testArtifact = Artifact.factory('fields', {
+	const testArtifact = Artifact.factory('fields', {
 		section: sectionName,
 		notebook: notebookName
 	});
@@ -195,8 +195,8 @@ test('Trying to create notebook with a bad name', async t => {
 });
 
 test('Load a database with file in the sections directory', t => {
-	let fixture = new Fixture('invalid-notebook');
-	let adb = new NotesDB({
+	const fixture = new Fixture('invalid-notebook');
+	const adb = new NotesDB({
 		root: fixture.dir
 	});
 
