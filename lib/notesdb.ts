@@ -1286,7 +1286,20 @@ export class NotesDB extends EventEmitter {
 	private tree(directory: string = '', self = this) {
 		directory = (directory === '') ? self.config.dbdir : join(self.config.dbdir, directory);
 		const l: string[] = [];
-		const files = walk(directory, {ignore: self.ignore});
+
+		// For each file retrieved by klaw-sync, check to see if it
+		// is in the ignore list.  If a file should be included, then true
+		// is returned, otherwise false.
+		const filterFn = (item: any) => {
+			return self.ignore.every((it: string) => {
+				return (item.path.indexOf(it) > -1) ? false : true;
+			});
+		};
+
+		const files = walk(directory, {
+			filter: filterFn,
+			noRecurseOnFailedFilter: true
+		});
 
 		files.forEach((file: any) => {
 			l.push(normalize(file.path).replace(`${directory}/`, ''));
