@@ -5,15 +5,7 @@
 	"configRoot": "{DIR}",
 	"trash": "{DIR}/sampledb/Trash",
 	"metaFile": "{DIR}/meta.json",
-	"log4js": {
-		"appenders": [
-			{
-				"type": "file",
-				"filename": "{DIR}/notesdb.log",
-			    "category": "notesdb"
-			}
-		]
-	},
+	"logdir": "{DIR}",
 	"saveInterval": 5000,
 	"bufSize": 65535,
 	"maxRecents": 5

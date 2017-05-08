@@ -9,29 +9,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as uuid from 'uuid';
-import {IAppender, IAppenderList} from './notesdb';
-
-const pkg = require('../package.json');
-
-/**
- * Adds a console logging appender to to the logging facility used by the TxtDB
- * class.  It checks to see if there is already a console logger in the config.
- * If it is already there, then it is not added again.
- * @param logger {Logger} a reference to the log4j object.
- */
-export function addConsole(logger: IAppenderList): void {
-	if (pkg.debug) {
-		const obj = logger.appenders.filter((appender: IAppender) => {
-			return appender.type === 'console';
-		})[0];
-
-		if (typeof obj === 'undefined') {
-			logger.appenders.push({
-				type: 'console'
-			});
-		}
-	}
-}
 
 /**
  * Retrieves a list of directories from the given input path.

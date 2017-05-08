@@ -9,16 +9,21 @@
 import {EventEmitter} from 'events';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
-import * as log4js from 'log4js';
 import * as path from 'path';
 import {Deque} from 'util.ds';
 import {join, normalize} from 'util.join';
+import * as log from 'util.log';
 import {IRejectFn, IResolveFn} from 'util.promise';
 import {INilCallback, nil} from 'util.toolbox';
-import {Artifact, artifactComparator, ArtifactType, IArtifactMeta, IArtifactSearch} from './artifact';
+import {
+	Artifact,
+	artifactComparator,
+	ArtifactType,
+	IArtifactMeta,
+	IArtifactSearch
+} from './artifact';
 
 const walk = require('klaw-sync');
-const util = require('./util');
 
 const defRoot = join('~/', '.notesdb');
 const validNameChars = `-\\.+@_!$&0-9a-zA-Z `; // regex [] pattern
@@ -66,8 +71,8 @@ export interface IConfigDB {
 	dbdir: string;
 	trash: string;
 	metaFile: string;
-	log4js: IAppenderList;
 	root: string;
+	logdir: string;
 	saveInterval: number;
 	bufSize: number;
 	maxRecents: number;
@@ -89,8 +94,6 @@ export interface INotesMeta {
 
 /** Creates an instance of the text database class */
 export class NotesDB extends EventEmitter {
-
-	private log: log4js.Logger;
 
 	private _artifacts: any = new Map();
 	private _config: IConfigDB;
@@ -194,9 +197,12 @@ export class NotesDB extends EventEmitter {
 
 		self._recents = new Deque(self.config.maxRecents, artifactComparator);
 
-		util.addConsole(self.config.log4js);
-		log4js.configure(self.config.log4js);
-		self.log = log4js.getLogger('notesdb');
+		log.configure({
+			toConsole: false,
+			directory: self.config.logdir,
+			events: null,
+			messages: 'notesdb.log'
+		});
 
 		self.load('notes');
 		self.load('trash');
@@ -207,7 +213,7 @@ export class NotesDB extends EventEmitter {
 					adb._timedSave = true;
 				})
 				.catch((err: string) => {
-					self.log.error(`Timed save failure: ${err}`);
+					log.error(`Timed save failure: ${err}`);
 				});
 		}, opts.saveInterval);
 
@@ -216,10 +222,10 @@ export class NotesDB extends EventEmitter {
 		self.recents.on('remove', (artifact: Artifact) => {
 			self.saveArtifact(artifact)
 				.then(() => {
-					self.log.debug(`Removal save of ${artifact.absolute()}`);
+					log.info(`Removal save of ${artifact.absolute()}`);
 				})
 				.catch((err: string) => {
-					self.log.error(`Removal save failed for ${artifact.absolute()}: ${err}`);
+					log.error(`Removal save failed for ${artifact.absolute()}: ${err}`);
 				});
 		});
 	}
@@ -326,7 +332,7 @@ export class NotesDB extends EventEmitter {
 			if (fs.existsSync(self.config.trash) &&
 				self.config.trash.endsWith(`/Trash`) &&
 				self.config.trash.startsWith(self.config.dbdir)) {
-				self.log.info('Emptying trash: ${self.config.trash}');
+				log.info('Emptying trash: ${self.config.trash}');
 
 				fs.remove(self.config.trash, (err: Error) => {
 					if (err) {
@@ -1005,7 +1011,7 @@ export class NotesDB extends EventEmitter {
 						self._artifacts.set(artifact.path(), artifact);
 					}
 
-					self.log.info(`Added artifact: ${artifact.filename}`);
+					log.info(`Added artifact: ${artifact.filename}`);
 					resolve(artifact);
 				});
 			} else {
@@ -1034,15 +1040,7 @@ export class NotesDB extends EventEmitter {
 			dbdir: join(opts.root || './', opts.binderName || 'adb'),
 			trash: join(opts.root || './', opts.binderName || 'adb', 'Trash'),
 			metaFile: metaFile,
-			log4js: {
-				appenders: [
-					{
-						category: 'notesdb',
-						filename: join(path.dirname(configFile || './'), 'notesdb.log'),
-						type: 'file'
-					}
-				]
-			},
+			logdir: join(path.dirname(configFile || './')),
 			root: opts.root || '',
 			saveInterval: opts.saveInterval,
 			bufSize: opts.bufSize,
@@ -1070,7 +1068,7 @@ export class NotesDB extends EventEmitter {
 				}
 
 				if (!fs.existsSync(dst)) {
-					self.log.debug(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
+					log.info(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
 					fs.mkdirsSync(dst);
 				}
 
@@ -1106,7 +1104,7 @@ export class NotesDB extends EventEmitter {
 				}
 
 				if (!fs.existsSync(dst)) {
-					self.log.info(`Creating section: ${artifact.section}`);
+					log.info(`Creating section: ${artifact.section}`);
 					fs.mkdirsSync(dst);
 				}
 
@@ -1152,7 +1150,7 @@ export class NotesDB extends EventEmitter {
 		self.loadBinder(area);
 		self.saveBinder();
 
-		self.log.debug(`Loaded database '${self.config.binderName}' for ${area}.`);
+		log.info(`Loaded database '${self.config.binderName}' for ${area}.`);
 		self.initialized = true;
 	}
 
@@ -1236,7 +1234,7 @@ export class NotesDB extends EventEmitter {
 		const promises: any = [];
 
 		promises.push(new Promise((resolve, reject) => {
-			self.log.debug(`Saving configuration: ${self.config.configFile}`);
+			log.info(`Saving configuration: ${self.config.configFile}`);
 			const data = JSON.stringify(self.config, null, '\t');
 			fs.writeFile(self.config.configFile, data, err => {
 				if (err) {
@@ -1247,7 +1245,7 @@ export class NotesDB extends EventEmitter {
 		}));
 
 		promises.push(new Promise((resolve, reject) => {
-			self.log.debug(`Saving meta data: ${self.config.metaFile}`);
+			log.info(`Saving meta data: ${self.config.metaFile}`);
 			const data = JSON.stringify(self.meta, null, '\t');
 			fs.writeFile(self.config.metaFile, data, err => {
 				if (err) {

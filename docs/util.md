@@ -6,22 +6,8 @@ private functions that are not exposed as part of the main module.
 
 
 * [util](#module_util)
-    * [~addConsole(logger)](#module_util..addConsole)
     * [~getDirectories(src)](#module_util..getDirectories) ⇒ <code>Array</code>
     * [~getUUID(nodash)](#module_util..getUUID) ⇒ <code>string</code>
-
-<a name="module_util..addConsole"></a>
-
-### util~addConsole(logger)
-Adds a console logging appender to to the logging facility used by the TxtDB
-class.  It checks to see if there is already a console logger in the config.
-If it is already there, then it is not added again.
-
-**Kind**: inner method of <code>[util](#module_util)</code>  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| logger | <code>Logger</code> | a reference to the log4j object. |
 
 <a name="module_util..getDirectories"></a>
 
