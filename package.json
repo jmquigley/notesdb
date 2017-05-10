@@ -20,6 +20,7 @@
     "fs-extra": "^3.0.1",
     "klaw-sync": "^2.1.0",
     "lodash": "^4.17.4",
+    "rimraf": "^2.6.1",
     "util.ds": "0.0.18",
     "util.home": "0.0.14",
     "util.join": "0.0.8",
@@ -48,7 +49,7 @@
     "nyc": "^10.3.2",
     "tslint": "^5.2.0",
     "typescript": "^2.3.2",
-    "util.fixture": "0.0.51",
+    "util.fixture": "0.0.52",
     "util.wait": "0.0.21"
   },
   "main": "./index.js",
