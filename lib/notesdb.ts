@@ -12,7 +12,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import {Deque} from 'util.ds';
 import {join, normalize} from 'util.join';
-import * as log from 'util.log';
+import log from 'util.log';
 import {IRejectFn, IResolveFn} from 'util.promise';
 import {INilCallback, nil} from 'util.toolbox';
 import {
@@ -200,8 +200,8 @@ export class NotesDB extends EventEmitter {
 		log.configure({
 			toConsole: false,
 			directory: self.config.logdir,
-			events: null,
-			messages: 'notesdb.log'
+			eventFile: null,
+			messageFile: 'notesdb.log'
 		});
 
 		self.load('notes');
