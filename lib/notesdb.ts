@@ -27,8 +27,8 @@ const walk = require('klaw-sync');
 
 const defRoot = join('~/', '.notesdb');
 const validNameChars = `-\\.+@_!$&0-9a-zA-Z `; // regex [] pattern
-
 const defIgnoreList: string[] = ['.DS_Store', '.placeholder', 'Trash'];
+const pkg = require('../package.json');
 
 export interface INotebook {
 	[key: string]: Artifact;
@@ -199,6 +199,7 @@ export class NotesDB extends EventEmitter {
 		self._recents = new Deque(self.config.maxRecents, artifactComparator);
 
 		self._log = logger.instance({
+			debug: pkg.debug,
 			toConsole: false,
 			directory: self.config.logdir,
 			eventFile: null,
