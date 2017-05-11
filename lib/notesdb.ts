@@ -12,7 +12,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import {Deque} from 'util.ds';
 import {join, normalize} from 'util.join';
-import log from 'util.log';
+import logger from 'util.log';
 import {IRejectFn, IResolveFn} from 'util.promise';
 import {INilCallback, nil} from 'util.toolbox';
 import {
@@ -100,6 +100,7 @@ export class NotesDB extends EventEmitter {
 	private _fnSaveInterval: any;
 	private _ignore: string[] = [];
 	private _initialized: boolean = false;
+	private _log: any = null;
 	private _meta: INotesMeta = {};
 	private _recents: Deque = null;
 	private _reID: RegExp = new RegExp(`^[${validNameChars}]+$`);
@@ -197,11 +198,12 @@ export class NotesDB extends EventEmitter {
 
 		self._recents = new Deque(self.config.maxRecents, artifactComparator);
 
-		log.configure({
+		self._log = logger.instance({
 			toConsole: false,
 			directory: self.config.logdir,
 			eventFile: null,
-			messageFile: 'notesdb.log'
+			messageFile: 'notesdb.log',
+			namespace: 'notesdb'
 		});
 
 		self.load('notes');
@@ -213,7 +215,7 @@ export class NotesDB extends EventEmitter {
 					adb._timedSave = true;
 				})
 				.catch((err: string) => {
-					log.error(`Timed save failure: ${err}`);
+					self.log.error(`Timed save failure: ${err}`);
 				});
 		}, opts.saveInterval);
 
@@ -222,10 +224,10 @@ export class NotesDB extends EventEmitter {
 		self.recents.on('remove', (artifact: Artifact) => {
 			self.saveArtifact(artifact)
 				.then(() => {
-					log.info(`Removal save of ${artifact.absolute()}`);
+					self.log.info(`Removal save of ${artifact.absolute()}`);
 				})
 				.catch((err: string) => {
-					log.error(`Removal save failed for ${artifact.absolute()}: ${err}`);
+					self.log.error(`Removal save failed for ${artifact.absolute()}: ${err}`);
 				});
 		});
 	}
@@ -332,7 +334,7 @@ export class NotesDB extends EventEmitter {
 			if (fs.existsSync(self.config.trash) &&
 				self.config.trash.endsWith(`/Trash`) &&
 				self.config.trash.startsWith(self.config.dbdir)) {
-				log.info('Emptying trash: ${self.config.trash}');
+				self.log.info('Emptying trash: ${self.config.trash}');
 
 				fs.remove(self.config.trash, (err: Error) => {
 					if (err) {
@@ -913,6 +915,10 @@ export class NotesDB extends EventEmitter {
 		this._initialized = val;
 	}
 
+	get log(): any {
+		return this._log;
+	}
+
 	get meta(): INotesMeta {
 		return this._meta;
 	}
@@ -1011,7 +1017,7 @@ export class NotesDB extends EventEmitter {
 						self._artifacts.set(artifact.path(), artifact);
 					}
 
-					log.info(`Added artifact: ${artifact.filename}`);
+					self.log.info(`Added artifact: ${artifact.filename}`);
 					resolve(artifact);
 				});
 			} else {
@@ -1068,7 +1074,7 @@ export class NotesDB extends EventEmitter {
 				}
 
 				if (!fs.existsSync(dst)) {
-					log.info(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
+					self.log.info(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
 					fs.mkdirsSync(dst);
 				}
 
@@ -1104,7 +1110,7 @@ export class NotesDB extends EventEmitter {
 				}
 
 				if (!fs.existsSync(dst)) {
-					log.info(`Creating section: ${artifact.section}`);
+					self.log.info(`Creating section: ${artifact.section}`);
 					fs.mkdirsSync(dst);
 				}
 
@@ -1150,7 +1156,7 @@ export class NotesDB extends EventEmitter {
 		self.loadBinder(area);
 		self.saveBinder();
 
-		log.info(`Loaded database '${self.config.binderName}' for ${area}.`);
+		self.log.info(`Loaded database '${self.config.binderName}' for ${area}.`);
 		self.initialized = true;
 	}
 
@@ -1234,7 +1240,7 @@ export class NotesDB extends EventEmitter {
 		const promises: any = [];
 
 		promises.push(new Promise((resolve, reject) => {
-			log.info(`Saving configuration: ${self.config.configFile}`);
+			self.log.info(`Saving configuration: ${self.config.configFile}`);
 			const data = JSON.stringify(self.config, null, '\t');
 			fs.writeFile(self.config.configFile, data, err => {
 				if (err) {
@@ -1245,7 +1251,7 @@ export class NotesDB extends EventEmitter {
 		}));
 
 		promises.push(new Promise((resolve, reject) => {
-			log.info(`Saving meta data: ${self.config.metaFile}`);
+			self.log.info(`Saving meta data: ${self.config.metaFile}`);
 			const data = JSON.stringify(self.meta, null, '\t');
 			fs.writeFile(self.config.metaFile, data, err => {
 				if (err) {
