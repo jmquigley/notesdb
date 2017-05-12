@@ -1,7 +1,7 @@
 <a name="Binder"></a>
 
 ## Binder
-Creates an instance of the text database class
+Creates an instance of the text binder class
 
 **Kind**: global class  
 

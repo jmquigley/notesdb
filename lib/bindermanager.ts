@@ -49,6 +49,7 @@ export class BinderManager extends EventEmitter {
 
 	public get(binderName: string, self = this): Binder {
 		self.log(`Retrieving binder: ${binderName}`);
+		return null;
 	}
 
 	get log(): any {
