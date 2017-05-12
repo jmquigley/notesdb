@@ -12,7 +12,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import {Deque} from 'util.ds';
 import {join, normalize} from 'util.join';
-import logger from 'util.log';
+import logger, {Logger} from 'util.log';
 import {IRejectFn, IResolveFn} from 'util.promise';
 import {INilCallback, nil} from 'util.toolbox';
 import {
@@ -92,7 +92,7 @@ export interface INotesMeta {
 	[key: string]: IArtifactMeta;
 }
 
-/** Creates an instance of the text database class */
+/** Creates an instance of the text binder class */
 export class Binder extends EventEmitter {
 
 	private _artifacts: any = new Map();
@@ -100,7 +100,7 @@ export class Binder extends EventEmitter {
 	private _fnSaveInterval: any;
 	private _ignore: string[] = [];
 	private _initialized: boolean = false;
-	private _log: any = null;
+	private _log: Logger = null;
 	private _meta: INotesMeta = {};
 	private _recents: Deque = null;
 	private _reID: RegExp = new RegExp(`^[${validNameChars}]+$`);
@@ -204,7 +204,7 @@ export class Binder extends EventEmitter {
 			directory: self.config.logdir,
 			eventFile: null,
 			messageFile: 'notesdb.log',
-			namespace: 'notesdb'
+			namespace: 'notesdb_binder'
 		});
 
 		self.load('notes');
