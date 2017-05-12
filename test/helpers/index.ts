@@ -9,13 +9,13 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact, ArtifactType, IArtifactOpts} from '../../lib/artifact';
-import {NotesDB} from '../../lib/notesdb';
+import {Binder} from '../../lib/binder';
 
 const normalize = require('normalize-path');
 
 const pkg = require('../../package.json');
 
-export function validateDB(t: any, notesDB: NotesDB, binderName: string , root: string, valid: boolean): void {
+export function validateDB(t: any, notesDB: Binder, binderName: string , root: string, valid: boolean): void {
 	t.truthy(notesDB);
 	t.is(notesDB.config.binderName, binderName);
 	t.is(notesDB.config.root, root);

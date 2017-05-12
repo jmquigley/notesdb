@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {join} from 'util.join';
-import {Artifact, NotesDB} from '../index';
+import {Artifact, Binder} from '../index';
 import {IArtifactSearch} from '../lib/artifact';
 import {cleanup, validateDB} from './helpers';
 
@@ -18,7 +18,7 @@ test.after.always.cb(t => {
 
 test('Send an item to the trash from the database and then restore it', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -53,7 +53,7 @@ test('Send an item to the trash from the database and then restore it', async t 
 
 test('Send a notebook in the binder to the trash and then restore it', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -87,7 +87,7 @@ test('Send a notebook in the binder to the trash and then restore it', async t =
 
 test('Try to send a section from the binder to the trash and restore it', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -120,7 +120,7 @@ test('Try to send a section from the binder to the trash and restore it', async 
 
 test('Try to restore a deleted item with a duplicate/collision', async t => {
 	const fixture = new Fixture('duplicate-trash');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -151,7 +151,7 @@ test('Try to restore a deleted item with a duplicate/collision', async t => {
 
 test('Try to send a section with duplicate/collision to the Trash', async t => {
 	const fixture = new Fixture('duplicate-trash');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -175,7 +175,7 @@ test('Try to send a section with duplicate/collision to the Trash', async t => {
 
 test('Try to send a notebook with duplicate/collision to the Trash', async t => {
 	const fixture = new Fixture('duplicate-trash');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -200,12 +200,12 @@ test('Try to send a notebook with duplicate/collision to the Trash', async t => 
 
 test('Test the garbage empty process', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
 	await adb.emptyTrash()
-		.then((padb: NotesDB) => {
+		.then((padb: Binder) => {
 			t.true(_.isEmpty(padb.schema.trash));
 			t.true(emptyDir.sync(padb.config.trash));
 
@@ -217,7 +217,7 @@ test('Test the garbage empty process', async t => {
 			t.true(fs.existsSync(artifact.absolute()));
 			return adb.emptyTrash();
 		})
-		.then((padb: NotesDB) => {
+		.then((padb: Binder) => {
 			t.true(_.isEmpty(padb.schema.trash));
 			t.true(emptyDir.sync(padb.config.trash));
 			return padb;
@@ -230,14 +230,14 @@ test('Test the garbage empty process', async t => {
 
 test('Test garbage empty with bad trash directory', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
 	adb.config.trash = 'alksjdglaksdjgaaslkdjg';
 
 	await adb.emptyTrash()
-		.then((padb: NotesDB) => {
+		.then((padb: Binder) => {
 			t.fail(padb.toString());
 		})
 		.catch((err: string) => {
@@ -247,7 +247,7 @@ test('Test garbage empty with bad trash directory', async t => {
 
 test(`Try to restore artifact that doesn't exists`, async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -271,7 +271,7 @@ test(`Try to restore artifact that doesn't exists`, async t => {
 
 test('Test immediate deletion of artifact from the schema', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -284,7 +284,7 @@ test('Test immediate deletion of artifact from the schema', async t => {
 	};
 
 	await adb.remove(lookup)
-		.then((padb: NotesDB) => {
+		.then((padb: Binder) => {
 			t.false(padb.hasArtifact(lookup));
 			t.false(fs.existsSync(join(padb.config.dbdir, lookup.section, lookup.notebook, lookup.filename)));
 			return padb;
@@ -297,7 +297,7 @@ test('Test immediate deletion of artifact from the schema', async t => {
 
 test('Test immediate deletion of notebook from the schema', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -309,7 +309,7 @@ test('Test immediate deletion of notebook from the schema', async t => {
 	};
 
 	await adb.remove(lookup)
-		.then((padb: NotesDB) => {
+		.then((padb: Binder) => {
 			t.false(padb.hasNotebook(lookup));
 			t.false(fs.existsSync(join(padb.config.dbdir, lookup.section, lookup.notebook)));
 			return padb;
@@ -322,7 +322,7 @@ test('Test immediate deletion of notebook from the schema', async t => {
 
 test('Test immediate deletion of section from the schema', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -333,7 +333,7 @@ test('Test immediate deletion of section from the schema', async t => {
 	};
 
 	await adb.remove(lookup)
-		.then((padb: NotesDB) => {
+		.then((padb: Binder) => {
 			t.false(padb.hasNotebook(lookup));
 			t.false(fs.existsSync(join(padb.config.dbdir, lookup.section)));
 			return padb;

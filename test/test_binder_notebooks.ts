@@ -4,7 +4,7 @@ import test from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact, NotesDB} from '../index';
+import {Artifact, Binder} from '../index';
 import {ArtifactType} from '../lib/artifact';
 import {cleanup, validateArtifact, validateDB} from './helpers';
 
@@ -14,7 +14,7 @@ test.after.always.cb(t => {
 
 test('Load a database with file in the sections directory', t => {
 	const fixture = new Fixture('invalid-section');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -27,7 +27,7 @@ test('Load a database with file in the sections directory', t => {
 
 test('Load a database with file in the notebooks directory', t => {
 	const fixture = new Fixture('invalid-notebook');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -40,7 +40,7 @@ test('Load a database with file in the notebooks directory', t => {
 
 test('Get the list of notebooks from a database', t => {
 	const fixture = new Fixture('simple-db');
-	const notesDB = new NotesDB({
+	const notesDB = new Binder({
 		root: fixture.dir
 	});
 
@@ -58,7 +58,7 @@ test('Get the list of notebooks from a database', t => {
 
 test('Try to get a notebook from an uninitialized database', t => {
 	const fixture = new Fixture('empty-db');
-	const notesDB = new NotesDB({
+	const notesDB = new Binder({
 		root: fixture.dir
 	});
 
@@ -75,7 +75,7 @@ test('Try to get a notebook from an uninitialized database', t => {
 
 test('Try to get a notebook from a section that does not exist', t => {
 	const fixture = new Fixture('empty-db');
-	const notesDB = new NotesDB({
+	const notesDB = new Binder({
 		root: fixture.dir
 	});
 
@@ -91,7 +91,7 @@ test('Try to get a notebook from a section that does not exist', t => {
 
 test('Create a notebook within an existing database', async t => {
 	const fixture = new Fixture('empty-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 	const sectionName = 'Test1';
@@ -116,7 +116,7 @@ test('Create a notebook within an existing database', async t => {
 			t.is(artifacts.length, 2);
 			return adb;
 		})
-		.then((padb: NotesDB) => {
+		.then((padb: Binder) => {
 			const notebooks: string[] = padb.notebooks(sectionName);
 			t.truthy(notebooks instanceof Array);
 			t.is(notebooks.length, 2);
@@ -141,7 +141,7 @@ test('Create a notebook within an existing database', async t => {
 
 test('Try to create a notebook that already exists', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 	const sectionName = 'Default';
@@ -172,7 +172,7 @@ test('Try to create a notebook that already exists', async t => {
 
 test('Trying to create notebook with a bad name', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 	const sectionName = 'Default';
@@ -196,7 +196,7 @@ test('Trying to create notebook with a bad name', async t => {
 
 test('Load a database with file in the sections directory', t => {
 	const fixture = new Fixture('invalid-notebook');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 

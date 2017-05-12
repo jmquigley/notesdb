@@ -4,7 +4,7 @@ import test from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact, NotesDB} from '../index';
+import {Artifact, Binder} from '../index';
 import {ArtifactType} from '../lib/artifact';
 import {cleanup, validateArtifact, validateDB} from './helpers';
 
@@ -14,7 +14,7 @@ test.after.always.cb(t => {
 
 test('Try to get sections from an unitialized database', t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -30,7 +30,7 @@ test('Try to get sections from an unitialized database', t => {
 
 test('Create a new section within an existing database', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -72,7 +72,7 @@ test('Create a new section within an existing database', async t => {
 
 test('Try to create a section that already exists within a database (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -99,7 +99,7 @@ test('Try to create a section that already exists within a database (negative te
 
 test('Try to create an artifact with bad section name (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 

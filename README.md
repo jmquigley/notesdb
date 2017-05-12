@@ -3,7 +3,7 @@
 > A text file notes database
 
 The text "database" is just a data structure (schema) and a set of functions to manipulate a structured directory.  The "database" is referred to as a binder.  The binder contains sections.  Each of the sections contain notebooks.  Each notebook contains artifacts (files).  The general structure of the binder is:
- 
+
       {binder}/
           {section}/
               {notebook 1}/
@@ -16,7 +16,7 @@ The text "database" is just a data structure (schema) and a set of functions to 
                   - {artifact N}
            {section N}/
                ...
- 
+
  The main component is the artifact.  These are the text files.  The other items in the structure above are basic file directory structures.  Sections and notebooks are just organizing constructs (directories).
 
 #### Features
@@ -28,14 +28,9 @@ The text "database" is just a data structure (schema) and a set of functions to 
 
 ## Installation
 
-To install as a global package and cli:
+To install as an application dependency:
 ```
-$ npm install --global notesdb
-```
-
-To install as an application dependency with cli:
-```
-$ npm install --save-dev notesdb
+$ npm install --save notesdb
 ```
 
 To build the app and run all tests:
@@ -45,35 +40,40 @@ $ npm run all
 
 
 ## Usage
-The [public api](docs/notesdb.md) contains the following functions:
 
-- [add()](docs/notesdb.md#NotesDB+add)
-- [create()](docs/notesdb.md#NotesDB+create)
-- [emptyTrash()](docs/notesdb.md#NotesDB+emptyTrash)
-- [find()](docs/notesdb.md#NotesDB+find)
-- [get()](docs/notesdb.md#NotesDB+get)
-- [hasArtifact()](docs/notesdb.md#NotesDB+hasArtifact)
-- [hasNotebook()](docs/notesdb.md#NotesDB+hasNotebook)
-- [hasSection()](docs/notesdb.md#NotesDB+hasSection)
-- [notebooks()](docs/notesdb.md#NotesDB+notebooks)
-- [reload()](docs/notesdb.md#NotesDB+reload)
-- [remove()](docs/notesdb.md#NotesDB+remove)
-- [rename()](docs/notesdb.md#NotesDB+rename)
-- [restore()](docs/notesdb.md#NotesDB+restore)
-- [save()](docs/notesdb.md#NotesDB+save)
-- [saveArtifact()](docs/notesdb.md#NotesDB+saveArtifact)
-- [sections()](docs/notesdb.md#NotesDB+sections)
-- [shutdown()](docs/notesdb.md#NotesDB+shutdown)
-- [toString()](docs/notesdb.md#NotesDB+toString)
-- [trash()](docs/notesdb.md#NotesDB+trash)
+### BinderManager
+:TODO: Add details for new class
+
+### Binder
+The [public api](docs/binder.md) contains the following functions:
+
+- [add()](docs/binder.md#Binder+add)
+- [create()](docs/binder.md#Binder+create)
+- [emptyTrash()](docs/binder.md#Binder+emptyTrash)
+- [find()](docs/binder.md#Binder+find)
+- [get()](docs/binder.md#Binder+get)
+- [hasArtifact()](docs/binder.md#Binder+hasArtifact)
+- [hasNotebook()](docs/binder.md#Binder+hasNotebook)
+- [hasSection()](docs/binder.md#Binder+hasSection)
+- [notebooks()](docs/binder.md#Binder+notebooks)
+- [reload()](docs/binder.md#Binder+reload)
+- [remove()](docs/binder.md#Binder+remove)
+- [rename()](docs/binder.md#Binder+rename)
+- [restore()](docs/binder.md#Binder+restore)
+- [save()](docs/binder.md#Binder+save)
+- [saveArtifact()](docs/binder.md#Binder+saveArtifact)
+- [sections()](docs/binder.md#Binder+sections)
+- [shutdown()](docs/binder.md#Binder+shutdown)
+- [toString()](docs/binder.md#Binder+toString)
+- [trash()](docs/binder.md#Binder+trash)
 
 #### Creating an Instance
 To construct a new instance:
 
 ```javascript
-const NotesDB = require('notesdb').NotesDB;
+import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 ```
 
 Loads a default instance of the schema.  This example contains no configuration options.  It will use the default configuration directory of `~/.notesdb`.  The configuration file for this instance is saved in `~/.notesdb/config.json`.  The log file for the database is saved within this directory in `~/notesdb/notesdb.log`.  The default name of the database is `adb` (the name of the binder) and is saved in `~/.notesdb/adb`.  This is where all sections, notebooks, and artifacts will be saved.
@@ -81,9 +81,9 @@ Loads a default instance of the schema.  This example contains no configuration 
 An instance can be created with a new set of defaults:
 
 ```javascript
-const NotesDB = require('notesdb').NotesDB;
+import {Binder} from 'notesdb';
 
-let adb = new NotesDB({
+let adb = new Binder({
 	binderName: 'sampledb',
 	root: '~/mydb'
 });
@@ -92,9 +92,9 @@ let adb = new NotesDB({
 This will create a new binder with the name `sampledb`.  It also changes where the configuration will be saved *root* option.  This is the default location where the schema will be stored.  If the only the root is specified, then the configuration is also located in this directory.  This database is saved in `~/mydb/sampledb`.  The configuration and the database can be separated:
 
 ```javascript
-const NotesDB = require('notesdb').NotesDB;
+import {Binder} from 'notesdb';
 
-let adb = new NotesDB({
+let adb = new Binder({
 	binderName: 'sampledb',
 	configRoot: '~/mydbconfig',
 	root: '~/mydb'
@@ -107,11 +107,11 @@ This will create the database in `~/mydb/sampledb` and the configuration/logs ar
 Once an instance is created sections can be added.  There are two ways to do this.  The `create()` or `add`.  Using the create method:
 
 ```javascript
-const NotesDB = require('notesdb').NotesDB;
+import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.create(['Test1', 'Test2'])
-	.then((adb: NotesDB) => {
+	.then((adb: Binder) => {
 		let sections = adb.sections();
 		sections.forEach((section: string) => {
 			console.log(` ~> ${section}`);
@@ -127,12 +127,11 @@ adb.create(['Test1', 'Test2'])
 This will create two new sections within the schema named `Test1` and `Test2`.  It will also contain `Default` and `Trash`.  Sections can also be created through the `add` method.  This method uses an `Artifact` object during creation.
 
 ```javascript
-const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.add(Artifact.factory('all', {section: 'Test1'}))
-	.then((adb: NotesDB) => {
+	.then((adb: Binder) => {
 		let sections = adb.sections();
 		sections.forEach((section: string) => {
 			console.log(` ~> ${section}`);
@@ -149,10 +148,9 @@ adb.add(Artifact.factory('all', {section: 'Test1'}))
 A notebook is created with the `add` method.
 
 ```javascript
-const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.add(Artifact.factory('all', {section: 'Test1', notebook: 'MyNotebook'}))
 	.then((artifact: Artifact) => {
 		console.log(artifact.toString());
@@ -174,13 +172,12 @@ This will create a section named `Test1` (if it doesn't exist) and a notebook wi
 An artifact is the basic document within the notebook.  These are always text files.  That are created with the `add` method:
 
 ```javascript
-const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.add({
-	section: 'Test1', 
-	notebook: 'MyNotebook', 
+	section: 'Test1',
+	notebook: 'MyNotebook',
 	filename: 'myfile.txt'
 	})
 	.then((artifact: Artifact) => {
@@ -195,13 +192,12 @@ adb.add({
 Artifacts are placed into the system by adding them (as above) or when an instance is created (the existing artifacts are loaded automatically).  The artifacts are then retrieved from the system using the `get` method.  When retrieving an artifact one must use *section*, *notebook*, and *filename* to retrieve it:
 
 ```javascript
-const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.get({
-	section: 'Default', 
-	notebook: 'Default', 
+	section: 'Default',
+	notebook: 'Default',
 	filename: 'test1.txt'
     })
 	.then((artifact: Artifact) => {
@@ -216,10 +212,9 @@ adb.get({
 One can also retrieve artifacts using the `find` method.  This will perform a regex text search, using JavaScript regex, using all artifacts that are in the system.  It will return an array of artifacts that contain the search string.
 
 ```javascript
-const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.find('#1')
 	.then((artifacts: Array<Artifact>) => {
 		artifacts.forEach((artifact: Artifact) => {
@@ -237,9 +232,9 @@ This call would find all artifacts that contain the string `#1` and return an ar
 The name of an artifact can be changed using the `rename` method.  It takes two parameters: the source location and the destination location:
 
 ```javascript
-const NotesDB = require('notesdb').NotesDB;
+import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 let src = {
 	section: 'Test1',
 	notebook: 'Default',
@@ -268,9 +263,9 @@ This example will rename the artifact `Test1/Default/test4.txt` to `Test2/Defaul
 Artifacts are not removed from the system directly (generally).  They are first moved to a special `Trash` folder within the notebook.  An artifact is removed with the `trash` method.  A removed artifact can be recovered from the trash using the `restore` method:
 
 ```javascript
-const NotesDB = require('notesdb').NotesDB;
+import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 let lookup = {
 	section: 'Test2',
 	notebook: 'Default',
@@ -296,11 +291,11 @@ The example above would move the artifact `/Test2/Default/test4.txt` and place i
 Artifacts that were removed are not permanently removed until the trash is emptied.  That is performed with the `emptyTrash` method.
 
 ```javascript
-const NotesDB = require('notesdb').NotesDB;
+import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.emptyTrash()
-	.then((adb: NotesDB) => {
+	.then((adb: Binder) => {
 		assert(_.isEmpty(adb.schema.trash));
 	})
 	.catch((err: string) => {
@@ -312,9 +307,9 @@ adb.emptyTrash()
 The `shutdown` method immediately saves the binder, marks the instance as uninitialized, and turns off the automatic saving of documents.  It's a way to ensure proper cleanup once finished using this binder.
 
 ```javascript
-const NotesDB = require('notesdb').NotesDB;
+import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.shutdown()
 	.then((msg: string) => {
 		console.log(msg);
@@ -332,4 +327,4 @@ It returns a message indicating that the binder was shutdown.
 The API is generated with [JSDoc](https://www.npmjs.com/package/jsdoc).  It can be found within the `docs` directory for the project.  It can be generated with `npm run docs`.  An HTML site is generated in this directory that gives details on the api.
 
 - [Artifact](docs/artifact.md)
-- [NotesDB](docs/notesdb.md)
+- [Binder](docs/binder.md)

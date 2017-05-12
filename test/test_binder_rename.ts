@@ -4,7 +4,7 @@ import test from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact, NotesDB} from '../index';
+import {Artifact, Binder} from '../index';
 import {ArtifactType, IArtifactSearch} from '../lib/artifact';
 import {cleanup, validateArtifact, validateDB} from './helpers';
 
@@ -14,7 +14,7 @@ test.after.always.cb(t => {
 
 test('Renames an artifact (full path)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -54,7 +54,7 @@ test('Renames an artifact (full path)', async t => {
 
 test('Renames an artifact (different intermediate paths)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -94,7 +94,7 @@ test('Renames an artifact (different intermediate paths)', async t => {
 
 test('Rename a section', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -130,7 +130,7 @@ test('Rename a section', async t => {
 
 test('Rename a notebook', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -168,7 +168,7 @@ test('Rename a notebook', async t => {
 
 test('Rename a section with the same name (negative test, with warning)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -193,7 +193,7 @@ test('Rename a section with the same name (negative test, with warning)', async 
 
 test('Rename artifact to an invalid name type (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -219,7 +219,7 @@ test('Rename artifact to an invalid name type (negative test)', async t => {
 
 test('Perform rename where the src and dst types are a mismatch (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 

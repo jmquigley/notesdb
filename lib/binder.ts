@@ -43,7 +43,7 @@ export interface ISchema {
 	trash: {[key: string]: ISection};
 }
 
-export interface INotesDBOpts {
+export interface IBinderOpts {
 	binderName?: string;
 	configRoot?: string;
 	env?: object;
@@ -93,7 +93,7 @@ export interface INotesMeta {
 }
 
 /** Creates an instance of the text database class */
-export class NotesDB extends EventEmitter {
+export class Binder extends EventEmitter {
 
 	private _artifacts: any = new Map();
 	private _config: IConfigDB;
@@ -111,7 +111,7 @@ export class NotesDB extends EventEmitter {
 	private _timedSave: boolean = false;
 
 	/**
-	 * Creates the instance of the NotesDB class and loads or defines the
+	 * Creates the instance of the Binder class and loads or defines the
 	 * initial configuration parameters.  If the schema already exists, then
 	 * it will be loaded.
 	 *
@@ -138,7 +138,7 @@ export class NotesDB extends EventEmitter {
 	 * save check is performed.  The schema is scanned and saved very N
 	 * millis.
 	 */
-	constructor(opts?: INotesDBOpts) {
+	constructor(opts?: IBinderOpts) {
 		super();
 
 		const self = this;
@@ -212,7 +212,7 @@ export class NotesDB extends EventEmitter {
 
 		self._fnSaveInterval = setInterval(() => {
 			self.save()
-				.then((adb: NotesDB) => {
+				.then((adb: Binder) => {
 					adb._timedSave = true;
 				})
 				.catch((err: string) => {
@@ -244,7 +244,7 @@ export class NotesDB extends EventEmitter {
 	 * @param opts {IArtifactSearch} the artifact object to create (see above)
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
 	public add(opts: IArtifactSearch, area: string = NS.notes, self = this) {
@@ -287,7 +287,7 @@ export class NotesDB extends EventEmitter {
 	 * binder unless they already exist.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
 	public create(schema: string[] | string, area: string = NS.notes, self = this) {
@@ -325,9 +325,9 @@ export class NotesDB extends EventEmitter {
 	 * will check that the directory requested is within the database location
 	 * and has the 'Trash' directory.
 	 *
-	 * The thenable resolves to a reference to the NotesDB instance.
+	 * The thenable resolves to a reference to the Binder instance.
 	 *
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
 	public emptyTrash(self = this) {
@@ -361,7 +361,7 @@ export class NotesDB extends EventEmitter {
 	 * search criteria.
 	 *
 	 * @param search {string} the regex string to used as the search criteria.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
 	public find(search: string, self = this) {
@@ -418,7 +418,7 @@ export class NotesDB extends EventEmitter {
 	 * for within the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
 	public get(opts: IArtifactSearch, area: string = NS.notes, self = this) {
@@ -484,7 +484,7 @@ export class NotesDB extends EventEmitter {
 	 * find in the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {boolean} true if the artifact is found, otherwise false
 	 */
 	public hasArtifact(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
@@ -503,7 +503,7 @@ export class NotesDB extends EventEmitter {
 	 * find in the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {boolean} true if the notebook is found, otherwise false
 	 */
 	public hasNotebook(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
@@ -523,7 +523,7 @@ export class NotesDB extends EventEmitter {
 	 * find in the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @return {boolean} true if the section is found, otherwise false.
 	 */
 	public hasSection(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
@@ -541,7 +541,7 @@ export class NotesDB extends EventEmitter {
 	 * are located.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Array} a list of notebook names as strings
 	 */
 	public notebooks(sectionName: string, area: string = NS.notes, self = this): string[] {
@@ -569,7 +569,7 @@ export class NotesDB extends EventEmitter {
 	 * structure after the instance has been loaded.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
 	public reload(area: string = NS.notes, self = this) {
@@ -587,13 +587,13 @@ export class NotesDB extends EventEmitter {
 	/**
 	 * Immediately removes an section/notebook/artifact from the system.
 	 *
-	 * The thenable resolves to a reference to the NotesDB instance.
+	 * The thenable resolves to a reference to the Binder instance.
 	 *
 	 * @param opts {IArtifactSearch} the section/notebook/filename to search
 	 * for within the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
 	public remove(opts: IArtifactSearch, area: string = NS.notes, self = this) {
@@ -642,7 +642,7 @@ export class NotesDB extends EventEmitter {
 	 * @param src {IArtifactSearch} the source artifact that will be changed
 	 * @param dst {IArtifactSearch} the destination artifact that the source
 	 * will be changed into.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
 	public rename(src: IArtifactSearch, dst: IArtifactSearch, self = this) {
@@ -688,7 +688,7 @@ export class NotesDB extends EventEmitter {
 	 * The thenable resolves to the artifact that was retored.
 	 *
 	 * @param opts {IArtifactSearch} The section/notebook/filename to restore
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
 	public restore(opts: IArtifactSearch, self = this) {
@@ -734,9 +734,9 @@ export class NotesDB extends EventEmitter {
 	 * save is performed.  If no artifact is specifid, then the binder
 	 * artifact list is scanned for dirty artifacts that need to be saved.
 	 *
-	 * The thenable resolves to a reference to the NotesDB instance.
+	 * The thenable resolves to a reference to the Binder instance.
 	 *
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
 	public save(self = this) {
@@ -781,7 +781,7 @@ export class NotesDB extends EventEmitter {
 	 * Enumerates the list of sections from the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Array} a list of section names as strings
 	 */
 	public sections(area: string = NS.notes, self = this): string[] {
@@ -828,7 +828,7 @@ export class NotesDB extends EventEmitter {
 	 * Converts the internal structures to a string and returns it.
 	 * @return {string} a string that shows the configuration and schema for
 	 * the database.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 */
 	public toString(self = this) {
 		const obj = {
@@ -848,7 +848,7 @@ export class NotesDB extends EventEmitter {
 	 *
 	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
 	 * for within the schema.
-	 * @param self {NotesDB} a reference to the notes database instance
+	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
 	public trash(opts: IArtifactSearch, self = this) {
@@ -867,7 +867,7 @@ export class NotesDB extends EventEmitter {
 						}
 
 						self.remove(srcArtifact)
-							.then((adb: NotesDB) => {
+							.then((adb: Binder) => {
 								return adb.reload('trash');
 							})
 							.then(() => {
@@ -946,7 +946,7 @@ export class NotesDB extends EventEmitter {
 	 * that will be created.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
 	private addArtifact(artifact: Artifact, area: string = NS.notes, self = this) {
@@ -981,7 +981,7 @@ export class NotesDB extends EventEmitter {
 	 * if this function fails.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
 	private createArtifact(artifact: Artifact, resolve: IResolveFn, reject: IRejectFn, area: string = NS.notes, self = this) {
@@ -1032,11 +1032,11 @@ export class NotesDB extends EventEmitter {
 	/**
 	 * Takes the name of the initial configuration file and builds the initial
 	 * structure for that configuration.
-	 * @param opts {INotesDBOpts} parameters used to instantiate this object.
+	 * @param opts {IBinderOpts} parameters used to instantiate this object.
 	 * @returns {IConfigDB} a newly populated configuration object
 	 * @private
 	 */
-	private createInitialConfig(opts: INotesDBOpts): IConfigDB {
+	private createInitialConfig(opts: IBinderOpts): IConfigDB {
 		const configFile: string = join(opts.configRoot || './', 'config.json');
 		const metaFile: string = join(opts.configRoot || './', 'meta.json');
 
@@ -1060,8 +1060,8 @@ export class NotesDB extends EventEmitter {
 	 * @param artifact {Artifact} the name of the notebook to create
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the NotesDB instance
-	 * @returns {NotesDB} a reference to the changed DB instance
+	 * @param self {Binder} a reference to the Binder instance
+	 * @returns {Binder} a reference to the changed DB instance
 	 * @private
 	 */
 	private createNotebook(artifact: Artifact, area: string = NS.notes, self = this) {
@@ -1098,8 +1098,8 @@ export class NotesDB extends EventEmitter {
 	 * @param artifact {Artifact} the name of the section to create.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the NotesDB instance
-	 * @returns {NotesDB} a reference to the changed DB instance
+	 * @param self {Binder} a reference to the Binder instance
+	 * @returns {Binder} a reference to the changed DB instance
 	 * @private
 	 */
 	private createSection(artifact: Artifact, area: string = NS.notes, self = this) {
@@ -1133,7 +1133,7 @@ export class NotesDB extends EventEmitter {
 	/**
 	 * The directories within the db must follow a simple name check.  It must
 	 * pass the following regex: /^\w+$/
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @param str {string} the name of the database, section, or notebook
 	 * @returns {boolean} true if the name is ok, otherwise false
 	 * @private
@@ -1149,7 +1149,7 @@ export class NotesDB extends EventEmitter {
 	 * reloaded.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
 	private load(area: string = NS.notes, self = this) {
@@ -1167,7 +1167,7 @@ export class NotesDB extends EventEmitter {
 	 * information when this is called, then it does nothing.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
 	private loadBinder(area: string = NS.notes, self = this) {
@@ -1205,7 +1205,7 @@ export class NotesDB extends EventEmitter {
 	 * loaded.
 	 * @param [stats] {fs.Stats} the statistics object associated with this
 	 * artifact.
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
 	private loadMetadata(artifact: Artifact, stats: fs.Stats = null, self = this): void {
@@ -1234,7 +1234,7 @@ export class NotesDB extends EventEmitter {
 	 * "dirty" artifacts and saves them where necessary.
 	 * @param cb {Function} a callback function that is executed when all
 	 * artifact save promises have resolved.
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
 	private saveBinder(cb: INilCallback = nil, self = this) {
@@ -1284,7 +1284,7 @@ export class NotesDB extends EventEmitter {
 	 * database.  These represent relative paths from the root of the database.
 	 * @param directory {string} the directory where the tree will be retrieved
 	 * It is a relative path from the root of the schema.
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @returns {Array} a list of nodes/directories in the database tree.
 	 * @private
 	 */
@@ -1315,7 +1315,7 @@ export class NotesDB extends EventEmitter {
 
 	/**
 	 * Checks the binder configuration to ensure that it is valid
-	 * @param self {NotesDB} a reference to the NotesDB instance
+	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
 	private validate(self = this) {

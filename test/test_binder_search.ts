@@ -3,7 +3,7 @@
 import test from 'ava';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
-import {Artifact, NotesDB} from '../index';
+import {Artifact, Binder} from '../index';
 import {cleanup, validateDB} from './helpers';
 
 test.after.always.cb(t => {
@@ -12,7 +12,7 @@ test.after.always.cb(t => {
 
 test('Test simple search for #1 in simple dB', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -32,7 +32,7 @@ test('Test simple search for #1 in simple dB', async t => {
 
 test(`Test regex search for 'File #[0-9]' in simple dB`, async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 

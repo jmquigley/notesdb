@@ -40,7 +40,7 @@
 			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="Artifact.html">Artifact</a></li><li><a href="NotesDB.html">NotesDB</a></li>
+					<li><a href="Artifact.html">Artifact</a></li><li><a href="Binder.html">Binder</a></li>
 				</ul>
 			</li>
 			
@@ -121,55 +121,55 @@
 <li>Automatic timed save of documents</li>
 <li>Trashcan</li>
 </ul>
-<h2>Installation</h2><p>To install as a global package and cli:</p>
-<pre class="prettyprint source"><code>$ npm install --global notesdb</code></pre><p>To install as an application dependency with cli:</p>
-<pre class="prettyprint source"><code>$ npm install --save-dev notesdb</code></pre><p>To build the app and run all tests:</p>
-<pre class="prettyprint source"><code>$ npm run all</code></pre><h2>Usage</h2><p>The <a href="docs/notesdb.md">public api</a> contains the following functions:</p>
+<h2>Installation</h2><p>To install as an application dependency:</p>
+<pre class="prettyprint source"><code>$ npm install --save notesdb</code></pre><p>To build the app and run all tests:</p>
+<pre class="prettyprint source"><code>$ npm run all</code></pre><h2>Usage</h2><h3>BinderManager</h3><p>:TODO: Add details for new class</p>
+<h3>Binder</h3><p>The <a href="docs/binder.md">public api</a> contains the following functions:</p>
 <ul>
-<li><a href="docs/notesdb.md#NotesDB+add">add()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+create">create()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+emptyTrash">emptyTrash()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+find">find()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+get">get()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+hasArtifact">hasArtifact()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+hasNotebook">hasNotebook()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+hasSection">hasSection()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+notebooks">notebooks()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+reload">reload()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+remove">remove()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+rename">rename()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+restore">restore()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+save">save()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+saveArtifact">saveArtifact()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+sections">sections()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+shutdown">shutdown()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+toString">toString()</a></li>
-<li><a href="docs/notesdb.md#NotesDB+trash">trash()</a></li>
+<li><a href="docs/binder.md#Binder+add">add()</a></li>
+<li><a href="docs/binder.md#Binder+create">create()</a></li>
+<li><a href="docs/binder.md#Binder+emptyTrash">emptyTrash()</a></li>
+<li><a href="docs/binder.md#Binder+find">find()</a></li>
+<li><a href="docs/binder.md#Binder+get">get()</a></li>
+<li><a href="docs/binder.md#Binder+hasArtifact">hasArtifact()</a></li>
+<li><a href="docs/binder.md#Binder+hasNotebook">hasNotebook()</a></li>
+<li><a href="docs/binder.md#Binder+hasSection">hasSection()</a></li>
+<li><a href="docs/binder.md#Binder+notebooks">notebooks()</a></li>
+<li><a href="docs/binder.md#Binder+reload">reload()</a></li>
+<li><a href="docs/binder.md#Binder+remove">remove()</a></li>
+<li><a href="docs/binder.md#Binder+rename">rename()</a></li>
+<li><a href="docs/binder.md#Binder+restore">restore()</a></li>
+<li><a href="docs/binder.md#Binder+save">save()</a></li>
+<li><a href="docs/binder.md#Binder+saveArtifact">saveArtifact()</a></li>
+<li><a href="docs/binder.md#Binder+sections">sections()</a></li>
+<li><a href="docs/binder.md#Binder+shutdown">shutdown()</a></li>
+<li><a href="docs/binder.md#Binder+toString">toString()</a></li>
+<li><a href="docs/binder.md#Binder+trash">trash()</a></li>
 </ul>
 <h4>Creating an Instance</h4><p>To construct a new instance:</p>
-<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Binder} from 'notesdb';
 
-let adb = new NotesDB();</code></pre><p>Loads a default instance of the schema.  This example contains no configuration options.  It will use the default configuration directory of <code>~/.notesdb</code>.  The configuration file for this instance is saved in <code>~/.notesdb/config.json</code>.  The log file for the database is saved within this directory in <code>~/notesdb/notesdb.log</code>.  The default name of the database is <code>adb</code> (the name of the binder) and is saved in <code>~/.notesdb/adb</code>.  This is where all sections, notebooks, and artifacts will be saved.</p>
+let adb = new Binder();</code></pre><p>Loads a default instance of the schema.  This example contains no configuration options.  It will use the default configuration directory of <code>~/.notesdb</code>.  The configuration file for this instance is saved in <code>~/.notesdb/config.json</code>.  The log file for the database is saved within this directory in <code>~/notesdb/notesdb.log</code>.  The default name of the database is <code>adb</code> (the name of the binder) and is saved in <code>~/.notesdb/adb</code>.  This is where all sections, notebooks, and artifacts will be saved.</p>
 <p>An instance can be created with a new set of defaults:</p>
-<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Binder} from 'notesdb';
 
-let adb = new NotesDB({
+let adb = new Binder({
     binderName: 'sampledb',
     root: '~/mydb'
 });</code></pre><p>This will create a new binder with the name <code>sampledb</code>.  It also changes where the configuration will be saved <em>root</em> option.  This is the default location where the schema will be stored.  If the only the root is specified, then the configuration is also located in this directory.  This database is saved in <code>~/mydb/sampledb</code>.  The configuration and the database can be separated:</p>
-<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Binder} from 'notesdb';
 
-let adb = new NotesDB({
+let adb = new Binder({
     binderName: 'sampledb',
     configRoot: '~/mydbconfig',
     root: '~/mydb'
 });</code></pre><p>This will create the database in <code>~/mydb/sampledb</code> and the configuration/logs are stored in <code>~/mydbconfig</code>.</p>
 <h4>Creating Sections</h4><p>Once an instance is created sections can be added.  There are two ways to do this.  The <code>create()</code> or <code>add</code>.  Using the create method:</p>
-<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.create(['Test1', 'Test2'])
-    .then((adb: NotesDB) => {
+    .then((adb: Binder) => {
         let sections = adb.sections();
         sections.forEach((section: string) => {
             console.log(` ~> ${section}`);
@@ -180,12 +180,11 @@ adb.create(['Test1', 'Test2'])
     .catch((err: string) => {
         console.error(err);
     });</code></pre><p>This will create two new sections within the schema named <code>Test1</code> and <code>Test2</code>.  It will also contain <code>Default</code> and <code>Trash</code>.  Sections can also be created through the <code>add</code> method.  This method uses an <code>Artifact</code> object during creation.</p>
-<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.add(Artifact.factory('all', {section: 'Test1'}))
-    .then((adb: NotesDB) => {
+    .then((adb: Binder) => {
         let sections = adb.sections();
         sections.forEach((section: string) => {
             console.log(` ~> ${section}`);
@@ -196,10 +195,9 @@ adb.add(Artifact.factory('all', {section: 'Test1'}))
     .catch((err: string) => {
         console.error(err);
     });</code></pre><h4>Creating Notebooks</h4><p>A notebook is created with the <code>add</code> method.</p>
-<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.add(Artifact.factory('all', {section: 'Test1', notebook: 'MyNotebook'}))
     .then((artifact: Artifact) => {
         console.log(artifact.toString());
@@ -214,13 +212,12 @@ adb.add(Artifact.factory('all', {section: 'Test1', notebook: 'MyNotebook'}))
         console.error(err);
     });</code></pre><p>This will create a section named <code>Test1</code> (if it doesn't exist) and a notebook within that section named <code>MyNotebook</code>.</p>
 <h4>Creating Artifacts</h4><p>An artifact is the basic document within the notebook.  These are always text files.  That are created with the <code>add</code> method:</p>
-<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.add({
-    section: 'Test1', 
-    notebook: 'MyNotebook', 
+    section: 'Test1',
+    notebook: 'MyNotebook',
     filename: 'myfile.txt'
     })
     .then((artifact: Artifact) => {
@@ -229,13 +226,12 @@ adb.add({
     .catch((err: string) => {
         console.error(err);
     });</code></pre><h4>Retrieving Artifacts</h4><p>Artifacts are placed into the system by adding them (as above) or when an instance is created (the existing artifacts are loaded automatically).  The artifacts are then retrieved from the system using the <code>get</code> method.  When retrieving an artifact one must use <em>section</em>, <em>notebook</em>, and <em>filename</em> to retrieve it:</p>
-<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.get({
-    section: 'Default', 
-    notebook: 'Default', 
+    section: 'Default',
+    notebook: 'Default',
     filename: 'test1.txt'
     })
     .then((artifact: Artifact) => {
@@ -244,10 +240,9 @@ adb.get({
     .catch((err: string) => {
         console.error(err);
     });</code></pre><h4>Finding Artifacts</h4><p>One can also retrieve artifacts using the <code>find</code> method.  This will perform a regex text search, using JavaScript regex, using all artifacts that are in the system.  It will return an array of artifacts that contain the search string.</p>
-<pre class="prettyprint source lang-javascript"><code>const Artifact = require('artifact').Artifact;
-const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Artifact, Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.find('#1')
     .then((artifacts: Array&lt;Artifact>) => {
         artifacts.forEach((artifact: Artifact) => {
@@ -258,9 +253,9 @@ adb.find('#1')
         console.error(err);
     });</code></pre><p>This call would find all artifacts that contain the string <code>#1</code> and return an array.</p>
 <h4>Renaming Artifacts</h4><p>The name of an artifact can be changed using the <code>rename</code> method.  It takes two parameters: the source location and the destination location:</p>
-<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 let src = {
     section: 'Test1',
     notebook: 'Default',
@@ -281,9 +276,9 @@ adb.rename(src, dst)
         console.error(err);
     });</code></pre><p>This example will rename the artifact <code>Test1/Default/test4.txt</code> to <code>Test2/Default/test4.txt</code>.</p>
 <h4>Trashing/Restoring Artifacts</h4><p>Artifacts are not removed from the system directly (generally).  They are first moved to a special <code>Trash</code> folder within the notebook.  An artifact is removed with the <code>trash</code> method.  A removed artifact can be recovered from the trash using the <code>restore</code> method:</p>
-<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 let lookup = {
     section: 'Test2',
     notebook: 'Default',
@@ -302,19 +297,19 @@ adb.trash(lookup)
         console.error(err);
     });</code></pre><p>The example above would move the artifact <code>/Test2/Default/test4.txt</code> and place it in the trash.  After it is removed it is immediately restored back to its original path.  If there is a name collision on delete/restore, then the current timestamp is placed on the artifacts name.  In this example a file artifact is removed.  Sections and notebooks can also be removed/restored.</p>
 <h4>Emptying the Trash</h4><p>Artifacts that were removed are not permanently removed until the trash is emptied.  That is performed with the <code>emptyTrash</code> method.</p>
-<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.emptyTrash()
-    .then((adb: NotesDB) => {
+    .then((adb: Binder) => {
         assert(_.isEmpty(adb.schema.trash));
     })
     .catch((err: string) => {
         console.error(err);
     });</code></pre><h4>Shutdown</h4><p>The <code>shutdown</code> method immediately saves the binder, marks the instance as uninitialized, and turns off the automatic saving of documents.  It's a way to ensure proper cleanup once finished using this binder.</p>
-<pre class="prettyprint source lang-javascript"><code>const NotesDB = require('notesdb').NotesDB;
+<pre class="prettyprint source lang-javascript"><code>import {Binder} from 'notesdb';
 
-let adb = new NotesDB();
+let adb = new Binder();
 adb.shutdown()
     .then((msg: string) => {
         console.log(msg);
@@ -325,7 +320,7 @@ adb.shutdown()
 <h2>API</h2><p>The API is generated with <a href="https://www.npmjs.com/package/jsdoc">JSDoc</a>.  It can be found within the <code>docs</code> directory for the project.  It can be generated with <code>npm run docs</code>.  An HTML site is generated in this directory that gives details on the api.</p>
 <ul>
 <li><a href="docs/artifact.md">Artifact</a></li>
-<li><a href="docs/notesdb.md">NotesDB</a></li>
+<li><a href="docs/binder.md">Binder</a></li>
 </ul></article>
     </section>
 
@@ -372,7 +367,7 @@ adb.shutdown()
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on May 10th 2017, 11:44:18 pm
+		on May 11th 2017, 7:42:43 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

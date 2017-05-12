@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
-import {Artifact, NotesDB} from '../index';
+import {Artifact, Binder} from '../index';
 import {ArtifactType, IArtifactSearch} from '../lib/artifact';
 import {cleanup, validateArtifact, validateDB} from './helpers';
 
@@ -15,7 +15,7 @@ test.after.always.cb(t => {
 
 test('Create a new artifact file within the database', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -49,7 +49,7 @@ test('Create a new artifact file within the database', async t => {
 
 test('Try to add an artifact with a bad name to the database (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -73,7 +73,7 @@ test('Try to add an artifact with a bad name to the database (negative test)', a
 
 test('Try to add a bad artifact to the database (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -93,7 +93,7 @@ test('Try to add a bad artifact to the database (negative test)', async t => {
 
 test('Try to create a null artifact (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -113,7 +113,7 @@ test('Try to load a binder with a bad artifact name (negative test)', t => {
 	const badFileName = '%%%%badfile.txt';
 
 	try {
-		const adb = new NotesDB({
+		const adb = new Binder({
 			binderName: 'sampledb',
 			root: fixture.dir
 		});
@@ -125,7 +125,7 @@ test('Try to load a binder with a bad artifact name (negative test)', t => {
 
 test('Get an existing artifact from the schema', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -159,7 +159,7 @@ test('Get an existing artifact from the schema', async t => {
 
 test(`Try to retrieve an artifact that doesn't exist`, async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -182,7 +182,7 @@ test(`Try to retrieve an artifact that doesn't exist`, async t => {
 
 test('Create a new artifact, update it, and call the save', async t => {
 	const fixture = new Fixture('empty-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -226,7 +226,7 @@ test('Create a new artifact, update it, and call the save', async t => {
 
 test('Test the automatic ejection from recents list', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir,
 		maxRecents: 1 // make the recents small
 	});
@@ -273,7 +273,7 @@ test('Test the automatic ejection from recents list', async t => {
 			});
 			return adb;
 		})
-		.then((padb: NotesDB) => {
+		.then((padb: Binder) => {
 			t.is(padb.recents.length, 1);
 			t.false(ejected.isDirty());
 			const data: string = fs.readFileSync(ejected.absolute()).toString();

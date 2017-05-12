@@ -1,4 +1,4 @@
 import {Artifact} from './lib/artifact';
-import {NotesDB} from './lib/notesdb';
+import {Binder} from './lib/binder';
 
-export { Artifact, NotesDB };
+export { Artifact, Binder };

@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
-import {Artifact, NotesDB} from '../index';
+import {Artifact, Binder} from '../index';
 import {ArtifactType, IArtifactSearch} from '../lib/artifact';
 import {cleanup, validateArtifact, validateDB} from './helpers';
 
@@ -15,7 +15,7 @@ test.after.always.cb(t => {
 
 test('Get an existing artifact from the schema', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
@@ -69,7 +69,7 @@ test('Get an existing artifact from the schema', async t => {
 
 test('Test artifact update time change after change', async t => {
 	const fixture = new Fixture('simple-db');
-	const adb = new NotesDB({
+	const adb = new Binder({
 		root: fixture.dir
 	});
 
