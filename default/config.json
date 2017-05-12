@@ -1,0 +1,13 @@
+{
+	"binderName": "adb",
+	"configFile": "default/config.json",
+	"configRoot": "default",
+	"dbdir": "/Users/jmquigley/.notesdb/adb",
+	"trash": "/Users/jmquigley/.notesdb/adb/Trash",
+	"metaFile": "default/meta.json",
+	"logdir": "default",
+	"root": "/Users/jmquigley/.notesdb",
+	"saveInterval": 5000,
+	"bufSize": 65536,
+	"maxRecents": 5
+}

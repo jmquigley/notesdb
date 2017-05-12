@@ -219,6 +219,7 @@ test('Try to create a database with a missing dbdir in the config (negative test
 		});
 		t.fail(adb.toString());
 	} catch (err) {
+		console.log(`ERR: ${err}`);
 		t.is(err.message, `The database directory is missing from configuration.`);
 	}
 });
@@ -237,7 +238,7 @@ test('Test trying to save a bad configuration file (negative test)', async t => 
 			t.fail(padb.toString());
 		})
 		.catch((err: string) => {
-			t.is(err, `ENOENT: no such file or directory, open ''`);
+			t.is(err, `Error saving configuration: ENOENT: no such file or directory, open ''`);
 		});
 });
 
@@ -255,7 +256,7 @@ test('Test trying to save a bad metadata file (negative test)', async t => {
 			t.fail(padb.toString());
 		})
 		.catch((err: string) => {
-			t.is(err, `ENOENT: no such file or directory, open ''`);
+			t.is(err, `Error saving metadata: ENOENT: no such file or directory, open ''`);
 		});
 });
 

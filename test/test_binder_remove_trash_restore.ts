@@ -343,3 +343,38 @@ test('Test immediate deletion of section from the schema', async t => {
 			t.fail(err);
 		});
 });
+
+test('Test removal of artifact with missing Trash directory (negative test)', async t => {
+	const fixture = new Fixture('missing-trash-folder');
+	const adb = new Binder({
+		root: fixture.dir
+	});
+
+	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+
+	const lookup: IArtifactSearch = {
+		section: 'Test2',
+		notebook: 'Default',
+		filename: 'test4.txt'
+	};
+	const artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section, lookup.notebook, lookup.filename);
+
+	await adb.trash(lookup)
+		.then((artifact: Artifact) => {
+			t.false(adb.hasArtifact(lookup));
+			t.true(fs.existsSync(artifactName));
+			t.is(artifactName, artifact.absolute());
+
+			return adb.restore(lookup);
+		})
+		.then((artifact: Artifact) => {
+			t.true(adb.hasArtifact(lookup));
+			t.false(fs.existsSync(artifactName));
+			t.true(fs.existsSync(artifact.absolute()));
+			return adb;
+		})
+		.then(adb.shutdown)
+		.catch((err: string) => {
+			t.fail(err);
+		});
+});

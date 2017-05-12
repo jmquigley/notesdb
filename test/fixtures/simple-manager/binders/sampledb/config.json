@@ -1,0 +1,13 @@
+{
+	"root": "{DIR}",
+	"binderName": "sampledb",
+	"dbdir": "{DIR}/sampledb",
+	"configFile": "{DIR}/binders/sampledb/config.json",
+	"configRoot": "{DIR}/binders/sampledb",
+	"trash": "{DIR}/sampledb/Trash",
+	"metaFile": "{DIR}/binders/sampledb/meta.json",
+	"logdir": "{DIR}/binders/sampledb",
+	"saveInterval": 5000,
+	"bufSize": 65535,
+	"maxRecents": 5
+}

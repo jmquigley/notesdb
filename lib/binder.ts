@@ -96,7 +96,19 @@ export interface INotesMeta {
 export class Binder extends EventEmitter {
 
 	private _artifacts: any = new Map();
-	private _config: IConfigDB;
+	private _config: IConfigDB = {
+		binderName: '',
+		configFile: '',
+		configRoot: '',
+		dbdir: '',
+		trash: '',
+		metaFile: '',
+		root: '',
+		logdir: '',
+		saveInterval: 5000,
+		bufSize: 65535,
+		maxRecents: 5
+	};
 	private _fnSaveInterval: any;
 	private _ignore: string[] = [];
 	private _initialized: boolean = false;
@@ -163,7 +175,9 @@ export class Binder extends EventEmitter {
 
 		if (fs.existsSync(configFile)) {
 			// Opens an existing configuration file
-			self._config = JSON.parse(fs.readFileSync(configFile).toString());
+			self._config = Object.assign(
+				self._config,
+				JSON.parse(fs.readFileSync(configFile).toString()));
 
 			if (self.config.hasOwnProperty('metaFile') && fs.existsSync(self._config.metaFile)) {
 				self._meta = JSON.parse(fs.readFileSync(self._config.metaFile).toString());
@@ -175,7 +189,9 @@ export class Binder extends EventEmitter {
 			self._config.maxRecents = opts.maxRecents;
 		} else {
 			// Creates a new database
-			self._config = self.createInitialConfig(opts);
+			self._config = Object.assign(
+				self._config,
+				self.createInitialConfig(opts));
 
 			if (!self.isValidName(self.config.binderName)) {
 				throw new Error(`Invalid binder name '${self.config.binderName}'.  Can only use '${validNameChars}'.`);
@@ -231,6 +247,8 @@ export class Binder extends EventEmitter {
 					self.log.error(`Removal save failed for ${artifact.absolute()}: ${err}`);
 				});
 		});
+
+		self.emit('loaded', self);
 	}
 
 	/**
@@ -763,6 +781,13 @@ export class Binder extends EventEmitter {
 	public saveArtifact(artifact: Artifact) {
 		return new Promise((resolve, reject) => {
 			if (artifact.isDirty()) {
+
+				// Keep an eye on this function if there are save issues.  When a promise is
+				// not yet fulfilled, and a save occurs, then the file may show as empty as
+				// buffered output is not yet written while waiting for the save promise to
+				// finish.  If the app crashes before this sync finishes, then data loss
+				// may occur.  May need to make this the sync version and trade off performance
+
 				fs.writeFile(artifact.absolute(), artifact.buf, (err: Error) => {
 					if (err) {
 						reject(`Error writing artifact: ${err.message}`);
@@ -852,6 +877,7 @@ export class Binder extends EventEmitter {
 	 * @returns {Promise} a javascript promise object.
 	 */
 	public trash(opts: IArtifactSearch, self = this) {
+		self.createTrash();
 		return new Promise((resolve, reject) => {
 			self.get(opts)
 				.then((srcArtifact: Artifact) => {
@@ -892,6 +918,10 @@ export class Binder extends EventEmitter {
 		return this._artifacts;
 	}
 
+	get binderName(): string {
+		return this._config.binderName;
+	}
+
 	get config() {
 		return this._config;
 	}
@@ -923,6 +953,7 @@ export class Binder extends EventEmitter {
 	get meta(): INotesMeta {
 		return this._meta;
 	}
+
 	get recents() {
 		return this._recents;
 	}
@@ -1131,6 +1162,18 @@ export class Binder extends EventEmitter {
 	}
 
 	/**
+	 * Creates the trash directory within the binder.
+	 * @private
+	 */
+	private createTrash(self = this) {
+		const trashDir = join(self.config.dbdir, 'Trash');
+
+		if (!fs.existsSync(trashDir)) {
+			fs.mkdirs(trashDir);
+		}
+	}
+
+	/**
 	 * The directories within the db must follow a simple name check.  It must
 	 * pass the following regex: /^\w+$/
 	 * @param self {Binder} a reference to the Binder instance
@@ -1154,6 +1197,7 @@ export class Binder extends EventEmitter {
 	 */
 	private load(area: string = NS.notes, self = this) {
 		self.validate();
+		self.createTrash();
 		self.loadBinder(area);
 		self.saveBinder();
 
@@ -1241,25 +1285,25 @@ export class Binder extends EventEmitter {
 		const promises: any = [];
 
 		promises.push(new Promise((resolve, reject) => {
-			self.log.info(`Saving configuration: ${self.config.configFile}`);
-			const data = JSON.stringify(self.config, null, '\t');
-			fs.writeFile(self.config.configFile, data, err => {
-				if (err) {
-					reject(err.message);
-				}
-				resolve('Saved configuration');
-			});
+			try {
+				self.log.info(`Saving configuration: ${self.config.configFile}`);
+				const data = JSON.stringify(self.config, null, '\t');
+				fs.writeFileSync(self.config.configFile, data);
+				resolve('Configuration saved');
+			} catch (err) {
+				reject(`Error saving configuration: ${err.message}`);
+			}
 		}));
 
 		promises.push(new Promise((resolve, reject) => {
-			self.log.info(`Saving meta data: ${self.config.metaFile}`);
-			const data = JSON.stringify(self.meta, null, '\t');
-			fs.writeFile(self.config.metaFile, data, err => {
-				if (err) {
-					reject(err.message);
-				}
-				resolve('Saved metadata');
-			});
+			try {
+				self.log.info(`Saving meta data: ${self.config.metaFile}`);
+				const data = JSON.stringify(self.meta, null, '\t');
+				fs.writeFileSync(self.config.metaFile, data);
+				resolve('Wrote metadata');
+			} catch (err) {
+				reject(`Error saving metadata: ${err.message}`);
+			}
 		}));
 
 		for (const artifact of self.artifacts.values()) {
@@ -1292,23 +1336,26 @@ export class Binder extends EventEmitter {
 		directory = (directory === '') ? self.config.dbdir : join(self.config.dbdir, directory);
 		const l: string[] = [];
 
-		// For each file retrieved by klaw-sync, check to see if it
-		// is in the ignore list.  If a file should be included, then true
-		// is returned, otherwise false.
-		const filterFn = (item: any) => {
-			return self.ignore.every((it: string) => {
-				return (item.path.indexOf(it) > -1) ? false : true;
+		if (fs.existsSync(directory)) {
+
+			// For each file retrieved by klaw-sync, check to see if it
+			// is in the ignore list.  If a file should be included, then true
+			// is returned, otherwise false.
+			const filterFn = (item: any) => {
+				return self.ignore.every((it: string) => {
+					return (item.path.indexOf(it) > -1) ? false : true;
+				});
+			};
+
+			const files = walk(directory, {
+				filter: filterFn,
+				noRecurseOnFailedFilter: true
 			});
-		};
 
-		const files = walk(directory, {
-			filter: filterFn,
-			noRecurseOnFailedFilter: true
-		});
-
-		files.forEach((file: any) => {
-			l.push(normalize(file.path).replace(`${directory}/`, ''));
-		}, self);
+			files.forEach((file: any) => {
+				l.push(normalize(file.path).replace(`${directory}/`, ''));
+			}, self);
+		}
 
 		return l;
 	}
@@ -1323,7 +1370,7 @@ export class Binder extends EventEmitter {
 			throw new Error(`Can't find notesdb configuration: ${self.config.configFile}.`);
 		}
 
-		if (self.config.dbdir === '' || typeof self.config.dbdir === 'undefined') {
+		if (typeof self.config.dbdir !== 'string' || self.config.dbdir == null || self.config.dbdir === '') {
 			throw new Error('The database directory is missing from configuration.');
 		}
 

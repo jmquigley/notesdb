@@ -1,0 +1,13 @@
+{
+	"root": "{DIR}",
+	"binderName": "default",
+	"dbdir": "{DIR}/default",
+	"configFile": "{DIR}/binders/default/config.json",
+	"configRoot": "{DIR}/binders/default",
+	"trash": "{DIR}/default/Trash",
+	"metaFile": "{DIR}/binders/default/meta.json",
+	"logdir": "{DIR}/binders/default",
+	"saveInterval": 5000,
+	"bufSize": 65535,
+	"maxRecents": 5
+}
