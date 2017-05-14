@@ -7,12 +7,12 @@ Creates an instance of the binder management class
 
 * [BinderManager](#BinderManager)
     * [new BinderManager(baseDirectory)](#new_BinderManager_new)
-    * [.add(binderName, binderDirectory)](#BinderManager+add) ⇒
+    * [.add(binderName, binderDirectory, self)](#BinderManager+add) ⇒
+    * [.emptyTrash(self)](#BinderManager+emptyTrash) ⇒ <code>Array.&lt;string&gt;</code>
     * [.get(binderName, self)](#BinderManager+get) ⇒ <code>Binder</code>
     * [.info(self)](#BinderManager+info) ⇒ <code>string</code>
     * [.list(self)](#BinderManager+list) ⇒
     * [.remove(binderName, self)](#BinderManager+remove) ⇒ <code>string</code>
-    * [.load(self)](#BinderManager+load)
 
 <a name="new_BinderManager_new"></a>
 
@@ -32,17 +32,31 @@ details for a single Binder.
 
 <a name="BinderManager+add"></a>
 
-### binderManager.add(binderName, binderDirectory) ⇒
+### binderManager.add(binderName, binderDirectory, self) ⇒
 Adds a new Binder instance to the manager.  This will only add the binder if
 it doesn't exist.
 
 **Kind**: instance method of <code>[BinderManager](#BinderManager)</code>  
-**Returns**: success if the add works, otherwise false.  
+**Returns**: success if the add works, otherwise failure.  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | binderName | <code>string</code> | The name of the binder to create |
 | binderDirectory | <code>string</code> | The location of the data files for this binder |
+| self | <code>[BinderManager](#BinderManager)</code> | reference to the current instance of this class |
+
+<a name="BinderManager+emptyTrash"></a>
+
+### binderManager.emptyTrash(self) ⇒ <code>Array.&lt;string&gt;</code>
+Permanently removes the contents of the `Trash` directory.  This directory
+is filled by the `remove()`.
+
+**Kind**: instance method of <code>[BinderManager](#BinderManager)</code>  
+**Returns**: <code>Array.&lt;string&gt;</code> - an array containing the directories that were removed.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| self | <code>[BinderManager](#BinderManager)</code> | reference to the current instance of this class |
 
 <a name="BinderManager+get"></a>
 
@@ -97,17 +111,5 @@ message is written to the manager log file.
 | Param | Type | Description |
 | --- | --- | --- |
 | binderName | <code>string</code> | the name of the binder that will be moved |
-| self | <code>[BinderManager](#BinderManager)</code> | reference to the current instance of this class |
-
-<a name="BinderManager+load"></a>
-
-### binderManager.load(self)
-Reads all of the binders in given binder directory, attemps to instantiate them,
-and save their references in the _binders array.
-
-**Kind**: instance method of <code>[BinderManager](#BinderManager)</code>  
-
-| Param | Type | Description |
-| --- | --- | --- |
 | self | <code>[BinderManager](#BinderManager)</code> | reference to the current instance of this class |
 

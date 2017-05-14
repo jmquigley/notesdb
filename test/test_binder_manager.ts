@@ -91,3 +91,26 @@ test('Try to remove a non-existent binder', t => {
 	const rem = manager.remove('blahblahblah');
 	t.is(rem, '');
 });
+
+test('Remove a binder and then empty the trash', t => {
+	const fixture = new Fixture('simple-manager');
+	const manager = new BinderManager(fixture.dir, {
+		defaultDirectory: join(fixture.dir)
+	});
+
+	validateManager(t, manager, fixture);
+
+	// sampledb data exists when the manager is created
+	t.true(fs.existsSync(join(fixture.dir, 'sampledb')));
+
+	const sampleDir = join(manager.bindersDirectory, 'sampledb');
+	const rem = manager.remove('sampledb');
+	t.false(fs.existsSync(sampleDir));
+	t.true(fs.existsSync(rem));
+
+	manager.emptyTrash();
+	t.false(fs.existsSync(rem));
+
+	// sampledb data exists after the garbage is emptied
+	t.true(fs.existsSync(join(fixture.dir, 'sampledb')));
+});

@@ -8,6 +8,7 @@
 
 import {EventEmitter} from 'events';
 import * as fs from 'fs-extra';
+import * as rimraf from 'rimraf';
 import {home} from 'util.home';
 import {join} from 'util.join';
 import logger, {Logger} from 'util.log';
@@ -36,11 +37,11 @@ export class BinderManager extends EventEmitter {
 	private log: Logger = null;
 
 	private _baseDirectory: string;
-	private _binderDirectory: string;
+	private _bindersDirectory: string;
 	private _binders: IBinders = {};
 	private _opts: IBinderManagerOpts = {
 		defaultName: 'default',
-		defaultDirectory: join(home, 'Satchel', 'default')
+		defaultDirectory: join(home, 'Notebooks', 'default')
 	};
 	private _trashDirectory: string;
 
@@ -64,11 +65,11 @@ export class BinderManager extends EventEmitter {
 
 		self._opts = Object.assign(self._opts, opts);
 		self._baseDirectory = baseDirectory;
-		self._binderDirectory = join(baseDirectory, 'binders');
+		self._bindersDirectory = join(baseDirectory, 'binders');
 		self._trashDirectory = join(baseDirectory, 'binders', 'Trash');
 
-		if (!fs.existsSync(self._binderDirectory)) {
-			fs.mkdirsSync(self._binderDirectory);
+		if (!fs.existsSync(self._bindersDirectory)) {
+			fs.mkdirsSync(self._bindersDirectory);
 		}
 
 		if (!fs.existsSync(self._trashDirectory)) {
@@ -90,7 +91,11 @@ export class BinderManager extends EventEmitter {
 	}
 
 	get bindersDirectory(): string {
-		return this._binderDirectory;
+		return this._bindersDirectory;
+	}
+
+	get trashDirectory(): string {
+		return this._trashDirectory;
 	}
 
 	/**
@@ -98,9 +103,10 @@ export class BinderManager extends EventEmitter {
 	 * it doesn't exist.
 	 * @param binderName {string} The name of the binder to create
 	 * @param binderDirectory {string} The location of the data files for this binder
-	 * @returns success if the add works, otherwise false.
+	 * @param self {BinderManager} reference to the current instance of this class
+	 * @returns success if the add works, otherwise failure.
 	 */
-	public add(binderName: string, binderDirectory: string, self = this) {
+	public add(binderName: string, binderDirectory: string, self = this): number {
 		self.log.info(`Adding binder '${binderName}' to ${binderDirectory}`);
 
 		const configRoot = join(self.bindersDirectory, binderName);
@@ -123,6 +129,24 @@ export class BinderManager extends EventEmitter {
 		}
 
 		return success;
+	}
+
+	/**
+	 * Permanently removes the contents of the `Trash` directory.  This directory
+	 * is filled by the `remove()`.
+	 * @param self {BinderManager} reference to the current instance of this class
+	 * @returns {string[]} an array containing the directories that were removed.
+	 */
+	public emptyTrash(self = this): string[] {
+		const dirs: string[] = getDirectories(self.trashDirectory).map((directory: string) => {
+			return join(self.trashDirectory, directory);
+		});
+
+		dirs.forEach((directory: string) => {
+			rimraf.sync(directory);
+		});
+
+		return dirs;
 	}
 
 	/**
@@ -178,8 +202,8 @@ export class BinderManager extends EventEmitter {
 	 * @return {string} the path to the newly removed item (to the trash)
 	 */
 	public remove(binderName: string, self = this): string {
-		const src: string = join(self._binderDirectory, binderName);
-		const dst: string = join(self._binderDirectory, 'Trash', `${binderName}-${ts()}`);
+		const src: string = join(self.bindersDirectory, binderName);
+		const dst: string = join(self.bindersDirectory, 'Trash', `${binderName}-${ts()}`);
 		if (fs.existsSync(src)) {
 			fs.moveSync(src, dst);
 		} else {
@@ -193,6 +217,7 @@ export class BinderManager extends EventEmitter {
 	/**
 	 * Reads all of the binders in given binder directory, attemps to instantiate them,
 	 * and save their references in the _binders array.
+	 * @private
 	 * @param self {BinderManager} reference to the current instance of this class
 	 */
 	private load(self = this) {

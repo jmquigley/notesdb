@@ -31,13 +31,6 @@
 		<ul class="nav navbar-nav">
 			
 			<li class="dropdown">
-				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
-				<ul class="dropdown-menu ">
-					<li><a href="module-util.html">util</a></li>
-				</ul>
-			</li>
-			
-			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
 					<li><a href="Artifact.html">Artifact</a></li><li><a href="Binder.html">Binder</a></li><li><a href="BinderManager.html">BinderManager</a></li>
@@ -252,7 +245,7 @@ that are managed by this instance are stored.</p></td>
             
 <hr>
 <dt>
-    <h4 class="name" id="add"><span class="type-signature"></span>add(binderName, binderDirectory)</h4>
+    <h4 class="name" id="add"><span class="type-signature"></span>add(binderName, binderDirectory, self)</h4>
     
     
 </dt>
@@ -341,6 +334,30 @@ it doesn't exist.</p>
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>self</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="BinderManager.html">BinderManager</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>reference to the current instance of this class</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -401,10 +418,163 @@ it doesn't exist.</p>
     
             
 <div class="param-desc">
-    <p>success if the add works, otherwise false.</p>
+    <p>success if the add works, otherwise failure.</p>
 </div>
 
 
+
+
+        
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="emptyTrash"><span class="type-signature"></span>emptyTrash(self)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Permanently removes the contents of the <code>Trash</code> directory.  This directory
+is filled by the <code>remove()</code>.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>self</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="BinderManager.html">BinderManager</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>reference to the current instance of this class</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>an array containing the directories that were removed.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;string></span>
+
+
+
+    </dd>
+</dl>
 
 
         
@@ -886,135 +1056,6 @@ binders, then an empty array is returned.</p>
             
 <hr>
 <dt>
-    <h4 class="name" id="load"><span class="type-signature"></span>load(self)</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Reads all of the binders in given binder directory, attemps to instantiate them,
-and save their references in the _binders array.</p>
-    </div>
-    
-
-    
-
-    
-
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>self</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="BinderManager.html">BinderManager</a></span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>reference to the current instance of this class</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
     <h4 class="name" id="remove"><span class="type-signature"></span>remove(binderName, self)</h4>
     
     
@@ -1239,7 +1280,7 @@ message is written to the manager log file.</p>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on May 14th 2017, 4:09:25 pm
+		on May 14th 2017, 5:57:12 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

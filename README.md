@@ -42,7 +42,50 @@ $ npm run all
 ## Usage
 
 ### BinderManager
-:TODO: Add details for new class
+This class is used to manage multiple Binder instances and their associated configurations.  See the `Binder` api below for details.
+
+The [public api](docs/bindermanager.md) contains the following functions:
+
+- [add()](docs/bindermanagers.md#BinderManager+add)
+- [emptyTrash()](docs/bindermanagers.md#BinderManager+emptyTrash)
+- [get()](docs/bindermanagers.md#BinderManager+get)
+- [info()](docs/bindermanagers.md#BinderManager+info)
+- [list()](docs/bindermanagers.md#BinderManager+list)
+- [remove()](docs/bindermanagers.md#BinderManager+remove)
+
+#### Creating a manager instance
+
+```javascript
+import {BinderManager} from 'notesdb';
+
+let manager = new BinderManager('/some/config/location');
+```
+
+This will create a new manager instance.  It will also create a `default` binder within it if one does not exist.  The default binder is stored in `{HOME}/Notebooks/default`.
+
+#### Adding a new binder
+
+```javascript
+import {BinderManager} from 'notesdb';
+
+let manager = new BinderManager('/some/config/location');
+manager.add('sampledb', '/directory/to/store/files');
+```
+
+This will add a new binder named `sampledb` if it doesn't exist.  All data files created/saved by the binder will be stored in the directory `/directory/to/store/files`.
+
+#### Remove a binder from the manager
+
+```javascript
+import {BinderManager} from 'notesdb';
+
+let manager = new BinderManager('/some/config/location');
+manager.remove('sampledb');
+manager.emptyTrash();
+```
+
+If the binder `sampledb` exists, then it will be moved to a trash directory.  The location of the trash directory is determined by the manager instance at creation.  In this example deleted binders would be stored in `/some/config/location/binders/Trash`.  They are not removed from disk, but are basically stored to the trash directory.  A call to `emptyTrash()` will permanently remove that binder's configuration details (but never the data files in the binder).
+
 
 ### Binder
 The [public api](docs/binder.md) contains the following functions:
