@@ -60,10 +60,6 @@ export interface IAppender {
 	type: string;
 }
 
-export interface IAppenderList {
-	appenders: IAppender[];
-}
-
 export interface IConfigDB {
 	binderName: string;
 	configFile: string;

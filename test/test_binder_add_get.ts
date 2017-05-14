@@ -7,7 +7,7 @@ import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
 import {Artifact, Binder} from '../index';
 import {ArtifactType, IArtifactSearch} from '../lib/artifact';
-import {cleanup, validateArtifact, validateDB} from './helpers';
+import {cleanup, validateArtifact, validateBinder} from './helpers';
 
 test.after.always.cb(t => {
 	cleanup(path.basename(__filename), t);
@@ -19,7 +19,7 @@ test('Create a new artifact file within the database', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const testArtifact = {
 		section: 'Test3',
@@ -53,7 +53,7 @@ test('Try to add an artifact with a bad name to the database (negative test)', a
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const badFileName = '////badfilename';
 	const testArtifact = {
@@ -77,7 +77,7 @@ test('Try to add a bad artifact to the database (negative test)', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const testArtifact = Artifact.factory();
 	testArtifact.type = 99;  // set an invalid type to force failure
@@ -97,7 +97,7 @@ test('Try to create a null artifact (negative test)', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	await adb.add(null)
 		.then((artifact: Artifact) => {
@@ -129,7 +129,7 @@ test('Get an existing artifact from the schema', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const lookup: IArtifactSearch = {
 		section: 'Default',
@@ -163,7 +163,7 @@ test(`Try to retrieve an artifact that doesn't exist`, async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const lookup: IArtifactSearch = {
 		section: 'Missing',
@@ -186,7 +186,7 @@ test('Create a new artifact, update it, and call the save', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const testArtifact = {
 		section: 'Test1',
@@ -231,7 +231,7 @@ test('Test the automatic ejection from recents list', async t => {
 		maxRecents: 1 // make the recents small
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	let ejected: Artifact = null;
 

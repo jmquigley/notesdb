@@ -6,7 +6,7 @@ import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact, Binder} from '../index';
 import {ArtifactType} from '../lib/artifact';
-import {cleanup, validateArtifact, validateDB} from './helpers';
+import {cleanup, validateArtifact, validateBinder} from './helpers';
 
 test.after.always.cb(t => {
 	cleanup(path.basename(__filename), t);
@@ -34,7 +34,7 @@ test('Create a new section within an existing database', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const testArtifact = Artifact.factory('fields', {section: 'Test3'});
 	t.truthy(testArtifact instanceof Artifact);
@@ -76,7 +76,7 @@ test('Try to create a section that already exists within a database (negative te
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const testArtifact = Artifact.factory('fields', {
 		section: 'Test1'
@@ -103,7 +103,7 @@ test('Try to create an artifact with bad section name (negative test)', async t 
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const badSectionName = '////badSectionName';
 	const testArtifact = Artifact.factory('fields', {

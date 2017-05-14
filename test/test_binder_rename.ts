@@ -6,7 +6,7 @@ import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact, Binder} from '../index';
 import {ArtifactType, IArtifactSearch} from '../lib/artifact';
-import {cleanup, validateArtifact, validateDB} from './helpers';
+import {cleanup, validateArtifact, validateBinder} from './helpers';
 
 test.after.always.cb(t => {
 	cleanup(path.basename(__filename), t);
@@ -18,7 +18,7 @@ test('Renames an artifact (full path)', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const src: IArtifactSearch = {
 		section: 'Default',
@@ -58,7 +58,7 @@ test('Renames an artifact (different intermediate paths)', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const src: IArtifactSearch = {
 		section: 'Default',
@@ -98,7 +98,7 @@ test('Rename a section', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const src: IArtifactSearch = {
 		section: 'Default'
@@ -134,7 +134,7 @@ test('Rename a notebook', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const src: IArtifactSearch = {
 		section: 'Default',
@@ -172,7 +172,7 @@ test('Rename a section with the same name (negative test, with warning)', async 
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const src: IArtifactSearch = {
 		section: 'Default'
@@ -197,7 +197,7 @@ test('Rename artifact to an invalid name type (negative test)', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const src: IArtifactSearch = {
 		section: 'Default'
@@ -223,7 +223,7 @@ test('Perform rename where the src and dst types are a mismatch (negative test)'
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const src: IArtifactSearch = {
 		section: 'Default'

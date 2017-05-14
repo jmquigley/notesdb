@@ -4,7 +4,7 @@ import test from 'ava';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact, Binder} from '../index';
-import {cleanup, validateDB} from './helpers';
+import {cleanup, validateBinder} from './helpers';
 
 test.after.always.cb(t => {
 	cleanup(path.basename(__filename), t);
@@ -16,7 +16,7 @@ test('Test simple search for #1 in simple dB', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	await adb.find('#1')
 		.then((artifacts: Artifact[]) => {
@@ -36,7 +36,7 @@ test(`Test regex search for 'File #[0-9]' in simple dB`, async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	await adb.find('File #[0-9]')
 		.then((artifacts: Artifact[]) => {

@@ -7,7 +7,7 @@ import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
 import {Artifact, Binder} from '../index';
 import {ArtifactType, IArtifactSearch} from '../lib/artifact';
-import {cleanup, validateArtifact, validateDB} from './helpers';
+import {cleanup, validateArtifact, validateBinder} from './helpers';
 
 test.after.always.cb(t => {
 	cleanup(path.basename(__filename), t);
@@ -19,7 +19,7 @@ test('Get an existing artifact from the schema', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const lookup: IArtifactSearch = {
 		section: 'Default',
@@ -73,7 +73,7 @@ test('Test artifact update time change after change', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const lookup: IArtifactSearch = {
 		section: 'Default',

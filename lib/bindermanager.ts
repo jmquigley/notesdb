@@ -11,6 +11,7 @@ import * as fs from 'fs-extra';
 import {home} from 'util.home';
 import {join} from 'util.join';
 import logger, {Logger} from 'util.log';
+import {timestamp as ts} from 'util.timestamp';
 import {
 	failure,
 	getDirectories,
@@ -32,14 +33,16 @@ export interface IBinderManagerOpts {
 /** Creates an instance of the binder management class */
 export class BinderManager extends EventEmitter {
 
+	private log: Logger = null;
+
 	private _baseDirectory: string;
 	private _binderDirectory: string;
 	private _binders: IBinders = {};
-	private _log: Logger = null;
 	private _opts: IBinderManagerOpts = {
 		defaultName: 'default',
 		defaultDirectory: join(home, 'Satchel', 'default')
 	};
+	private _trashDirectory: string;
 
 	/**
 	 * Creates a new instance of the BinderManager class.  An instance is used
@@ -62,11 +65,17 @@ export class BinderManager extends EventEmitter {
 		self._opts = Object.assign(self._opts, opts);
 		self._baseDirectory = baseDirectory;
 		self._binderDirectory = join(baseDirectory, 'binders');
+		self._trashDirectory = join(baseDirectory, 'binders', 'Trash');
+
 		if (!fs.existsSync(self._binderDirectory)) {
-			fs.mkdirs(self._binderDirectory);
+			fs.mkdirsSync(self._binderDirectory);
 		}
 
-		self._log = logger.instance({
+		if (!fs.existsSync(self._trashDirectory)) {
+			fs.mkdirsSync(self._trashDirectory);
+		}
+
+		self.log = logger.instance({
 			debug: pkg.debug,
 			toConsole: false,
 			directory: baseDirectory,
@@ -78,6 +87,10 @@ export class BinderManager extends EventEmitter {
 		self.log.info('Initializing the binder manager instance.');
 		self.load();
 		self.emit('loaded', self);
+	}
+
+	get bindersDirectory(): string {
+		return this._binderDirectory;
 	}
 
 	/**
@@ -115,6 +128,7 @@ export class BinderManager extends EventEmitter {
 	/**
 	 * Retrieves a Binder instance from the manager by name.
 	 * @param binderName {string} The name of the binder to find.
+	 * @param self {BinderManager} reference to the current instance of this class
 	 * @returns {Binder} a reference to the binder within the manager.  If it doesn't exist
 	 * then undefined is returned.
 	 */
@@ -123,16 +137,57 @@ export class BinderManager extends EventEmitter {
 		return self._binders[binderName];
 	}
 
-	// :TODO: info()
-	// :TODO: list()
-	// :TODO: remove()
+	/**
+	 * Retrieves information about each of the binders under control of the manager
+	 * @param self {BinderManager} reference to the current instance of this class
+	 * @returns {string} a string representing each of the binders in the manager
+	 */
+	public info(self = this): string {
+		const l: string[] = ['Binder Info'];
 
-	get bindersDirectory(): string {
-		return this._binderDirectory;
+		for (const key in self._binders) {
+			if (self._binders.hasOwnProperty(key)) {
+				l.push(`* ${key}`);
+				l.push(`${JSON.stringify(self._binders[key].config, null, 4)}\n`);
+			}
+		}
+		l.push('');
+
+		return l.join('\n');
 	}
 
-	get log(): any {
-		return this._log;
+	/**
+	 * Retrieves the list of binders under control of this manager.  The trash folder
+	 * is excluded from the list.
+	 * @param self {BinderManager} reference to the current instance of this class
+	 * @returns an array of strings that represent the binder names.  If there are no
+	 * binders, then an empty array is returned.
+	 */
+	public list(self = this): string[] {
+		return getDirectories(self.bindersDirectory).filter(binderName => {
+			return binderName !== 'Trash';
+		});
+	}
+
+	/**
+	 * Moves the given binder name to the Trash directory.  A timestamp is added
+	 * to the name of the moved binder.  If the binder doean't exist, then a warning
+	 * message is written to the manager log file.
+	 * @param binderName {string} the name of the binder that will be moved
+	 * @param self {BinderManager} reference to the current instance of this class
+	 * @return {string} the path to the newly removed item (to the trash)
+	 */
+	public remove(binderName: string, self = this): string {
+		const src: string = join(self._binderDirectory, binderName);
+		const dst: string = join(self._binderDirectory, 'Trash', `${binderName}-${ts()}`);
+		if (fs.existsSync(src)) {
+			fs.moveSync(src, dst);
+		} else {
+			self.log.warn(`${binderName} doesn't exist to remove`);
+			return '';
+		}
+
+		return dst;
 	}
 
 	/**
@@ -141,7 +196,7 @@ export class BinderManager extends EventEmitter {
 	 * @param self {BinderManager} reference to the current instance of this class
 	 */
 	private load(self = this) {
-		const l = getDirectories(self.bindersDirectory);
+		const l = self.list();
 
 		if (l.length === 0) {
 			// no binders, so create an empty default

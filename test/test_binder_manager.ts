@@ -7,7 +7,7 @@ import {Fixture} from 'util.fixture';
 import {join} from 'util.join';
 import {failure} from 'util.toolbox';
 import {Binder, BinderManager} from '../index';
-import {cleanup} from './helpers';
+import {cleanup, validateManager} from './helpers';
 
 test.after.always.cb(t => {
 	cleanup(path.basename(__filename), t);
@@ -19,14 +19,7 @@ test('Test the creation of the BinderManager class', t => {
 		defaultDirectory: join(fixture.dir)
 	});
 
-	t.truthy(manager);
-	t.is(manager.bindersDirectory, join(fixture.dir, 'binders'));
-	t.true(fs.existsSync(join(fixture.dir, 'binders', 'default')));
-	t.true(fs.existsSync(join(fixture.dir, 'binders', 'default', 'config.json')));
-
-	const adb: Binder = manager.get('default');
-	t.truthy(adb);
-	t.true(adb instanceof Binder);
+	validateManager(t, manager, fixture);
 
 	const json = JSON.parse(fixture.read('binders/default/config.json'));
 	t.is(json.binderName, 'default');
@@ -39,18 +32,14 @@ test('Test the creation of build manager with existing default', t => {
 		defaultDirectory: join(fixture.dir)
 	});
 
-	t.truthy(manager);
-	t.is(manager.bindersDirectory, join(fixture.dir, 'binders'));
-	t.true(fs.existsSync(join(fixture.dir, 'binders', 'default')));
-	t.true(fs.existsSync(join(fixture.dir, 'binders', 'default', 'config.json')));
+	validateManager(t, manager, fixture);
 
-	let adb: Binder = manager.get('default');
+	const adb = manager.get('sampledb');
 	t.truthy(adb);
 	t.true(adb instanceof Binder);
 
-	adb = manager.get('sampledb');
-	t.truthy(adb);
-	t.true(adb instanceof Binder);
+	const s: string = manager.info();
+	t.truthy(s);
 });
 
 test('Test using the add function on a binder that already exists (negative test)', t => {
@@ -59,10 +48,46 @@ test('Test using the add function on a binder that already exists (negative test
 		defaultDirectory: join(fixture.dir)
 	});
 
-	t.truthy(manager);
-	t.is(manager.bindersDirectory, join(fixture.dir, 'binders'));
-	t.true(fs.existsSync(join(fixture.dir, 'binders', 'default')));
-	t.true(fs.existsSync(join(fixture.dir, 'binders', 'default', 'config.json')));
+	validateManager(t, manager, fixture);
 
 	t.is(manager.add('default', join(fixture.dir, 'default')), failure);
+});
+
+test('Test retrival of the list from the manager', t => {
+	const fixture = new Fixture('simple-manager');
+	const manager = new BinderManager(fixture.dir, {
+		defaultDirectory: join(fixture.dir)
+	});
+
+	validateManager(t, manager, fixture);
+
+	const l = manager.list();
+
+	t.truthy(l);
+	t.deepEqual(l, ['default', 'sampledb']);
+});
+
+test('Test the removal of a binder to the trash', t => {
+	const fixture = new Fixture('simple-manager');
+	const manager = new BinderManager(fixture.dir, {
+		defaultDirectory: join(fixture.dir)
+	});
+
+	validateManager(t, manager, fixture);
+
+	const rem = manager.remove('sampledb');
+	t.false(fs.existsSync(join(fixture.dir, 'binders', 'sampledb')));
+	t.true(fs.existsSync(rem));
+});
+
+test('Try to remove a non-existent binder', t => {
+	const fixture = new Fixture('simple-manager');
+	const manager = new BinderManager(fixture.dir, {
+		defaultDirectory: join(fixture.dir)
+	});
+
+	validateManager(t, manager, fixture);
+
+	const rem = manager.remove('blahblahblah');
+	t.is(rem, '');
 });

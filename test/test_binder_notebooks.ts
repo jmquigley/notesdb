@@ -6,7 +6,7 @@ import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact, Binder} from '../index';
 import {ArtifactType} from '../lib/artifact';
-import {cleanup, validateArtifact, validateDB} from './helpers';
+import {cleanup, validateArtifact, validateBinder} from './helpers';
 
 test.after.always.cb(t => {
 	cleanup(path.basename(__filename), t);
@@ -18,7 +18,7 @@ test('Load a database with file in the sections directory', t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	// This will show that the file in the section area is ignored
 	t.false(adb.hasSection({section: 'somefile.txt'}));
@@ -31,7 +31,7 @@ test('Load a database with file in the notebooks directory', t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	// This will show that the file in the notebook area is ignored
 	t.false(adb.hasNotebook({section: 'Default', notebook: 'somefile.txt'}));
@@ -44,7 +44,7 @@ test('Get the list of notebooks from a database', t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
+	validateBinder(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
 	const notebooks = notesDB.notebooks('Default');
 	const l = [
 		'Default',
@@ -62,7 +62,7 @@ test('Try to get a notebook from an uninitialized database', t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
+	validateBinder(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
 	notesDB.initialized = false;
 
 	try {
@@ -79,7 +79,7 @@ test('Try to get a notebook from a section that does not exist', t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
+	validateBinder(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
 
 	try {
 		const notebooks = notesDB.notebooks('////Test1');
@@ -100,7 +100,7 @@ test('Create a notebook within an existing database', async t => {
 		'notebook2'
 	];
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	await Promise.all([
 		adb.add(Artifact.factory('fields', {
@@ -147,7 +147,7 @@ test('Try to create a notebook that already exists', async t => {
 	const sectionName = 'Default';
 	const notebookName = 'notebook1';
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const testArtifact = Artifact.factory('fields', {
 		section: sectionName,
@@ -178,7 +178,7 @@ test('Trying to create notebook with a bad name', async t => {
 	const sectionName = 'Default';
 	const notebookName = '////notebook1';
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const testArtifact = Artifact.factory('fields', {
 		section: sectionName,
@@ -200,7 +200,7 @@ test('Load a database with file in the sections directory', t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	t.false(adb.hasNotebook({section: 'Default', notebook: 'somefile.txt'}));
 	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Default', 'somefile.txt')));

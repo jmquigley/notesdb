@@ -8,7 +8,7 @@ import {waitPromise} from 'util.wait';
 import * as uuid from 'uuid';
 import {Artifact, Binder} from '../index';
 import {IArtifactSearch} from '../lib/artifact';
-import {cleanup, validateDB} from './helpers';
+import {cleanup, validateBinder} from './helpers';
 
 const pkg = require('../package.json');
 
@@ -24,7 +24,7 @@ test('The database toString() function', t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const s = adb.toString();
 	t.is(typeof s, 'string');
@@ -41,7 +41,7 @@ test('Create a new database with a custom configuration', t => {
 		root: dir
 	});
 
-	validateDB(t, adb, 'adb', dir, adb.initialized);
+	validateBinder(t, adb, 'adb', dir, adb.initialized);
 	t.pass();
 });
 
@@ -51,7 +51,7 @@ test('Create an initial binder', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
+	validateBinder(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
 
 	await notesDB.create(['Test1', 'Test2'])
 		.then((adb: Binder) => {
@@ -82,7 +82,7 @@ test('Create an initial binder with empty schema', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
+	validateBinder(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
 	await notesDB.create([])
 		.then((adb: Binder) => {
 			t.true(adb.hasSection({section: 'Default'}));
@@ -116,7 +116,7 @@ test('Create a binder with a bad initial section name', async t => {
 	});
 	const binderName: string = '////Test1';
 
-	validateDB(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
+	validateBinder(t, notesDB, 'sampledb', fixture.dir, notesDB.initialized);
 
 	await notesDB.create(binderName)
 		.then((adb: Binder) => {
@@ -133,7 +133,7 @@ test('Open existing database with defaultConfigFile location', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	// Check for sections
 	t.true(adb.hasSection({section: 'Default'}));
@@ -230,7 +230,7 @@ test('Test trying to save a bad configuration file (negative test)', async t => 
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 	adb.config.configFile = '';  // destroy config reference
 
 	await adb.save()
@@ -248,7 +248,7 @@ test('Test trying to save a bad metadata file (negative test)', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 	adb.config.metaFile = '';  // destroy config reference
 
 	await adb.save()
@@ -267,7 +267,7 @@ test('Test the timed save facility', async t => {
 		saveInterval: 1000
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	await waitPromise(5)
 		.then(() => {
@@ -286,7 +286,7 @@ test('Test the reload function', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	const filename = 'outside.txt';
 	const data = 'Test outside data file';
@@ -322,7 +322,7 @@ test('Try to add an empty item to an existing database', async t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	await adb.add({})
 		.then((artifact: Artifact) => {
@@ -339,7 +339,7 @@ test('Test has functions for Binder', t => {
 		root: fixture.dir
 	});
 
-	validateDB(t, adb, 'sampledb', fixture.dir, adb.initialized);
+	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
 	// Successful tests
 	t.true(adb.hasSection({section: 'Test1'}));
