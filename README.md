@@ -49,6 +49,7 @@ The [public api](docs/bindermanager.md) contains the following functions:
 - [add()](docs/bindermanagers.md#BinderManager+add)
 - [emptyTrash()](docs/bindermanagers.md#BinderManager+emptyTrash)
 - [get()](docs/bindermanagers.md#BinderManager+get)
+- [hasBinder()](docs/bindermanagers.md#BinderManager+hasBinder)
 - [info()](docs/bindermanagers.md#BinderManager+info)
 - [list()](docs/bindermanagers.md#BinderManager+list)
 - [remove()](docs/bindermanagers.md#BinderManager+remove)
