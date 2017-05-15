@@ -34,12 +34,24 @@ test('Test the creation of build manager with existing default', t => {
 
 	validateManager(t, manager, fixture);
 
-	const adb = manager.get('sampledb');
-	t.truthy(adb);
-	t.true(adb instanceof Binder);
+	const binder = manager.get('sampledb');
+	t.truthy(binder);
+	t.true(binder instanceof Binder);
 
 	const s: string = manager.info();
 	t.truthy(s);
+});
+
+test('Test the hasBinder search function', t => {
+	const fixture = new Fixture('simple-manager');
+	const manager = new BinderManager(fixture.dir, {
+		defaultDirectory: join(fixture.dir)
+	});
+
+	validateManager(t, manager, fixture);
+
+	t.true(manager.hasBinder('sampledb'));
+	t.false(manager.hasBinder('blahblahblah'));
 });
 
 test('Test using the add function on a binder that already exists (negative test)', t => {

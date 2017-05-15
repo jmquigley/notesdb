@@ -10,6 +10,7 @@ Creates an instance of the binder management class
     * [.add(binderName, binderDirectory, self)](#BinderManager+add) ⇒
     * [.emptyTrash(self)](#BinderManager+emptyTrash) ⇒ <code>Array.&lt;string&gt;</code>
     * [.get(binderName, self)](#BinderManager+get) ⇒ <code>Binder</code>
+    * [.hasBinder(binderName, self)](#BinderManager+hasBinder) ⇒ <code>boolean</code>
     * [.info(self)](#BinderManager+info) ⇒ <code>string</code>
     * [.list(self)](#BinderManager+list) ⇒
     * [.remove(binderName, self)](#BinderManager+remove) ⇒ <code>string</code>
@@ -66,6 +67,21 @@ Retrieves a Binder instance from the manager by name.
 **Kind**: instance method of <code>[BinderManager](#BinderManager)</code>  
 **Returns**: <code>Binder</code> - a reference to the binder within the manager.  If it doesn't exist
 then undefined is returned.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| binderName | <code>string</code> | The name of the binder to find. |
+| self | <code>[BinderManager](#BinderManager)</code> | reference to the current instance of this class |
+
+<a name="BinderManager+hasBinder"></a>
+
+### binderManager.hasBinder(binderName, self) ⇒ <code>boolean</code>
+Checks the current binder list for the existence of the requested
+binder.
+
+**Kind**: instance method of <code>[BinderManager](#BinderManager)</code>  
+**Returns**: <code>boolean</code> - true if the binder is found within the manager otherwise
+false.  
 
 | Param | Type | Description |
 | --- | --- | --- |

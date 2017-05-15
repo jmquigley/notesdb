@@ -162,6 +162,22 @@ export class BinderManager extends EventEmitter {
 	}
 
 	/**
+	 * Checks the current binder list for the existence of the requested
+	 * binder.
+	 * @param binderName {string} The name of the binder to find.
+	 * @param self {BinderManager} reference to the current instance of this class
+	 * @returns {boolean} true if the binder is found within the manager otherwise
+	 * false.
+	 */
+	public hasBinder(binderName: string, self = this): boolean {
+		if (self.list().indexOf(binderName) === -1) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Retrieves information about each of the binders under control of the manager
 	 * @param self {BinderManager} reference to the current instance of this class
 	 * @returns {string} a string representing each of the binders in the manager
