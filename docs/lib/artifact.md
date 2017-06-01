@@ -31,11 +31,11 @@ the database.
         * [.buffer](#Artifact+buffer) ⇒ <code>Buffer</code>
         * [.addTag(tag)](#Artifact+addTag)
         * [.isEqual(artifact)](#Artifact+isEqual) ⇒ <code>boolean</code>
-        * [.makeUnique()](#Artifact+makeUnique) ⇒ <code>[Artifact](#Artifact)</code>
+        * [.makeUnique()](#Artifact+makeUnique) ⇒ [<code>Artifact</code>](#Artifact)
     * _static_
         * [.isDuplicateSearch(src, dst)](#Artifact.isDuplicateSearch) ⇒
         * [.isType(search)](#Artifact.isType) ⇒ <code>ArtifactType</code>
-        * [.factory(mode, [opts], [artifact])](#Artifact.factory) ⇒ <code>[Artifact](#Artifact)</code>
+        * [.factory(mode, [opts], [artifact])](#Artifact.factory) ⇒ [<code>Artifact</code>](#Artifact)
 
 <a name="new_Artifact_new"></a>
 
@@ -47,14 +47,14 @@ The constructor is private.  Objects must be created with the factory
 ### artifact.buffer ⇒ <code>Buffer</code>
 Takes the current input "buf", converts it to a buffer, and returns it
 
-**Kind**: instance property of <code>[Artifact](#Artifact)</code>  
+**Kind**: instance property of [<code>Artifact</code>](#Artifact)  
 **Returns**: <code>Buffer</code> - a new instance of the input data as a buffer.  
 <a name="Artifact+addTag"></a>
 
 ### artifact.addTag(tag)
 Adds a unique tag to the artifact.
 
-**Kind**: instance method of <code>[Artifact](#Artifact)</code>  
+**Kind**: instance method of [<code>Artifact</code>](#Artifact)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -65,27 +65,27 @@ Adds a unique tag to the artifact.
 ### artifact.isEqual(artifact) ⇒ <code>boolean</code>
 Checks this artifact against a given artifact to show if they are equal
 
-**Kind**: instance method of <code>[Artifact](#Artifact)</code>  
+**Kind**: instance method of [<code>Artifact</code>](#Artifact)  
 **Returns**: <code>boolean</code> - true if the artifacts are the same, otherwise false.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| artifact | <code>[Artifact](#Artifact)</code> | input artifact to check against this one |
+| artifact | [<code>Artifact</code>](#Artifact) | input artifact to check against this one |
 
 <a name="Artifact+makeUnique"></a>
 
-### artifact.makeUnique() ⇒ <code>[Artifact](#Artifact)</code>
+### artifact.makeUnique() ⇒ [<code>Artifact</code>](#Artifact)
 Takes an artifact and appends a timestamp to the last part of its path
 
-**Kind**: instance method of <code>[Artifact](#Artifact)</code>  
-**Returns**: <code>[Artifact](#Artifact)</code> - the modified artifact with a timestamp attached to
+**Kind**: instance method of [<code>Artifact</code>](#Artifact)  
+**Returns**: [<code>Artifact</code>](#Artifact) - the modified artifact with a timestamp attached to
 the last element of the path.  
 <a name="Artifact.isDuplicateSearch"></a>
 
 ### Artifact.isDuplicateSearch(src, dst) ⇒
 Takes two search objects and checks if they are different.
 
-**Kind**: static method of <code>[Artifact](#Artifact)</code>  
+**Kind**: static method of [<code>Artifact</code>](#Artifact)  
 **Returns**: true if they are the same, otherwise false.  
 
 | Param | Type | Description |
@@ -98,7 +98,7 @@ Takes two search objects and checks if they are different.
 ### Artifact.isType(search) ⇒ <code>ArtifactType</code>
 Takes artifact search information and builds the type id
 
-**Kind**: static method of <code>[Artifact](#Artifact)</code>  
+**Kind**: static method of [<code>Artifact</code>](#Artifact)  
 **Returns**: <code>ArtifactType</code> - the id associated with this search.  
 
 | Param | Type | Description |
@@ -107,7 +107,7 @@ Takes artifact search information and builds the type id
 
 <a name="Artifact.factory"></a>
 
-### Artifact.factory(mode, [opts], [artifact]) ⇒ <code>[Artifact](#Artifact)</code>
+### Artifact.factory(mode, [opts], [artifact]) ⇒ [<code>Artifact</code>](#Artifact)
 A factory method for creating different types of artifacts.  The mode
 determines what type of Artifact object will be factory and returned.
 The types include:
@@ -118,14 +118,14 @@ and set its properties
 format of {section}/{notebook}/{filename}
 - empty - just return an empty object.  This is the default.
 
-**Kind**: static method of <code>[Artifact](#Artifact)</code>  
-**Returns**: <code>[Artifact](#Artifact)</code> - a newly constructed artifact object.  
+**Kind**: static method of [<code>Artifact</code>](#Artifact)  
+**Returns**: [<code>Artifact</code>](#Artifact) - a newly constructed artifact object.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | mode | <code>string</code> |  | tells the factory what to make |
-| [opts] | <code>Object</code> &#124; <code>string</code> |  | parameters to the facility that will make the object. |
-| [artifact] | <code>[Artifact](#Artifact)</code> | <code></code> | if an instance is passed to this factory then it is used instead of creating a new one.  Works like a copy constructor. |
+| [opts] | <code>Object</code> \| <code>string</code> |  | parameters to the facility that will make the object. |
+| [artifact] | [<code>Artifact</code>](#Artifact) | <code></code> | if an instance is passed to this factory then it is used instead of creating a new one.  Works like a copy constructor. |
 
 <a name="artifactComparator"></a>
 
@@ -139,6 +139,6 @@ used with the data structures in the util.ds objects.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| o1 | <code>[Artifact](#Artifact)</code> | the first artifact to compare. |
-| o2 | <code>[Artifact](#Artifact)</code> | the second artifact to compare. |
+| o1 | [<code>Artifact</code>](#Artifact) | the first artifact to compare. |
+| o2 | [<code>Artifact</code>](#Artifact) | the second artifact to compare. |
 

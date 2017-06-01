@@ -44,15 +44,15 @@ $ npm run all
 ### BinderManager
 This class is used to manage multiple Binder instances and their associated configurations.  See the `Binder` api below for details.
 
-The [public api](docs/bindermanager.md) contains the following functions:
+The [public api](docs/lib/bindermanager.md) contains the following functions:
 
-- [add()](docs/bindermanagers.md#BinderManager+add)
-- [emptyTrash()](docs/bindermanagers.md#BinderManager+emptyTrash)
-- [get()](docs/bindermanagers.md#BinderManager+get)
-- [hasBinder()](docs/bindermanagers.md#BinderManager+hasBinder)
-- [info()](docs/bindermanagers.md#BinderManager+info)
-- [list()](docs/bindermanagers.md#BinderManager+list)
-- [remove()](docs/bindermanagers.md#BinderManager+remove)
+- [add()](docs/lib/bindermanagers.md#BinderManager+add)
+- [emptyTrash()](docs/lib/bindermanagers.md#BinderManager+emptyTrash)
+- [get()](docs/lib/bindermanagers.md#BinderManager+get)
+- [hasBinder()](docs/lib/bindermanagers.md#BinderManager+hasBinder)
+- [info()](docs/lib/bindermanagers.md#BinderManager+info)
+- [list()](docs/lib/bindermanagers.md#BinderManager+list)
+- [remove()](docs/lib/bindermanagers.md#BinderManager+remove)
 
 #### Creating a manager instance
 
@@ -89,27 +89,27 @@ If the binder `sampledb` exists, then it will be moved to a trash directory.  Th
 
 
 ### Binder
-The [public api](docs/binder.md) contains the following functions:
+The [public api](docs/lib/binder.md) contains the following functions:
 
-- [add()](docs/binder.md#Binder+add)
-- [create()](docs/binder.md#Binder+create)
-- [emptyTrash()](docs/binder.md#Binder+emptyTrash)
-- [find()](docs/binder.md#Binder+find)
-- [get()](docs/binder.md#Binder+get)
-- [hasArtifact()](docs/binder.md#Binder+hasArtifact)
-- [hasNotebook()](docs/binder.md#Binder+hasNotebook)
-- [hasSection()](docs/binder.md#Binder+hasSection)
-- [notebooks()](docs/binder.md#Binder+notebooks)
-- [reload()](docs/binder.md#Binder+reload)
-- [remove()](docs/binder.md#Binder+remove)
-- [rename()](docs/binder.md#Binder+rename)
-- [restore()](docs/binder.md#Binder+restore)
-- [save()](docs/binder.md#Binder+save)
-- [saveArtifact()](docs/binder.md#Binder+saveArtifact)
-- [sections()](docs/binder.md#Binder+sections)
-- [shutdown()](docs/binder.md#Binder+shutdown)
-- [toString()](docs/binder.md#Binder+toString)
-- [trash()](docs/binder.md#Binder+trash)
+- [add()](docs/lib/binder.md#Binder+add)
+- [create()](docs/lib/binder.md#Binder+create)
+- [emptyTrash()](docs/lib/binder.md#Binder+emptyTrash)
+- [find()](docs/lib/binder.md#Binder+find)
+- [get()](docs/lib/binder.md#Binder+get)
+- [hasArtifact()](docs/lib/binder.md#Binder+hasArtifact)
+- [hasNotebook()](docs/lib/binder.md#Binder+hasNotebook)
+- [hasSection()](docs/lib/binder.md#Binder+hasSection)
+- [notebooks()](docs/lib/binder.md#Binder+notebooks)
+- [reload()](docs/lib/binder.md#Binder+reload)
+- [remove()](docs/lib/binder.md#Binder+remove)
+- [rename()](docs/lib/binder.md#Binder+rename)
+- [restore()](docs/lib/binder.md#Binder+restore)
+- [save()](docs/lib/binder.md#Binder+save)
+- [saveArtifact()](docs/lib/binder.md#Binder+saveArtifact)
+- [sections()](docs/lib/binder.md#Binder+sections)
+- [shutdown()](docs/lib/binder.md#Binder+shutdown)
+- [toString()](docs/lib/binder.md#Binder+toString)
+- [trash()](docs/lib/binder.md#Binder+trash)
 
 #### Creating an Instance
 To construct a new instance:
@@ -368,7 +368,8 @@ It returns a message indicating that the binder was shutdown.
 
 ## API
 
-The API is generated with [JSDoc](https://www.npmjs.com/package/jsdoc).  It can be found within the `docs` directory for the project.  It can be generated with `npm run docs`.  An HTML site is generated in this directory that gives details on the api.
+The API is generated with [JSDoc](https://www.npmjs.com/package/jsdoc).  It can be found within the `docs` directory for the project.  It can be generated with `npm run docs`.
 
-- [Artifact](docs/artifact.md)
-- [Binder](docs/binder.md)
+- [Artifact](docs/lib/artifact.md)
+- [Binder](docs/lib/binder.md)
+- [BinderManagr](docs/lib/bindermanager.md)
