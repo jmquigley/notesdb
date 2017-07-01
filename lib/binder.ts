@@ -261,7 +261,7 @@ export class Binder extends EventEmitter {
 	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public add(opts: IArtifactSearch, area: string = NS.notes, self = this) {
+	public add(opts: IArtifactSearch, area: string = NS.notes, self = this): any {
 		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
 			let artifact: Artifact = null;
 			if (opts instanceof Artifact) {
