@@ -110,7 +110,7 @@ export class Binder extends EventEmitter {
 	private _initialized: boolean = false;
 	private _log: Logger = null;
 	private _meta: INotesMeta = {};
-	private _recents: Deque = null;
+	private _recents: Deque<Artifact> = null;
 	private _reID: RegExp = new RegExp(`^[${validNameChars}]+$`);
 	private _schema: ISchema = {
 		notes: {},
@@ -208,7 +208,7 @@ export class Binder extends EventEmitter {
 			}
 		}
 
-		self._recents = new Deque(self.config.maxRecents, artifactComparator);
+		self._recents = new Deque<Artifact>(self.config.maxRecents, null, artifactComparator);
 
 		self._log = logger.instance({
 			debug: pkg.debug,

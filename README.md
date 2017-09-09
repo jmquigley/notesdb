@@ -28,14 +28,16 @@ The text "database" is just a data structure (schema) and a set of functions to 
 
 ## Installation
 
+This module uses [yarn](https://yarnpkg.com/en/) to manage dependencies and run scripts for development.
+
 To install as an application dependency:
 ```
-$ npm install --save notesdb
+$ yarn add --dev notesdb
 ```
 
 To build the app and run all tests:
 ```
-$ npm run all
+$ yarn run all
 ```
 
 
