@@ -90,6 +90,10 @@ export class BinderManager extends EventEmitter {
 		self.emit('loaded', self);
 	}
 
+	get baseDirectory(): string {
+		return this._baseDirectory;
+	}
+
 	get bindersDirectory(): string {
 		return this._bindersDirectory;
 	}
