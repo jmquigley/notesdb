@@ -6,8 +6,8 @@ import {Fixture} from 'util.fixture';
 import {Artifact, Binder} from '../index';
 import {cleanup, validateBinder} from './helpers';
 
-test.after.always.cb(t => {
-	cleanup(path.basename(__filename), t);
+test.after.always(async t => {
+	await cleanup(path.basename(__filename), t);
 });
 
 test('Test simple search for #1 in simple dB', async t => {

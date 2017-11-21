@@ -4,11 +4,13 @@
 
 'use strict';
 
-import {CallbackTestContext} from 'ava';
+/* import {CallbackTestContext} from 'ava';*/
 import * as fs from 'fs-extra';
 import {Fixture} from 'util.fixture';
 import {join} from 'util.join';
-import {Artifact, ArtifactType, IArtifactOpts} from '../../lib/artifact';
+import {IRejectFn, IResolveFn} from 'util.promise';
+import {waitPromise} from 'util.wait';
+import {Artifact, ArtifactOpts, ArtifactType} from '../../lib/artifact';
 import {Binder} from '../../lib/binder';
 import {BinderManager} from '../../lib/bindermanager';
 
@@ -28,7 +30,7 @@ export function validateBinder(t: any, notesDB: Binder, binderName: string , roo
 	t.true(fs.existsSync(join(root, 'notesdb.log')));
 }
 
-export function validateArtifact(t: any, artifact: Artifact, opts: IArtifactOpts): void {
+export function validateArtifact(t: any, artifact: Artifact, opts: ArtifactOpts): void {
 	t.truthy(artifact);
 	t.is(artifact.section, (opts.section || ''));
 	t.is(artifact.notebook, (opts.notebook || ''));
@@ -53,20 +55,31 @@ export function debug(message: string): void {
 	}
 }
 
-export function cleanup(msg: string, t: CallbackTestContext): void {
-	if (msg) {
-		console.log(`final cleanup: ${msg}`);
-	}
+export async function cleanup(msg: string, t: any, delay: number = 5) {
+	await waitPromise(delay);
+	await cleanupPromise(msg);
+	t.pass();
+	return Promise.resolve();
+}
 
-	Fixture.cleanup((err: Error, directories: string[]) => {
-		if (err) {
-			return t.fail(`Failure cleaning up after test: ${err.message}`);
+function cleanupPromise(msg: string) {
+	return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
+		if (msg) {
+			console.log(`final cleanup: ${msg}`);
 		}
 
-		directories.forEach((directory: string) => {
-			t.false(fs.existsSync(directory));
-		});
+		Fixture.cleanup((err: Error, directories: string[]) => {
+			if (err) {
+				reject(`Failure cleaning up after test: ${err.message}`);
+			}
 
-		t.end();
+			directories.forEach((directory: string) => {
+				if (fs.existsSync(directory)) {
+					reject(`Failure to cleanup directory: ${directory}`);
+				}
+			});
+
+			resolve();
+		});
 	});
 }

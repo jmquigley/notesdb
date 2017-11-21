@@ -5,11 +5,11 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {Artifact, Binder} from '../index';
-import {ArtifactType, IArtifactSearch} from '../lib/artifact';
+import {ArtifactSearch, ArtifactType} from '../lib/artifact';
 import {cleanup, validateArtifact, validateBinder} from './helpers';
 
-test.after.always.cb(t => {
-	cleanup(path.basename(__filename), t);
+test.after.always(async t => {
+	await cleanup(path.basename(__filename), t);
 });
 
 test('Renames an artifact (full path)', async t => {
@@ -20,13 +20,13 @@ test('Renames an artifact (full path)', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const src: IArtifactSearch = {
+	const src: ArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
 	};
 
-	const dst: IArtifactSearch = {
+	const dst: ArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1-copy.txt'
@@ -60,13 +60,13 @@ test('Renames an artifact (different intermediate paths)', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const src: IArtifactSearch = {
+	const src: ArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
 	};
 
-	const dst: IArtifactSearch = {
+	const dst: ArtifactSearch = {
 		section: 'Renamed Default',
 		notebook: 'Renamed Notebook',
 		filename: 'test1-copy.txt'
@@ -100,11 +100,11 @@ test('Rename a section', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const src: IArtifactSearch = {
+	const src: ArtifactSearch = {
 		section: 'Default'
 	};
 
-	const dst: IArtifactSearch = {
+	const dst: ArtifactSearch = {
 		section: 'RenamedDefault'
 	};
 
@@ -136,12 +136,12 @@ test('Rename a notebook', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const src: IArtifactSearch = {
+	const src: ArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default'
 	};
 
-	const dst: IArtifactSearch = {
+	const dst: ArtifactSearch = {
 		section: 'Default',
 		notebook: 'Renamed Notebook'
 	};
@@ -174,11 +174,11 @@ test('Rename a section with the same name (negative test, with warning)', async 
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const src: IArtifactSearch = {
+	const src: ArtifactSearch = {
 		section: 'Default'
 	};
 
-	const dst: IArtifactSearch = {
+	const dst: ArtifactSearch = {
 		section: 'Default'
 	};
 
@@ -199,12 +199,12 @@ test('Rename artifact to an invalid name type (negative test)', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const src: IArtifactSearch = {
+	const src: ArtifactSearch = {
 		section: 'Default'
 	};
 
 	const badSectionName = '////Default';
-	const dst: IArtifactSearch = {
+	const dst: ArtifactSearch = {
 		section: badSectionName
 	};
 
@@ -225,11 +225,11 @@ test('Perform rename where the src and dst types are a mismatch (negative test)'
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const src: IArtifactSearch = {
+	const src: ArtifactSearch = {
 		section: 'Default'
 	};
 
-	const dst: IArtifactSearch = {
+	const dst: ArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default'
 	};

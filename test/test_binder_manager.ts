@@ -9,8 +9,8 @@ import {failure} from 'util.toolbox';
 import {Binder, BinderManager} from '../index';
 import {cleanup, validateManager} from './helpers';
 
-test.after.always.cb(t => {
-	cleanup(path.basename(__filename), t);
+test.after.always(async t => {
+	await cleanup(path.basename(__filename), t);
 });
 
 test('Test the creation of the BinderManager class', t => {
@@ -24,6 +24,8 @@ test('Test the creation of the BinderManager class', t => {
 	const json = JSON.parse(fixture.read('binders/default/config.json'));
 	t.is(json.binderName, 'default');
 	t.is(json.configFile, join(fixture.dir, 'binders', 'default', 'config.json'));
+
+	manager.shutdown();
 });
 
 test('Test the creation of build manager with existing default', t => {
@@ -40,6 +42,8 @@ test('Test the creation of build manager with existing default', t => {
 
 	const s: string = manager.info();
 	t.truthy(s);
+
+	manager.shutdown();
 });
 
 test('Test the hasBinder search function', t => {
@@ -52,6 +56,8 @@ test('Test the hasBinder search function', t => {
 
 	t.true(manager.hasBinder('sampledb'));
 	t.false(manager.hasBinder('blahblahblah'));
+
+	manager.shutdown();
 });
 
 test('Test using the add function on a binder that already exists (negative test)', t => {
@@ -63,6 +69,8 @@ test('Test using the add function on a binder that already exists (negative test
 	validateManager(t, manager, fixture);
 
 	t.is(manager.add('default', join(fixture.dir, 'default')), failure);
+
+	manager.shutdown();
 });
 
 test('Test retrival of the list from the manager', t => {
@@ -77,6 +85,8 @@ test('Test retrival of the list from the manager', t => {
 
 	t.truthy(l);
 	t.deepEqual(l, ['default', 'sampledb']);
+
+	manager.shutdown();
 });
 
 test('Test the removal of a binder to the trash', t => {
@@ -90,6 +100,8 @@ test('Test the removal of a binder to the trash', t => {
 	const rem = manager.remove('sampledb');
 	t.false(fs.existsSync(join(fixture.dir, 'binders', 'sampledb')));
 	t.true(fs.existsSync(rem));
+
+	manager.shutdown();
 });
 
 test('Try to remove a non-existent binder', t => {
@@ -102,6 +114,8 @@ test('Try to remove a non-existent binder', t => {
 
 	const rem = manager.remove('blahblahblah');
 	t.is(rem, '');
+
+	manager.shutdown();
 });
 
 test('Remove a binder and then empty the trash', t => {
@@ -125,4 +139,6 @@ test('Remove a binder and then empty the trash', t => {
 
 	// sampledb data exists after the garbage is emptied
 	t.true(fs.existsSync(join(fixture.dir, 'sampledb')));
+
+	manager.shutdown();
 });

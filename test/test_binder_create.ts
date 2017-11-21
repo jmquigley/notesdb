@@ -7,16 +7,16 @@ import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
 import * as uuid from 'uuid';
 import {Artifact, Binder} from '../index';
-import {IArtifactSearch} from '../lib/artifact';
+import {ArtifactSearch} from '../lib/artifact';
 import {cleanup, validateBinder} from './helpers';
 
 const pkg = require('../package.json');
 
-test.after.always.cb(t => {
-	cleanup(path.basename(__filename), t);
+test.after.always(async t => {
+	await cleanup(path.basename(__filename), t);
 });
 
-test('The database toString() function', t => {
+test('The database toString() function', async t => {
 	const fixture = new Fixture('empty-db');
 	const adb = new Binder({
 		binderName: 'sampledb',
@@ -32,9 +32,11 @@ test('The database toString() function', t => {
 	if (pkg.debug) {
 		console.log(s);
 	}
+
+	await adb.shutdown();
 });
 
-test('Create a new database with a custom configuration', t => {
+test('Create a new database with a custom configuration', async t => {
 	const fixture = new Fixture();
 	const dir = path.join(fixture.dir, uuid.v4());
 	const adb = new Binder({
@@ -43,6 +45,8 @@ test('Create a new database with a custom configuration', t => {
 
 	validateBinder(t, adb, 'adb', dir, adb.initialized);
 	t.pass();
+
+	await adb.shutdown();
 });
 
 test('Create an initial binder', async t => {
@@ -94,14 +98,15 @@ test('Create an initial binder with empty schema', async t => {
 		});
 });
 
-test('Try to create a binder with a bad name (negative test)', t => {
+test('Try to create a binder with a bad name (negative test)', async t => {
 	const fixture = new Fixture('tmpdir');
 	const binderName: string = '////testdb';
 
 	try {
 		const adb = new Binder({
 			binderName: binderName,
-			root: fixture.dir
+			root: fixture.dir,
+			saveInterval: 0
 		});
 		t.fail(adb.toString());
 	} catch (err) {
@@ -112,7 +117,8 @@ test('Try to create a binder with a bad name (negative test)', t => {
 test('Create a binder with a bad initial section name', async t => {
 	const fixture = new Fixture('empty-db');
 	const notesDB = new Binder({
-		root: fixture.dir
+		root: fixture.dir,
+		saveInterval: 0
 	});
 	const binderName: string = '////Test1';
 
@@ -125,6 +131,8 @@ test('Create a binder with a bad initial section name', async t => {
 		.catch((err: string) => {
 			t.is(err, `Invalid section name '${binderName}'.  Can only use '-\\.+@_!$&0-9a-zA-Z '.`);
 		});
+
+	await notesDB.shutdown();
 });
 
 test('Open existing database with defaultConfigFile location', async t => {
@@ -189,7 +197,8 @@ test('Try to load existing database with missing config file (negative test)', t
 
 	try {
 		const adb = new Binder({
-			root: fixture.dir
+			root: fixture.dir,
+			saveInterval: 0
 		});
 		t.fail(adb.toString());
 	} catch (err) {
@@ -202,7 +211,8 @@ test('Try to load existing database with missing root directory (negative test)'
 
 	try {
 		const adb = new Binder({
-			root: fixture.dir
+			root: fixture.dir,
+			saveInterval: 0
 		});
 		t.fail(adb.toString());
 	} catch (err) {
@@ -215,11 +225,11 @@ test('Try to create a database with a missing dbdir in the config (negative test
 
 	try {
 		const adb = new Binder({
-			root: fixture.dir
+			root: fixture.dir,
+			saveInterval: 0
 		});
 		t.fail(adb.toString());
 	} catch (err) {
-		console.log(`ERR: ${err}`);
 		t.is(err.message, `The database directory is missing from configuration.`);
 	}
 });
@@ -227,7 +237,8 @@ test('Try to create a database with a missing dbdir in the config (negative test
 test('Test trying to save a bad configuration file (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
 	const adb = new Binder({
-		root: fixture.dir
+		root: fixture.dir,
+		saveInterval: 0
 	});
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
@@ -245,7 +256,8 @@ test('Test trying to save a bad configuration file (negative test)', async t => 
 test('Test trying to save a bad metadata file (negative test)', async t => {
 	const fixture = new Fixture('simple-db');
 	const adb = new Binder({
-		root: fixture.dir
+		root: fixture.dir,
+		saveInterval: 0
 	});
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
@@ -290,7 +302,7 @@ test('Test the reload function', async t => {
 
 	const filename = 'outside.txt';
 	const data = 'Test outside data file';
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: filename
@@ -319,7 +331,8 @@ test('Test the reload function', async t => {
 test('Try to add an empty item to an existing database', async t => {
 	const fixture = new Fixture('simple-db');
 	const adb = new Binder({
-		root: fixture.dir
+		root: fixture.dir,
+		saveInterval: 0
 	});
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
@@ -331,12 +344,15 @@ test('Try to add an empty item to an existing database', async t => {
 		.catch((err: string) => {
 			t.is(err, 'Trying to add invalid artifact to DB');
 		});
+
+	await adb.shutdown();
 });
 
-test('Test has functions for Binder', t => {
+test('Test has functions for Binder', async t => {
 	const fixture = new Fixture('simple-db');
 	const adb = new Binder({
-		root: fixture.dir
+		root: fixture.dir,
+		saveInterval: 0
 	});
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
@@ -354,13 +370,16 @@ test('Test has functions for Binder', t => {
 	t.false(adb.hasArtifact({section: 'Test1', notebook: 'Default', filename: 'blah.txt'}));
 	t.false(adb.hasArtifact({section: 'Test1', notebook: 'blah', filename: 'blah.txt'}));
 	t.false(adb.hasArtifact({section: 'blah', notebook: 'blah', filename: 'blah.txt'}));
+
+	await adb.shutdown();
 });
 
-test('Test simple database with additional ignored directories', t => {
+test('Test simple database with additional ignored directories', async t => {
 	const fixture = new Fixture('simple-db-with-ignored');
 	const adb = new Binder({
+		ignore: ['Attachments', 'Images'],
 		root: fixture.dir,
-		ignore: ['Attachments', 'Images']
+		saveInterval: 0
 	});
 	const l: string[] = ['Test1', 'Test2'];
 
@@ -374,4 +393,6 @@ test('Test simple database with additional ignored directories', t => {
 	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Images')));
 	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test1')));
 	t.true(fs.existsSync(path.join(adb.config.dbdir, 'Test2')));
+
+	await adb.shutdown();
 });

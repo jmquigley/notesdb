@@ -10,20 +10,20 @@ export const enum ArtifactType {
 	SNA = 7   // 0111b - Section, notebook, and artifact
 }
 
-export interface IArtifactSearch {
+export interface ArtifactSearch {
 	section?: string;
 	notebook?: string;
 	filename?: string;
 }
 
-export interface IArtifactOpts extends IArtifactSearch {
+export interface ArtifactOpts extends ArtifactSearch {
 	root?: string;
 	treeitem?: string;
 	path?: string;
 	type?: ArtifactType;
 }
 
-export interface IArtifactMeta {
+export interface ArtifactMeta {
 	accessed: Date;
 	created: Date;
 	updated: Date;
@@ -62,7 +62,7 @@ export class Artifact {
 	 * @param dst {IArtifactSearch} 2nd search object to check
 	 * @returns true if they are the same, otherwise false.
 	 */
-	public static isDuplicateSearch(src: IArtifactSearch, dst: IArtifactSearch): boolean {
+	public static isDuplicateSearch(src: ArtifactSearch, dst: ArtifactSearch): boolean {
 		return (
 			src.section === dst.section &&
 			src.notebook === dst.notebook &&
@@ -77,7 +77,7 @@ export class Artifact {
 	 * Artifact parameters used to build the type id.
 	 * @returns {ArtifactType} the id associated with this search.
 	 */
-	public static isType(search: IArtifactSearch): ArtifactType {
+	public static isType(search: ArtifactSearch): ArtifactType {
 		let n: ArtifactType = ArtifactType.Unk;
 
 		if (search.section != null && search.section !== '') {
@@ -114,7 +114,7 @@ export class Artifact {
 	 * constructor.
 	 * @returns {Artifact} a newly constructed artifact object.
 	 */
-	public static factory(mode?: string, opts?: IArtifactOpts, artifact: Artifact = null): Artifact {
+	public static factory(mode?: string, opts?: ArtifactOpts, artifact: Artifact = null): Artifact {
 		if (artifact == null) {
 			artifact = new Artifact();
 		}
@@ -128,7 +128,7 @@ export class Artifact {
 		switch (mode) {
 			case 'fields':
 				if (opts != null) {
-					const args: IArtifactOpts = opts;
+					const args: ArtifactOpts = opts;
 
 					artifact.section = args.section || '';
 					artifact.notebook = args.notebook || '';
@@ -191,7 +191,7 @@ export class Artifact {
 	private _loaded: boolean = false;
 	private _dirty: boolean = false;
 	private _buf: string = '';
-	private _meta: IArtifactMeta = {
+	private _meta: ArtifactMeta = {
 		accessed: new Date(),
 		created: new Date(),
 		updated: new Date(),
@@ -360,11 +360,11 @@ export class Artifact {
 		this._loaded = val;
 	}
 
-	get meta(): IArtifactMeta {
+	get meta(): ArtifactMeta {
 		return this._meta;
 	}
 
-	set meta(val: IArtifactMeta) {
+	set meta(val: ArtifactMeta) {
 		this._meta = val;
 	}
 

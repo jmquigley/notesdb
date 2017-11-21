@@ -6,11 +6,11 @@ import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {waitPromise} from 'util.wait';
 import {Artifact, Binder} from '../index';
-import {ArtifactType, IArtifactSearch} from '../lib/artifact';
+import {ArtifactSearch, ArtifactType} from '../lib/artifact';
 import {cleanup, validateArtifact, validateBinder} from './helpers';
 
-test.after.always.cb(t => {
-	cleanup(path.basename(__filename), t);
+test.after.always(async t => {
+	await cleanup(path.basename(__filename), t);
 });
 
 test('Create a new artifact file within the database', async t => {
@@ -131,7 +131,7 @@ test('Get an existing artifact from the schema', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Default',
 		notebook: 'Default',
 		filename: 'test1.txt'
@@ -165,7 +165,7 @@ test(`Try to retrieve an artifact that doesn't exist`, async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Missing',
 		notebook: 'Missing',
 		filename: 'test1.txt'

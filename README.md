@@ -55,6 +55,8 @@ The [public api](docs/lib/bindermanager.md) contains the following functions:
 - [info()](docs/lib/bindermanagers.md#BinderManager+info)
 - [list()](docs/lib/bindermanagers.md#BinderManager+list)
 - [remove()](docs/lib/bindermanagers.md#BinderManager+remove)
+- [shutdown()](docs/lib/bindermanagers.md#BinderManager+shutdown)
+
 
 #### Creating a manager instance
 
@@ -197,7 +199,7 @@ A notebook is created with the `add` method.
 import {Artifact, Binder} from 'notesdb';
 
 let adb = new Binder();
-adb.add(Artifact.factory('all', {section: 'Test1', notebook: 'MyNotebook'}))
+adb.add(Artifact.factory('fields', {section: 'Test1', notebook: 'MyNotebook'}))
 	.then((artifact: Artifact) => {
 		console.log(artifact.toString());
 		let notebooks = adb.notebooks();

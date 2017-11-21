@@ -7,13 +7,13 @@ import * as path from 'path';
 import {Fixture} from 'util.fixture';
 import {join} from 'util.join';
 import {Artifact, Binder} from '../index';
-import {IArtifactSearch} from '../lib/artifact';
+import {ArtifactSearch} from '../lib/artifact';
 import {cleanup, validateBinder} from './helpers';
 
 const emptyDir = require('empty-dir');
 
-test.after.always.cb(t => {
-	cleanup(path.basename(__filename), t);
+test.after.always(async t => {
+	await cleanup(path.basename(__filename), t);
 });
 
 test('Send an item to the trash from the database and then restore it', async t => {
@@ -24,7 +24,7 @@ test('Send an item to the trash from the database and then restore it', async t 
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'test4.txt'
@@ -59,7 +59,7 @@ test('Send a notebook in the binder to the trash and then restore it', async t =
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default'
 	};
@@ -93,7 +93,7 @@ test('Try to send a section from the binder to the trash and restore it', async 
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2'
 	};
 	const sectionName = path.join(adb.config.dbdir, 'Trash', lookup.section);
@@ -126,7 +126,7 @@ test('Try to restore a deleted item with a duplicate/collision', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'test4.txt'
@@ -157,7 +157,7 @@ test('Try to send a section with duplicate/collision to the Trash', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2'
 	};
 	const artifactName: string = join(adb.config.dbdir, 'Trash', lookup.section);
@@ -181,7 +181,7 @@ test('Try to send a notebook with duplicate/collision to the Trash', async t => 
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default'
 	};
@@ -253,7 +253,7 @@ test(`Try to restore artifact that doesn't exists`, async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'asdfasdgadsgadf'
@@ -277,7 +277,7 @@ test('Test immediate deletion of artifact from the schema', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'test4.txt'
@@ -303,7 +303,7 @@ test('Test immediate deletion of notebook from the schema', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default'
 	};
@@ -328,7 +328,7 @@ test('Test immediate deletion of section from the schema', async t => {
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2'
 	};
 
@@ -352,7 +352,7 @@ test('Test removal of artifact with missing Trash directory (negative test)', as
 
 	validateBinder(t, adb, 'sampledb', fixture.dir, adb.initialized);
 
-	const lookup: IArtifactSearch = {
+	const lookup: ArtifactSearch = {
 		section: 'Test2',
 		notebook: 'Default',
 		filename: 'test4.txt'

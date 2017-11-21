@@ -6,6 +6,7 @@
 
 'use strict';
 
+import autobind from 'autobind-decorator';
 import {EventEmitter} from 'events';
 import * as fs from 'fs-extra';
 import * as rimraf from 'rimraf';
@@ -22,11 +23,11 @@ import {Binder} from './binder';
 
 const pkg = require('../package.json');
 
-export interface IBinders {
+export interface Binders {
 	[key: string]: Binder;
 }
 
-export interface IBinderManagerOpts {
+export interface BinderManagerOpts {
 	defaultName?: string;
 	defaultDirectory?: string;
 }
@@ -38,8 +39,8 @@ export class BinderManager extends EventEmitter {
 
 	private _baseDirectory: string;
 	private _bindersDirectory: string;
-	private _binders: IBinders = {};
-	private _opts: IBinderManagerOpts = {
+	private _binders: Binders = {};
+	private _opts: BinderManagerOpts = {
 		defaultName: 'default',
 		defaultDirectory: join(home, 'Notebooks')
 	};
@@ -59,24 +60,23 @@ export class BinderManager extends EventEmitter {
 	 * @param baseDirectory {string} the location where all of the notebook configurations
 	 * that are managed by this instance are stored.
 	 */
-	constructor(baseDirectory: string, opts?: IBinderManagerOpts) {
+	constructor(baseDirectory: string, opts?: BinderManagerOpts) {
 		super();
-		const self = this;
 
-		self._opts = Object.assign(self._opts, opts);
-		self._baseDirectory = baseDirectory;
-		self._bindersDirectory = join(baseDirectory, 'binders');
-		self._trashDirectory = join(baseDirectory, 'binders', 'Trash');
+		this._opts = Object.assign(this._opts, opts);
+		this._baseDirectory = baseDirectory;
+		this._bindersDirectory = join(baseDirectory, 'binders');
+		this._trashDirectory = join(baseDirectory, 'binders', 'Trash');
 
-		if (!fs.existsSync(self._bindersDirectory)) {
-			fs.mkdirsSync(self._bindersDirectory);
+		if (!fs.existsSync(this._bindersDirectory)) {
+			fs.mkdirsSync(this._bindersDirectory);
 		}
 
-		if (!fs.existsSync(self._trashDirectory)) {
-			fs.mkdirsSync(self._trashDirectory);
+		if (!fs.existsSync(this._trashDirectory)) {
+			fs.mkdirsSync(this._trashDirectory);
 		}
 
-		self.log = logger.instance({
+		this.log = logger.instance({
 			debug: pkg.debug,
 			toConsole: false,
 			directory: baseDirectory,
@@ -85,9 +85,9 @@ export class BinderManager extends EventEmitter {
 			namespace: 'notesdb_manager'
 		});
 
-		self.log.info('Initializing the binder manager instance.');
-		self.load();
-		self.emit('loaded', self);
+		this.log.info('Initializing the binder manager instance.');
+		this.load();
+		this.emit('loaded', this);
 	}
 
 	get baseDirectory(): string {
@@ -107,13 +107,13 @@ export class BinderManager extends EventEmitter {
 	 * it doesn't exist.
 	 * @param binderName {string} The name of the binder to create
 	 * @param binderDirectory {string} The location of the data files for this binder
-	 * @param self {BinderManager} reference to the current instance of this class
 	 * @returns success if the add works, otherwise failure.
 	 */
-	public add(binderName: string, binderDirectory: string, self = this): number {
-		self.log.info(`Adding binder '${binderName}' to ${binderDirectory}`);
+	@autobind
+	public add(binderName: string, binderDirectory: string): number {
+		this.log.info(`Adding binder '${binderName}' to ${binderDirectory}`);
 
-		const configRoot = join(self.bindersDirectory, binderName);
+		const configRoot = join(this.bindersDirectory, binderName);
 		if (!fs.existsSync(configRoot)) {
 			try {
 				const adb: Binder = new Binder({
@@ -121,14 +121,14 @@ export class BinderManager extends EventEmitter {
 					configRoot: configRoot,
 					root: binderDirectory
 				});
-				self.log.debug(`Adding binder '${adb.binderName}' to manager`);
-				self._binders[binderName] = adb;
+				this.log.debug(`Adding binder '${adb.binderName}' to manager`);
+				this._binders[binderName] = adb;
 			} catch (err) {
-				self.log.error(err.message);
+				this.log.error(err.message);
 				return failure;
 			}
 		} else {
-			self.log.warn('Binder already exists, will not add a new one');
+			this.log.warn('Binder already exists, will not add a new one');
 			return failure;
 		}
 
@@ -138,12 +138,12 @@ export class BinderManager extends EventEmitter {
 	/**
 	 * Permanently removes the contents of the `Trash` directory.  This directory
 	 * is filled by the `remove()`.
-	 * @param self {BinderManager} reference to the current instance of this class
 	 * @returns {string[]} an array containing the directories that were removed.
 	 */
-	public emptyTrash(self = this): string[] {
-		const dirs: string[] = getDirectories(self.trashDirectory).map((directory: string) => {
-			return join(self.trashDirectory, directory);
+	@autobind
+	public emptyTrash(): string[] {
+		const dirs: string[] = getDirectories(this.trashDirectory).map((directory: string) => {
+			return join(this.trashDirectory, directory);
 		});
 
 		dirs.forEach((directory: string) => {
@@ -156,25 +156,24 @@ export class BinderManager extends EventEmitter {
 	/**
 	 * Retrieves a Binder instance from the manager by name.
 	 * @param binderName {string} The name of the binder to find.
-	 * @param self {BinderManager} reference to the current instance of this class
-	 * @returns {Binder} a reference to the binder within the manager.  If it doesn't exist
 	 * then undefined is returned.
 	 */
-	public get(binderName: string, self = this): Binder {
-		self.log.info(`Retrieving binder '${binderName}'`);
-		return self._binders[binderName];
+	@autobind
+	public get(binderName: string): Binder {
+		this.log.info(`Retrieving binder '${binderName}'`);
+		return this._binders[binderName];
 	}
 
 	/**
 	 * Checks the current binder list for the existence of the requested
 	 * binder.
 	 * @param binderName {string} The name of the binder to find.
-	 * @param self {BinderManager} reference to the current instance of this class
 	 * @returns {boolean} true if the binder is found within the manager otherwise
 	 * false.
 	 */
-	public hasBinder(binderName: string, self = this): boolean {
-		if (self.list().indexOf(binderName) === -1) {
+	@autobind
+	public hasBinder(binderName: string): boolean {
+		if (this.list().indexOf(binderName) === -1) {
 			return false;
 		}
 
@@ -183,16 +182,16 @@ export class BinderManager extends EventEmitter {
 
 	/**
 	 * Retrieves information about each of the binders under control of the manager
-	 * @param self {BinderManager} reference to the current instance of this class
 	 * @returns {string} a string representing each of the binders in the manager
 	 */
-	public info(self = this): string {
+	@autobind
+	public info(): string {
 		const l: string[] = ['Binder Info'];
 
-		for (const key in self._binders) {
-			if (self._binders.hasOwnProperty(key)) {
+		for (const key in this._binders) {
+			if (this._binders.hasOwnProperty(key)) {
 				l.push(`* ${key}`);
-				l.push(`${JSON.stringify(self._binders[key].config, null, 4)}\n`);
+				l.push(`${JSON.stringify(this._binders[key].config, null, 4)}\n`);
 			}
 		}
 		l.push('');
@@ -203,12 +202,12 @@ export class BinderManager extends EventEmitter {
 	/**
 	 * Retrieves the list of binders under control of this manager.  The trash folder
 	 * is excluded from the list.
-	 * @param self {BinderManager} reference to the current instance of this class
 	 * @returns an array of strings that represent the binder names.  If there are no
 	 * binders, then an empty array is returned.
 	 */
-	public list(self = this): string[] {
-		return getDirectories(self.bindersDirectory).filter(binderName => {
+	@autobind
+	public list(): string[] {
+		return getDirectories(this.bindersDirectory).filter(binderName => {
 			return binderName !== 'Trash';
 		});
 	}
@@ -218,16 +217,16 @@ export class BinderManager extends EventEmitter {
 	 * to the name of the moved binder.  If the binder doean't exist, then a warning
 	 * message is written to the manager log file.
 	 * @param binderName {string} the name of the binder that will be moved
-	 * @param self {BinderManager} reference to the current instance of this class
 	 * @return {string} the path to the newly removed item (to the trash)
 	 */
-	public remove(binderName: string, self = this): string {
-		const src: string = join(self.bindersDirectory, binderName);
-		const dst: string = join(self.bindersDirectory, 'Trash', `${binderName}-${ts()}`);
+	@autobind
+	public remove(binderName: string): string {
+		const src: string = join(this.bindersDirectory, binderName);
+		const dst: string = join(this.bindersDirectory, 'Trash', `${binderName}-${ts()}`);
 		if (fs.existsSync(src)) {
 			fs.moveSync(src, dst);
 		} else {
-			self.log.warn(`${binderName} doesn't exist to remove`);
+			this.log.warn(`${binderName} doesn't exist to remove`);
 			return '';
 		}
 
@@ -235,24 +234,46 @@ export class BinderManager extends EventEmitter {
 	}
 
 	/**
+	 * Iterates through all binder instances and calls their shutdown
+	 * methods.
+	 */
+	@autobind
+	public shutdown() {
+		for (const name in this._binders) {
+			if (this._binders.hasOwnProperty(name)) {
+				const adb = this._binders[name];
+
+				this.log.info(`Shutdown binder ${name}`);
+				adb.shutdown()
+				.then((message: string) => {
+					this.log.info(`${name}: ${message}`);
+				})
+				.catch((err: string) => {
+					this.log.error(err);
+				});
+			}
+		}
+	}
+
+	/**
 	 * Reads all of the binders in given binder directory, attemps to instantiate them,
 	 * and save their references in the _binders array.
 	 * @private
-	 * @param self {BinderManager} reference to the current instance of this class
 	 */
-	private load(self = this) {
-		const l = self.list();
+	@autobind
+	private load() {
+		const l = this.list();
 
 		if (l.length === 0) {
 			// no binders, so create an empty default
-			self.add(self._opts.defaultName, self._opts.defaultDirectory);
+			this.add(this._opts.defaultName, this._opts.defaultDirectory);
 		} else {
 			l.forEach((directory: string) => {
 				const adb: Binder = new Binder({
-					configRoot: join(self.bindersDirectory, directory)
+					configRoot: join(this.bindersDirectory, directory)
 				});
-				self.log.debug(`Loading binder '${adb.binderName}' into manager`);
-				self._binders[adb.binderName] = adb;
+				this.log.debug(`Loading binder '${adb.binderName}' into manager`);
+				this._binders[adb.binderName] = adb;
 			});
 		}
 	}

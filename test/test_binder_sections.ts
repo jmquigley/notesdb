@@ -8,8 +8,8 @@ import {Artifact, Binder} from '../index';
 import {ArtifactType} from '../lib/artifact';
 import {cleanup, validateArtifact, validateBinder} from './helpers';
 
-test.after.always.cb(t => {
-	cleanup(path.basename(__filename), t);
+test.after.always(async t => {
+	await cleanup(path.basename(__filename), t);
 });
 
 test('Try to get sections from an unitialized database', t => {

@@ -6,6 +6,7 @@
 
 'use strict';
 
+import autobind from 'autobind-decorator';
 import {EventEmitter} from 'events';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
@@ -18,9 +19,9 @@ import {INilCallback, nil} from 'util.toolbox';
 import {
 	Artifact,
 	artifactComparator,
-	ArtifactType,
-	IArtifactMeta,
-	IArtifactSearch
+	ArtifactMeta,
+	ArtifactSearch,
+	ArtifactType
 } from './artifact';
 
 const walk = require('klaw-sync');
@@ -30,20 +31,20 @@ const validNameChars = `-\\.+@_!$&0-9a-zA-Z `; // regex [] pattern
 const defIgnoreList: string[] = ['.DS_Store', '.placeholder', 'Trash'];
 const pkg = require('../package.json');
 
-export interface INotebook {
+export interface Notebook {
 	[key: string]: Artifact;
 }
 
-export interface ISection {
-	[key: string]: INotebook;
+export interface Section {
+	[key: string]: Notebook;
 }
 
-export interface ISchema {
-	notes: {[key: string]: ISection};
-	trash: {[key: string]: ISection};
+export interface Schema {
+	notes: {[key: string]: Section};
+	trash: {[key: string]: Section};
 }
 
-export interface IBinderOpts {
+export interface BinderOpts {
 	binderName?: string;
 	configRoot?: string;
 	env?: object;
@@ -54,13 +55,13 @@ export interface IBinderOpts {
 	maxRecents?: number;
 }
 
-export interface IAppender {
+export interface Appender {
 	category?: string;
 	filename?: string;
 	type: string;
 }
 
-export interface IConfigDB {
+export interface ConfigDB {
 	binderName: string;
 	configFile: string;
 	configRoot: string;
@@ -74,25 +75,25 @@ export interface IConfigDB {
 	maxRecents: number;
 }
 
-export interface INamespace {
+export interface Namespace {
 	notes: string;
 	trash: string;
 }
 
-export const NS: INamespace = {
+export const NS: Namespace = {
 	notes: 'notes',
 	trash: 'trash'
 };
 
-export interface INotesMeta {
-	[key: string]: IArtifactMeta;
+export interface NotesMeta {
+	[key: string]: ArtifactMeta;
 }
 
 /** Creates an instance of the text binder class */
 export class Binder extends EventEmitter {
 
 	private _artifacts: any = new Map();
-	private _config: IConfigDB = {
+	private _config: ConfigDB = {
 		binderName: '',
 		configFile: '',
 		configRoot: '',
@@ -109,10 +110,10 @@ export class Binder extends EventEmitter {
 	private _ignore: string[] = [];
 	private _initialized: boolean = false;
 	private _log: Logger = null;
-	private _meta: INotesMeta = {};
+	private _meta: NotesMeta = {};
 	private _recents: Deque<Artifact> = null;
 	private _reID: RegExp = new RegExp(`^[${validNameChars}]+$`);
-	private _schema: ISchema = {
+	private _schema: Schema = {
 		notes: {},
 		trash: {}
 	};
@@ -146,10 +147,8 @@ export class Binder extends EventEmitter {
 	 * save check is performed.  The schema is scanned and saved very N
 	 * millis.
 	 */
-	constructor(opts?: IBinderOpts) {
+	constructor(opts?: BinderOpts) {
 		super();
-
-		const self = this;
 
 		opts = Object.assign({
 			binderName: 'adb',
@@ -167,84 +166,88 @@ export class Binder extends EventEmitter {
 		}
 
 		const configFile = join(opts.configRoot, 'config.json');
-		self.ignore = _.union(opts.ignore, defIgnoreList);
+		this.ignore = _.union(opts.ignore, defIgnoreList);
 
 		if (fs.existsSync(configFile)) {
 			// Opens an existing configuration file
-			self._config = Object.assign(
-				self._config,
+			this._config = Object.assign(
+				this._config,
 				JSON.parse(fs.readFileSync(configFile).toString()));
 
-			if (self.config.hasOwnProperty('metaFile') && fs.existsSync(self._config.metaFile)) {
-				self._meta = JSON.parse(fs.readFileSync(self._config.metaFile).toString());
+			if (this.config.hasOwnProperty('metaFile') && fs.existsSync(this._config.metaFile)) {
+				this._meta = JSON.parse(fs.readFileSync(this._config.metaFile).toString());
 			}
 
 			// Apply optional overrides to an existing configuration
-			self._config.bufSize = opts.bufSize;
-			self._config.saveInterval = opts.saveInterval;
-			self._config.maxRecents = opts.maxRecents;
+			this._config.bufSize = opts.bufSize;
+			this._config.saveInterval = opts.saveInterval;
+			this._config.maxRecents = opts.maxRecents;
 		} else {
 			// Creates a new database
-			self._config = Object.assign(
-				self._config,
-				self.createInitialConfig(opts));
+			this._config = Object.assign(
+				this._config,
+				this.createInitialConfig(opts));
 
-			if (!self.isValidName(self.config.binderName)) {
-				throw new Error(`Invalid binder name '${self.config.binderName}'.  Can only use '${validNameChars}'.`);
+			if (!this.isValidName(this.config.binderName)) {
+				throw new Error(`Invalid binder name '${this.config.binderName}'.  Can only use '${validNameChars}'.`);
 			}
 
-			if (!fs.existsSync(self.config.configRoot)) {
-				fs.mkdirsSync(self.config.configRoot);
+			if (!fs.existsSync(this.config.configRoot)) {
+				fs.mkdirsSync(this.config.configRoot);
 			}
-			fs.writeFileSync(self.config.configFile, JSON.stringify(self.config, null, '\t'));
-			fs.writeFileSync(self.config.metaFile, JSON.stringify(self.meta, null, '\t'));
+			fs.writeFileSync(this.config.configFile, JSON.stringify(this.config, null, '\t'));
+			fs.writeFileSync(this.config.metaFile, JSON.stringify(this.meta, null, '\t'));
 
-			if (!fs.existsSync(self.config.dbdir)) {
-				fs.mkdirsSync(self.config.dbdir);
+			if (!fs.existsSync(this.config.dbdir)) {
+				fs.mkdirsSync(this.config.dbdir);
 			}
 
-			if (!fs.existsSync(self.config.trash)) {
-				fs.mkdirsSync(self.config.trash);
+			if (!fs.existsSync(this.config.trash)) {
+				fs.mkdirsSync(this.config.trash);
 			}
 		}
 
-		self._recents = new Deque<Artifact>(self.config.maxRecents, null, artifactComparator);
+		this._recents = new Deque<Artifact>(this.config.maxRecents, null, artifactComparator);
 
-		self._log = logger.instance({
+		this._log = logger.instance({
 			debug: pkg.debug,
 			toConsole: false,
-			directory: self.config.logdir,
+			directory: this.config.logdir,
 			eventFile: null,
 			messageFile: 'notesdb.log',
 			namespace: 'notesdb_binder'
 		});
 
-		self.load('notes');
-		self.load('trash');
+		this.load('notes');
+		this.load('trash');
 
-		self._fnSaveInterval = setInterval(() => {
-			self.save()
-				.then((adb: Binder) => {
-					adb._timedSave = true;
-				})
-				.catch((err: string) => {
-					self.log.error(`Timed save failure: ${err}`);
-				});
-		}, opts.saveInterval);
+		if (opts.saveInterval > 0) {
+			this._fnSaveInterval = setInterval(() => {
+				this.save()
+					.then((adb: Binder) => {
+						adb._timedSave = true;
+					})
+					.catch((err: string) => {
+						this.log.error(`Timed save failure: ${err}`);
+					});
+			}, opts.saveInterval);
+		} else {
+			this._fnSaveInterval = null;
+		}
 
 		// When a recent file is added, and one is "aged" off, then a call
 		// the save to make sure it is written before removal.
-		self.recents.on('remove', (artifact: Artifact) => {
-			self.saveArtifact(artifact)
+		this.recents.on('remove', (artifact: Artifact) => {
+			this.saveArtifact(artifact)
 				.then(() => {
-					self.log.info(`Removal save of ${artifact.absolute()}`);
+					this.log.info(`Removal save of ${artifact.absolute()}`);
 				})
 				.catch((err: string) => {
-					self.log.error(`Removal save failed for ${artifact.absolute()}: ${err}`);
+					this.log.error(`Removal save failed for ${artifact.absolute()}: ${err}`);
 				});
 		});
 
-		self.emit('loaded', self);
+		this.emit('loaded', this);
 	}
 
 	/**
@@ -255,13 +258,13 @@ export class Binder extends EventEmitter {
 	 * The thenable return for this call is a reference to the artifact that
 	 * was created.
 	 *
-	 * @param opts {IArtifactSearch} the artifact object to create (see above)
+	 * @param opts {ArtifactSearch} the artifact object to create (see above)
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public add(opts: IArtifactSearch, area: string = NS.notes, self = this): any {
+	@autobind
+	public add(opts: ArtifactSearch, area: string = NS.notes): any {
 		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
 			let artifact: Artifact = null;
 			if (opts instanceof Artifact) {
@@ -269,19 +272,19 @@ export class Binder extends EventEmitter {
 			} else {
 				artifact = Artifact.factory('fields', opts);
 			}
-			artifact.root = self.config.dbdir;
+			artifact.root = this.config.dbdir;
 
 			try {
 				if (artifact.type === ArtifactType.SNA) {
-					self.createSection(artifact, area);
-					self.createNotebook(artifact, area);
-					self.createArtifact(artifact, resolve, reject, area);
+					this.createSection(artifact, area);
+					this.createNotebook(artifact, area);
+					this.createArtifact(artifact, resolve, reject, area);
 				} else if (artifact.type === ArtifactType.SN) {
-					self.createSection(artifact, area);
-					self.createNotebook(artifact, area);
+					this.createSection(artifact, area);
+					this.createNotebook(artifact, area);
 					resolve(artifact);
 				} else if (artifact.type === ArtifactType.S) {
-					self.createSection(artifact, area);
+					this.createSection(artifact, area);
 					resolve(artifact);
 				} else {
 					reject('Trying to add invalid artifact to DB');
@@ -301,10 +304,10 @@ export class Binder extends EventEmitter {
 	 * binder unless they already exist.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public create(schema: string[] | string, area: string = NS.notes, self = this) {
+	@autobind
+	public create(schema: string[] | string, area: string = NS.notes) {
 		return new Promise((resolve, reject) => {
 			if (typeof schema === 'string') {
 				schema = [schema];
@@ -322,11 +325,11 @@ export class Binder extends EventEmitter {
 				schema.forEach((it: string) => {
 					const artifact = Artifact.factory('fields', {
 						section: it,
-						root: self.config.dbdir
+						root: this.config.dbdir
 					});
-					self.createSection(artifact, area);
-				}, self);
-				resolve(self);
+					this.createSection(artifact, area);
+				}, this);
+				resolve(this);
 			} catch (err) {
 				reject(err.message);
 			}
@@ -341,27 +344,27 @@ export class Binder extends EventEmitter {
 	 *
 	 * The thenable resolves to a reference to the Binder instance.
 	 *
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
-	public emptyTrash(self = this) {
+	@autobind
+	public emptyTrash() {
 		return new Promise((resolve, reject) => {
-			if (fs.existsSync(self.config.trash) &&
-				self.config.trash.endsWith(`/Trash`) &&
-				self.config.trash.startsWith(self.config.dbdir)) {
-				self.log.info('Emptying trash: ${self.config.trash}');
+			if (fs.existsSync(this.config.trash) &&
+				this.config.trash.endsWith(`/Trash`) &&
+				this.config.trash.startsWith(this.config.dbdir)) {
+				this.log.info('Emptying trash: ${this.config.trash}');
 
-				fs.remove(self.config.trash, (err: Error) => {
+				fs.remove(this.config.trash, (err: Error) => {
 					if (err) {
 						reject(err.message);
 					}
 
-					self.schema.trash = {};
-					fs.mkdirsSync(self.config.trash);
-					resolve(self);
+					this.schema.trash = {};
+					fs.mkdirsSync(this.config.trash);
+					resolve(this);
 				});
 			} else {
-				reject(`Invalid trash directory, no empty: ${self.config.trash}`);
+				reject(`Invalid trash directory, no empty: ${this.config.trash}`);
 			}
 		});
 	}
@@ -375,11 +378,12 @@ export class Binder extends EventEmitter {
 	 * search criteria.
 	 *
 	 * @param search {string} the regex string to used as the search criteria.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public find(search: string, self = this) {
+	@autobind
+	public find(search: string) {
 		const regex = new RegExp(search);
+		const self = this;
 
 		function searchArtifact(artifact: Artifact) {
 			return new Promise((resolve, reject) => {
@@ -400,7 +404,7 @@ export class Binder extends EventEmitter {
 
 		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
 			const promises: Array<Promise<any>> = [];
-			for (const artifact of self._artifacts.values()) {
+			for (const artifact of this._artifacts.values()) {
 				promises.push(searchArtifact(artifact));
 			}
 
@@ -428,19 +432,19 @@ export class Binder extends EventEmitter {
 	 *
 	 * The thenable resolves to the artifact created by the get request.
 	 *
-	 * @param opts {IArtifactSearch} the section/notebook/filename to search
+	 * @param opts {ArtifactSearch} the section/notebook/filename to search
 	 * for within the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
-	public get(opts: IArtifactSearch, area: string = NS.notes, self = this) {
+	@autobind
+	public get(opts: ArtifactSearch, area: string = NS.notes) {
 		return new Promise((resolve, reject) => {
 			const type: ArtifactType = Artifact.isType(opts);
 
-			if (type === ArtifactType.SNA && self.hasArtifact(opts)) {
-				const artifact = self._schema[area][opts.section][opts.notebook][opts.filename];
+			if (type === ArtifactType.SNA && this.hasArtifact(opts)) {
+				const artifact = this._schema[area][opts.section][opts.notebook][opts.filename];
 				const absolute = artifact.absolute();
 
 				if (fs.existsSync(absolute) && !artifact.loaded) {
@@ -450,8 +454,8 @@ export class Binder extends EventEmitter {
 						artifact.loaded = true;
 						artifact.makeClean();
 
-						if (!self.recents.contains(artifact)) {
-							self.recents.enqueue(artifact);
+						if (!this.recents.contains(artifact)) {
+							this.recents.enqueue(artifact);
 						}
 
 						fs.stat(absolute, (err, stats) => {
@@ -459,7 +463,7 @@ export class Binder extends EventEmitter {
 								reject(err.message);
 							}
 
-							self.loadMetadata(artifact, stats);
+							this.loadMetadata(artifact, stats);
 							resolve(artifact);
 						});
 					});
@@ -472,17 +476,17 @@ export class Binder extends EventEmitter {
 						artifact.buf += chunk;
 					});
 				} else {
-					if (!self.recents.contains(artifact)) {
-						self.recents.enqueue(artifact);
+					if (!this.recents.contains(artifact)) {
+						this.recents.enqueue(artifact);
 					}
 					resolve(artifact);
 				}
-			} else if ((type === ArtifactType.SN && self.hasNotebook(opts, area)) ||
-				(type === ArtifactType.S && self.hasSection(opts, area))) {
+			} else if ((type === ArtifactType.SN && this.hasNotebook(opts, area)) ||
+				(type === ArtifactType.S && this.hasSection(opts, area))) {
 				const artifact = Artifact.factory('fields', opts);
-				artifact.root = self.config.dbdir;
-				if (!self.recents.contains(artifact)) {
-					self.recents.enqueue(artifact);
+				artifact.root = this.config.dbdir;
+				if (!this.recents.contains(artifact)) {
+					this.recents.enqueue(artifact);
 				}
 				resolve(artifact);
 			} else {
@@ -494,18 +498,18 @@ export class Binder extends EventEmitter {
 	/**
 	 * Checks to see if a document is in the repository by name, notebook and
 	 * section.
-	 * @param search {IArtifactSearch} an object that represents the item to
+	 * @param search {ArtifactSearch} an object that represents the item to
 	 * find in the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {boolean} true if the artifact is found, otherwise false
 	 */
-	public hasArtifact(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
-		if (self.hasSection(search, area) && self.hasNotebook(search, area)) {
+	@autobind
+	public hasArtifact(search: ArtifactSearch, area: string = NS.notes): boolean {
+		if (this.hasSection(search, area) && this.hasNotebook(search, area)) {
 
 			return Object.prototype.hasOwnProperty
-				.call(self.schema[area][search.section][search.notebook], search.filename);
+				.call(this.schema[area][search.section][search.notebook], search.filename);
 		}
 
 		return false;
@@ -513,18 +517,18 @@ export class Binder extends EventEmitter {
 
 	/**
 	 * Checks the given section for the existence of a notebook by name.
-	 * @param search {IArtifactSearch} an object that represents the item to
+	 * @param search {ArtifactSearch} an object that represents the item to
 	 * find in the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {boolean} true if the notebook is found, otherwise false
 	 */
-	public hasNotebook(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
-		if (self.schema.hasOwnProperty(area)) {
-			if (self.schema[area].hasOwnProperty(search.section)) {
+	@autobind
+	public hasNotebook(search: ArtifactSearch, area: string = NS.notes): boolean {
+		if (this.schema.hasOwnProperty(area)) {
+			if (this.schema[area].hasOwnProperty(search.section)) {
 				return Object.prototype.hasOwnProperty
-					.call(self.schema[area][search.section], search.notebook);
+					.call(this.schema[area][search.section], search.notebook);
 			}
 		}
 
@@ -533,16 +537,16 @@ export class Binder extends EventEmitter {
 
 	/**
 	 * Checks the current schema for the existence of a section.
-	 * @param search {IArtifactSearch} an object that represents the item to
+	 * @param search {ArtifactSearch} an object that represents the item to
 	 * find in the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @return {boolean} true if the section is found, otherwise false.
 	 */
-	public hasSection(search: IArtifactSearch, area: string = NS.notes, self = this): boolean {
-		if (self.schema.hasOwnProperty(area)) {
-			return Object.prototype.hasOwnProperty.call(self.schema[area], search.section);
+	@autobind
+	public hasSection(search: ArtifactSearch, area: string = NS.notes): boolean {
+		if (this.schema.hasOwnProperty(area)) {
+			return Object.prototype.hasOwnProperty.call(this.schema[area], search.section);
 		}
 
 		return false;
@@ -555,18 +559,18 @@ export class Binder extends EventEmitter {
 	 * are located.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Array} a list of notebook names as strings
 	 */
-	public notebooks(sectionName: string, area: string = NS.notes, self = this): string[] {
+	@autobind
+	public notebooks(sectionName: string, area: string = NS.notes): string[] {
 		const notebooks: string[] = [];
 
-		if (!self.initialized) {
+		if (!this.initialized) {
 			throw new Error('Trying to retrieve notebooks from an unitialized database.');
 		}
 
-		if (self.hasSection({section: sectionName}, area)) {
-			_.forOwn(self.schema[area][sectionName], (value: any, key: string) => {
+		if (this.hasSection({section: sectionName}, area)) {
+			_.forOwn(this.schema[area][sectionName], (value: any, key: string) => {
 				value.toString();
 				notebooks.push(key);
 			});
@@ -583,15 +587,15 @@ export class Binder extends EventEmitter {
 	 * structure after the instance has been loaded.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
-	public reload(area: string = NS.notes, self = this) {
+	@autobind
+	public reload(area: string = NS.notes) {
 		return new Promise((resolve, reject) => {
-			self.initialized = false;
+			this.initialized = false;
 			try {
-				self.load(area);
-				resolve(self);
+				this.load(area);
+				resolve(this);
 			} catch (err) {
 				reject(err.message);
 			}
@@ -603,30 +607,30 @@ export class Binder extends EventEmitter {
 	 *
 	 * The thenable resolves to a reference to the Binder instance.
 	 *
-	 * @param opts {IArtifactSearch} the section/notebook/filename to search
+	 * @param opts {ArtifactSearch} the section/notebook/filename to search
 	 * for within the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public remove(opts: IArtifactSearch, area: string = NS.notes, self = this) {
+	@autobind
+	public remove(opts: ArtifactSearch, area: string = NS.notes) {
 		return new Promise((resolve, reject) => {
-			self.get(opts)
+			this.get(opts)
 				.then((artifact: Artifact) => {
 					switch (artifact.type) {
 						case ArtifactType.SNA:
-							self._artifacts.delete(artifact.path());
-							self.recents.eject(artifact);
-							delete self.schema[area][artifact.section][artifact.notebook][artifact.filename];
+							this._artifacts.delete(artifact.path());
+							this.recents.eject(artifact);
+							delete this.schema[area][artifact.section][artifact.notebook][artifact.filename];
 							break;
 
 						case ArtifactType.SN:
-							delete self.schema[area][artifact.section][artifact.notebook];
+							delete this.schema[area][artifact.section][artifact.notebook];
 							break;
 
 						case ArtifactType.S:
-							delete self.schema[area][artifact.section];
+							delete this.schema[area][artifact.section];
 							break;
 
 						default:
@@ -639,7 +643,7 @@ export class Binder extends EventEmitter {
 							reject(err.message);
 						}
 
-						resolve(self);
+						resolve(this);
 					});
 				})
 				.catch((err: string) => {
@@ -653,13 +657,13 @@ export class Binder extends EventEmitter {
 	 *
 	 * The thenable resolves to a reference to the renamed artifact.
 	 *
-	 * @param src {IArtifactSearch} the source artifact that will be changed
-	 * @param dst {IArtifactSearch} the destination artifact that the source
+	 * @param src {ArtifactSearch} the source artifact that will be changed
+	 * @param dst {ArtifactSearch} the destination artifact that the source
 	 * will be changed into.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
-	public rename(src: IArtifactSearch, dst: IArtifactSearch, self = this) {
+	@autobind
+	public rename(src: ArtifactSearch, dst: ArtifactSearch) {
 		return new Promise((resolve, reject) => {
 			let srcArtifact: Artifact = null;
 			let dstArtifact: Artifact = null;
@@ -668,13 +672,13 @@ export class Binder extends EventEmitter {
 				reject(`No difference between artifacts in rename request`);
 			}
 
-			self.get(src)
+			this.get(src)
 				.then((artifact: Artifact) => {
 					srcArtifact = artifact;
 					if (srcArtifact.type !== Artifact.isType(dst)) {
 						reject('SRC artifact type does not match DST');
 					}
-					return self.add(dst);
+					return this.add(dst);
 				})
 				.then((artifact: Artifact) => {
 					dstArtifact = artifact;
@@ -683,7 +687,7 @@ export class Binder extends EventEmitter {
 					dstArtifact.makeDirty();
 				})
 				.then(() => {
-					return self.remove(srcArtifact);
+					return this.remove(srcArtifact);
 				})
 				.then(() => {
 					resolve(dstArtifact);
@@ -701,16 +705,16 @@ export class Binder extends EventEmitter {
 	 *
 	 * The thenable resolves to the artifact that was retored.
 	 *
-	 * @param opts {IArtifactSearch} The section/notebook/filename to restore
-	 * @param self {Binder} a reference to the notes database instance
+	 * @param opts {ArtifactSearch} The section/notebook/filename to restore
 	 * @returns {Promise} a javascript promise object.
 	 */
-	public restore(opts: IArtifactSearch, self = this) {
+	@autobind
+	public restore(opts: ArtifactSearch) {
 		return new Promise((resolve, reject) => {
 			const dstArtifact: Artifact = Artifact.factory('fields', opts);
-			dstArtifact.root = self.config.dbdir;
+			dstArtifact.root = this.config.dbdir;
 			const srcArtifact: Artifact = dstArtifact.clone();
-			srcArtifact.root = join(self.config.dbdir, 'Trash');
+			srcArtifact.root = join(this.config.dbdir, 'Trash');
 
 			// Compute the garbage can file/directory location
 			if (!fs.existsSync(srcArtifact.absolute())) {
@@ -732,7 +736,7 @@ export class Binder extends EventEmitter {
 				// This is an expensive reload process.  When it s single item it's
 				// expensive to do this, but if it's a directory with a lot of files
 				// restored, then it would be worth the overhead.
-				self.reload()
+				this.reload()
 					.then(() => {
 						resolve(dstArtifact);
 					})
@@ -749,19 +753,18 @@ export class Binder extends EventEmitter {
 	 * artifact list is scanned for dirty artifacts that need to be saved.
 	 *
 	 * The thenable resolves to a reference to the Binder instance.
-	 *
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object
 	 */
-	public save(self = this) {
+	@autobind
+	public save() {
 		return new Promise((resolve, reject) => {
 			try {
-				self.saveBinder((err: Error) => {
+				this.saveBinder((err: Error) => {
 					if (err) {
 						reject(err.message);
 					}
 
-					resolve(self);
+					resolve(this);
 				});
 			} catch (err) {
 				reject(err.message);
@@ -774,6 +777,7 @@ export class Binder extends EventEmitter {
 	 * @param artifact {Artifact} the artifact value to save
 	 * @returns {Promise} a javascript promise object
 	 */
+	@autobind
 	public saveArtifact(artifact: Artifact) {
 		return new Promise((resolve, reject) => {
 			if (artifact.isDirty()) {
@@ -802,18 +806,18 @@ export class Binder extends EventEmitter {
 	 * Enumerates the list of sections from the schema.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Array} a list of section names as strings
 	 */
-	public sections(area: string = NS.notes, self = this): string[] {
+	@autobind
+	public sections(area: string = NS.notes): string[] {
 		const sections: string[] = [];
 
-		if (!self.initialized) {
+		if (!this.initialized) {
 			throw new Error('Trying to retrieve sections from an ' +
 				'unitialized database.');
 		}
 
-		_.forOwn(self.schema[area], (value: any, key: string) => {
+		_.forOwn(this.schema[area], (value: any, key: string) => {
 			value.toString();
 			sections.push(key);
 		});
@@ -824,19 +828,23 @@ export class Binder extends EventEmitter {
 	/**
 	 * Called when the database is no longer needed.  This will cleanup
 	 * operations and shutdown the intervals.
-	 * @param self
 	 * @returns {Promise} a javascript promise object
 	 */
-	public shutdown(self = this) {
+	@autobind
+	public shutdown() {
 		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
 			try {
-				self.saveBinder((err: Error) => {
+				this.saveBinder((err: Error) => {
 					if (err) {
 						reject(err);
 					}
 
-					clearInterval(self._fnSaveInterval);
-					self.initialized = false;
+					if (this._fnSaveInterval != null) {
+						clearInterval(this._fnSaveInterval);
+						this._fnSaveInterval = null;
+					}
+
+					this.initialized = false;
 					resolve('The database is shutdown.');
 				});
 			} catch (err) {
@@ -849,12 +857,12 @@ export class Binder extends EventEmitter {
 	 * Converts the internal structures to a string and returns it.
 	 * @return {string} a string that shows the configuration and schema for
 	 * the database.
-	 * @param self {Binder} a reference to the notes database instance
 	 */
-	public toString(self = this) {
+	@autobind
+	public toString() {
 		const obj = {
-			config: self.config,
-			schema: self.schema
+			config: this.config,
+			schema: this.schema
 		};
 
 		return JSON.stringify(obj, null, '\t');
@@ -867,18 +875,18 @@ export class Binder extends EventEmitter {
 	 *
 	 * The thenable resolves to the artifact that was moved to the trash.
 	 *
-	 * @param opts {IArtifactSearch} the section/notebook/filename to remove
+	 * @param opts {ArtifactSearch} the section/notebook/filename to remove
 	 * for within the schema.
-	 * @param self {Binder} a reference to the notes database instance
 	 * @returns {Promise} a javascript promise object.
 	 */
-	public trash(opts: IArtifactSearch, self = this) {
-		self.createTrash();
+	@autobind
+	public trash(opts: ArtifactSearch) {
+		this.createTrash();
 		return new Promise((resolve, reject) => {
-			self.get(opts)
+			this.get(opts)
 				.then((srcArtifact: Artifact) => {
 					const dstArtifact: Artifact = srcArtifact.clone();
-					dstArtifact.root = join(self.config.dbdir, 'Trash');
+					dstArtifact.root = join(this.config.dbdir, 'Trash');
 					if (fs.existsSync(dstArtifact.absolute())) {
 						dstArtifact.makeUnique();
 					}
@@ -888,7 +896,7 @@ export class Binder extends EventEmitter {
 							reject(err.message);
 						}
 
-						self.remove(srcArtifact)
+						this.remove(srcArtifact)
 							.then((adb: Binder) => {
 								return adb.reload('trash');
 							})
@@ -946,7 +954,7 @@ export class Binder extends EventEmitter {
 		return this._log;
 	}
 
-	get meta(): INotesMeta {
+	get meta(): NotesMeta {
 		return this._meta;
 	}
 
@@ -973,27 +981,27 @@ export class Binder extends EventEmitter {
 	 * that will be created.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
-	private addArtifact(artifact: Artifact, area: string = NS.notes, self = this) {
+	@autobind
+	private addArtifact(artifact: Artifact, area: string = NS.notes) {
 		if (artifact.hasSection() &&
 			artifact.hasNotebook() &&
 			artifact.hasFilename() &&
-			!self.hasArtifact(artifact, area)) {
-			if (self.isValidName(artifact.filename)) {
-				self.loadMetadata(artifact);
-				self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
+			!this.hasArtifact(artifact, area)) {
+			if (this.isValidName(artifact.filename)) {
+				this.loadMetadata(artifact);
+				this.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
 
 				if (area !== NS.trash) {
-					self._artifacts.set(artifact.path(), artifact);
+					this._artifacts.set(artifact.path(), artifact);
 				}
 			} else {
 				throw new Error(`Invalid filename name '${artifact.filename}'.  Can only use '${validNameChars}'.`);
 			}
 		}
 
-		return self;
+		return this;
 	}
 
 	/**
@@ -1008,18 +1016,18 @@ export class Binder extends EventEmitter {
 	 * if this function fails.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
-	private createArtifact(artifact: Artifact, resolve: IResolveFn, reject: IRejectFn, area: string = NS.notes, self = this) {
+	@autobind
+	private createArtifact(artifact: Artifact, resolve: IResolveFn, reject: IRejectFn, area: string = NS.notes) {
 		if (artifact.hasSection() &&
 			artifact.hasNotebook() &&
 			artifact.hasFilename() &&
-			!self.hasArtifact(artifact)) {
-			if (self.isValidName(artifact.filename)) {
-				let dst = join(self.config.dbdir, artifact.path());
+			!this.hasArtifact(artifact)) {
+			if (this.isValidName(artifact.filename)) {
+				let dst = join(this.config.dbdir, artifact.path());
 				if (area === NS.trash) {
-					dst = join(self.config.dbdir, 'Trash', artifact.path());
+					dst = join(this.config.dbdir, 'Trash', artifact.path());
 				}
 
 				if (!fs.existsSync(dst)) {
@@ -1038,14 +1046,14 @@ export class Binder extends EventEmitter {
 					}
 
 					artifact.loaded = true;
-					self.loadMetadata(artifact, stats);
-					self.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
+					this.loadMetadata(artifact, stats);
+					this.schema[area][artifact.section][artifact.notebook][artifact.filename] = artifact;
 
 					if (area !== NS.trash) {
-						self._artifacts.set(artifact.path(), artifact);
+						this._artifacts.set(artifact.path(), artifact);
 					}
 
-					self.log.info(`Added artifact: ${artifact.filename}`);
+					this.log.info(`Added artifact: ${artifact.filename}`);
 					resolve(artifact);
 				});
 			} else {
@@ -1059,11 +1067,11 @@ export class Binder extends EventEmitter {
 	/**
 	 * Takes the name of the initial configuration file and builds the initial
 	 * structure for that configuration.
-	 * @param opts {IBinderOpts} parameters used to instantiate this object.
-	 * @returns {IConfigDB} a newly populated configuration object
+	 * @param opts {BinderOpts} parameters used to instantiate this object.
+	 * @returns {ConfigDB} a newly populated configuration object
 	 * @private
 	 */
-	private createInitialConfig(opts: IBinderOpts): IConfigDB {
+	private createInitialConfig(opts: BinderOpts): ConfigDB {
 		const configFile: string = join(opts.configRoot || './', 'config.json');
 		const metaFile: string = join(opts.configRoot || './', 'meta.json');
 
@@ -1087,36 +1095,36 @@ export class Binder extends EventEmitter {
 	 * @param artifact {Artifact} the name of the notebook to create
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @returns {Binder} a reference to the changed DB instance
 	 * @private
 	 */
-	private createNotebook(artifact: Artifact, area: string = NS.notes, self = this) {
+	@autobind
+	private createNotebook(artifact: Artifact, area: string = NS.notes) {
 		if (artifact.hasSection() && artifact.hasNotebook() &&
-			self.hasSection(artifact, area) &&
-			!self.hasNotebook(artifact, area)) {
-			if (self.isValidName(artifact.notebook)) {
-				let dst = join(self.config.dbdir, artifact.section, artifact.notebook);
+			this.hasSection(artifact, area) &&
+			!this.hasNotebook(artifact, area)) {
+			if (this.isValidName(artifact.notebook)) {
+				let dst = join(this.config.dbdir, artifact.section, artifact.notebook);
 				if (area === NS.trash) {
-					dst = join(self.config.dbdir, 'Trash', artifact.section, artifact.notebook);
+					dst = join(this.config.dbdir, 'Trash', artifact.section, artifact.notebook);
 				}
 
 				if (!fs.existsSync(dst)) {
-					self.log.info(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
+					this.log.info(`Creating notebook: ${artifact.notebook} in section ${artifact.section}`);
 					fs.mkdirsSync(dst);
 				}
 
-				if (!self.hasNotebook(artifact, area) && fs.existsSync(dst) && fs.lstatSync(dst).isDirectory()) {
-					self.schema[area][artifact.section][artifact.notebook] = {};
+				if (!this.hasNotebook(artifact, area) && fs.existsSync(dst) && fs.lstatSync(dst).isDirectory()) {
+					this.schema[area][artifact.section][artifact.notebook] = {};
 				}
 
-				return (self);
+				return (this);
 			} else { // eslint-disable-line no-else-return
 				throw new Error(`Invalid notebook name '${artifact.notebook}'.  Can only use '${validNameChars}'.`);
 			}
 		}
 
-		return self;
+		return this;
 	}
 
 	/**
@@ -1125,44 +1133,45 @@ export class Binder extends EventEmitter {
 	 * @param artifact {Artifact} the name of the section to create.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @returns {Binder} a reference to the changed DB instance
 	 * @private
 	 */
-	private createSection(artifact: Artifact, area: string = NS.notes, self = this) {
-		if (!self.hasSection(artifact, area)) {
-			if (self.isValidName(artifact.section)) {
-				let dst = join(self.config.dbdir, artifact.section);
+	@autobind
+	private createSection(artifact: Artifact, area: string = NS.notes) {
+		if (!this.hasSection(artifact, area)) {
+			if (this.isValidName(artifact.section)) {
+				let dst = join(this.config.dbdir, artifact.section);
 				if (area === NS.trash) {
-					dst = join(self.config.dbdir, 'Trash', artifact.section);
+					dst = join(this.config.dbdir, 'Trash', artifact.section);
 				}
 
 				if (!fs.existsSync(dst)) {
-					self.log.info(`Creating section: ${artifact.section}`);
+					this.log.info(`Creating section: ${artifact.section}`);
 					fs.mkdirsSync(dst);
 				}
 
-				if (!self.hasSection(artifact, area) &&
+				if (!this.hasSection(artifact, area) &&
 					fs.existsSync(dst) &&
 					fs.lstatSync(dst).isDirectory()) {
-					self.schema[area][artifact.section] = {};
+					this.schema[area][artifact.section] = {};
 				}
 
-				return self;
+				return this;
 			} else { // eslint-disable-line no-else-return
 				throw new Error(`Invalid section name '${artifact.section}'.  Can only use '${validNameChars}'.`);
 			}
 		}
 
-		return self;
+		return this;
 	}
 
 	/**
 	 * Creates the trash directory within the binder.
 	 * @private
 	 */
-	private createTrash(self = this) {
-		const trashDir = join(self.config.dbdir, 'Trash');
+	@autobind
+	private createTrash() {
+		const trashDir = join(this.config.dbdir, 'Trash');
 
 		if (!fs.existsSync(trashDir)) {
 			fs.mkdirs(trashDir);
@@ -1172,13 +1181,13 @@ export class Binder extends EventEmitter {
 	/**
 	 * The directories within the db must follow a simple name check.  It must
 	 * pass the following regex: /^\w+$/
-	 * @param self {Binder} a reference to the Binder instance
 	 * @param str {string} the name of the database, section, or notebook
 	 * @returns {boolean} true if the name is ok, otherwise false
 	 * @private
 	 */
-	private isValidName(str: string, self = this) {
-		return self.reID.test(str);
+	@autobind
+	private isValidName(str: string) {
+		return this.reID.test(str);
 	}
 
 	/**
@@ -1188,51 +1197,51 @@ export class Binder extends EventEmitter {
 	 * reloaded.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
-	private load(area: string = NS.notes, self = this) {
-		self.validate();
-		self.createTrash();
-		self.loadBinder(area);
-		self.saveBinder();
+	@autobind
+	private load(area: string = NS.notes) {
+		this.validate();
+		this.createTrash();
+		this.loadBinder(area);
+		this.saveBinder();
 
-		self.log.info(`Loaded database '${self.config.binderName}' for ${area}.`);
-		self.initialized = true;
+		this.log.info(`Loaded database '${this.config.binderName}' for ${area}.`);
+		this.initialized = true;
 	}
 
 	/**
 	 * Loads an existing text DB from the file system.  It finds the database by
-	 * reading the configuration stored in self.  If there is no configuration
+	 * reading the configuration stored in this.  If there is no configuration
 	 * information when this is called, then it does nothing.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
-	private loadBinder(area: string = NS.notes, self = this) {
+	@autobind
+	private loadBinder(area: string = NS.notes) {
 		let directory = '';
-		const trashIndex = self.ignore.indexOf('Trash');
+		const trashIndex = this.ignore.indexOf('Trash');
 
 		if (area === NS.trash) {
 			directory = 'Trash';
 			if (trashIndex !== -1) {
-				self.ignore.splice(trashIndex, 1);
+				this.ignore.splice(trashIndex, 1);
 			}
 		} else {
 			if (trashIndex === -1) {
-				self.ignore.push('Trash');
+				this.ignore.push('Trash');
 			}
 		}
 
-		self.tree(directory).forEach((it: string) => {
+		this.tree(directory).forEach((it: string) => {
 			const artifact = Artifact.factory('treeitem', {
 				treeitem: it,
-				root: self.config.dbdir
+				root: this.config.dbdir
 			});
-			self.createSection(artifact, area);
-			self.createNotebook(artifact, area);
-			self.addArtifact(artifact, area);
+			this.createSection(artifact, area);
+			this.createNotebook(artifact, area);
+			this.addArtifact(artifact, area);
 		});
 	}
 
@@ -1245,15 +1254,15 @@ export class Binder extends EventEmitter {
 	 * loaded.
 	 * @param [stats] {fs.Stats} the statistics object associated with this
 	 * artifact.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
-	private loadMetadata(artifact: Artifact, stats: fs.Stats = null, self = this): void {
+	@autobind
+	private loadMetadata(artifact: Artifact, stats: fs.Stats = null): void {
 		if (artifact instanceof Artifact) {
-			if (artifact.path() in self.meta) {
-				artifact.meta = self.meta[artifact.path()];
+			if (artifact.path() in this.meta) {
+				artifact.meta = this.meta[artifact.path()];
 			} else {
-				self.meta[artifact.path()] = artifact.meta;
+				this.meta[artifact.path()] = artifact.meta;
 			}
 
 			if (stats == null && fs.existsSync(artifact.absolute())) {
@@ -1274,17 +1283,17 @@ export class Binder extends EventEmitter {
 	 * "dirty" artifacts and saves them where necessary.
 	 * @param cb {Function} a callback function that is executed when all
 	 * artifact save promises have resolved.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
-	private saveBinder(cb: INilCallback = nil, self = this) {
+	@autobind
+	private saveBinder(cb: INilCallback = nil) {
 		const promises: any = [];
 
 		promises.push(new Promise((resolve, reject) => {
 			try {
-				self.log.info(`Saving configuration: ${self.config.configFile}`);
-				const data = JSON.stringify(self.config, null, '\t');
-				fs.writeFileSync(self.config.configFile, data);
+				this.log.info(`Saving configuration: ${this.config.configFile}`);
+				const data = JSON.stringify(this.config, null, '\t');
+				fs.writeFileSync(this.config.configFile, data);
 				resolve('Configuration saved');
 			} catch (err) {
 				reject(`Error saving configuration: ${err.message}`);
@@ -1293,17 +1302,17 @@ export class Binder extends EventEmitter {
 
 		promises.push(new Promise((resolve, reject) => {
 			try {
-				self.log.info(`Saving meta data: ${self.config.metaFile}`);
-				const data = JSON.stringify(self.meta, null, '\t');
-				fs.writeFileSync(self.config.metaFile, data);
+				this.log.info(`Saving meta data: ${this.config.metaFile}`);
+				const data = JSON.stringify(this.meta, null, '\t');
+				fs.writeFileSync(this.config.metaFile, data);
 				resolve('Wrote metadata');
 			} catch (err) {
 				reject(`Error saving metadata: ${err.message}`);
 			}
 		}));
 
-		for (const artifact of self.artifacts.values()) {
-			promises.push(self.saveArtifact(artifact));
+		for (const artifact of this.artifacts.values()) {
+			promises.push(this.saveArtifact(artifact));
 		}
 
 		Promise.all(promises)
@@ -1324,12 +1333,12 @@ export class Binder extends EventEmitter {
 	 * database.  These represent relative paths from the root of the database.
 	 * @param directory {string} the directory where the tree will be retrieved
 	 * It is a relative path from the root of the schema.
-	 * @param self {Binder} a reference to the Binder instance
 	 * @returns {Array} a list of nodes/directories in the database tree.
 	 * @private
 	 */
-	private tree(directory: string = '', self = this) {
-		directory = (directory === '') ? self.config.dbdir : join(self.config.dbdir, directory);
+	@autobind
+	private tree(directory: string = '') {
+		directory = (directory === '') ? this.config.dbdir : join(this.config.dbdir, directory);
 		const l: string[] = [];
 
 		if (fs.existsSync(directory)) {
@@ -1338,7 +1347,7 @@ export class Binder extends EventEmitter {
 			// is in the ignore list.  If a file should be included, then true
 			// is returned, otherwise false.
 			const filterFn = (item: any) => {
-				return self.ignore.every((it: string) => {
+				return this.ignore.every((it: string) => {
 					return (item.path.indexOf(it) > -1) ? false : true;
 				});
 			};
@@ -1350,7 +1359,7 @@ export class Binder extends EventEmitter {
 
 			files.forEach((file: any) => {
 				l.push(normalize(file.path).replace(`${directory}/`, ''));
-			}, self);
+			}, this);
 		}
 
 		return l;
@@ -1358,20 +1367,20 @@ export class Binder extends EventEmitter {
 
 	/**
 	 * Checks the binder configuration to ensure that it is valid
-	 * @param self {Binder} a reference to the Binder instance
 	 * @private
 	 */
-	private validate(self = this) {
-		if (!fs.existsSync(self.config.configFile)) {
-			throw new Error(`Can't find notesdb configuration: ${self.config.configFile}.`);
+	@autobind
+	private validate() {
+		if (!fs.existsSync(this.config.configFile)) {
+			throw new Error(`Can't find notesdb configuration: ${this.config.configFile}.`);
 		}
 
-		if (typeof self.config.dbdir !== 'string' || self.config.dbdir == null || self.config.dbdir === '') {
+		if (typeof this.config.dbdir !== 'string' || this.config.dbdir == null || this.config.dbdir === '') {
 			throw new Error('The database directory is missing from configuration.');
 		}
 
-		if (!fs.existsSync(self.config.dbdir)) {
-			throw new Error(`No notesdb located @ ${self.config.dbdir}.`);
+		if (!fs.existsSync(this.config.dbdir)) {
+			throw new Error(`No notesdb located @ ${this.config.dbdir}.`);
 		}
 	}
 }

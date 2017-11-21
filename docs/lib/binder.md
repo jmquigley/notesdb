@@ -7,25 +7,25 @@ Creates an instance of the text binder class
 
 * [Binder](#Binder)
     * [new Binder([opts])](#new_Binder_new)
-    * [.add(opts, area, self)](#Binder+add) ⇒ <code>Promise</code>
-    * [.create(schema, area, self)](#Binder+create) ⇒ <code>Promise</code>
-    * [.emptyTrash(self)](#Binder+emptyTrash) ⇒ <code>Promise</code>
-    * [.find(search, self)](#Binder+find) ⇒ <code>Promise</code>
-    * [.get(opts, area, self)](#Binder+get) ⇒ <code>Promise</code>
-    * [.hasArtifact(search, area, self)](#Binder+hasArtifact) ⇒ <code>boolean</code>
-    * [.hasNotebook(search, area, self)](#Binder+hasNotebook) ⇒ <code>boolean</code>
-    * [.hasSection(search, area, self)](#Binder+hasSection) ⇒ <code>boolean</code>
-    * [.notebooks(sectionName, area, self)](#Binder+notebooks) ⇒ <code>Array</code>
-    * [.reload(area, self)](#Binder+reload) ⇒ <code>Promise</code>
-    * [.remove(opts, area, self)](#Binder+remove) ⇒ <code>Promise</code>
-    * [.rename(src, dst, self)](#Binder+rename) ⇒ <code>Promise</code>
-    * [.restore(opts, self)](#Binder+restore) ⇒ <code>Promise</code>
-    * [.save(self)](#Binder+save) ⇒ <code>Promise</code>
+    * [.add(opts, area)](#Binder+add) ⇒ <code>Promise</code>
+    * [.create(schema, area)](#Binder+create) ⇒ <code>Promise</code>
+    * [.emptyTrash()](#Binder+emptyTrash) ⇒ <code>Promise</code>
+    * [.find(search)](#Binder+find) ⇒ <code>Promise</code>
+    * [.get(opts, area)](#Binder+get) ⇒ <code>Promise</code>
+    * [.hasArtifact(search, area)](#Binder+hasArtifact) ⇒ <code>boolean</code>
+    * [.hasNotebook(search, area)](#Binder+hasNotebook) ⇒ <code>boolean</code>
+    * [.hasSection(search, area)](#Binder+hasSection) ⇒ <code>boolean</code>
+    * [.notebooks(sectionName, area)](#Binder+notebooks) ⇒ <code>Array</code>
+    * [.reload(area)](#Binder+reload) ⇒ <code>Promise</code>
+    * [.remove(opts, area)](#Binder+remove) ⇒ <code>Promise</code>
+    * [.rename(src, dst)](#Binder+rename) ⇒ <code>Promise</code>
+    * [.restore(opts)](#Binder+restore) ⇒ <code>Promise</code>
+    * [.save()](#Binder+save) ⇒ <code>Promise</code>
     * [.saveArtifact(artifact)](#Binder+saveArtifact) ⇒ <code>Promise</code>
-    * [.sections(area, self)](#Binder+sections) ⇒ <code>Array</code>
-    * [.shutdown(self)](#Binder+shutdown) ⇒ <code>Promise</code>
-    * [.toString(self)](#Binder+toString) ⇒ <code>string</code>
-    * [.trash(opts, self)](#Binder+trash) ⇒ <code>Promise</code>
+    * [.sections(area)](#Binder+sections) ⇒ <code>Array</code>
+    * [.shutdown()](#Binder+shutdown) ⇒ <code>Promise</code>
+    * [.toString()](#Binder+toString) ⇒ <code>string</code>
+    * [.trash(opts)](#Binder+trash) ⇒ <code>Promise</code>
 
 <a name="new_Binder_new"></a>
 
@@ -41,7 +41,7 @@ it will be loaded.
 
 <a name="Binder+add"></a>
 
-### binder.add(opts, area, self) ⇒ <code>Promise</code>
+### binder.add(opts, area) ⇒ <code>Promise</code>
 Creates the requested artifact within the schema.  This will attempt
 to create each section, notebook, and document given.  If the item is
 empty, then it is ignored.
@@ -54,13 +54,12 @@ was created.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| opts | <code>IArtifactSearch</code> | the artifact object to create (see above) |
+| opts | <code>ArtifactSearch</code> | the artifact object to create (see above) |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+create"></a>
 
-### binder.create(schema, area, self) ⇒ <code>Promise</code>
+### binder.create(schema, area) ⇒ <code>Promise</code>
 Creates new sections within a binder.  It takes a list of section
 strings and creates a directory for each given string.
 
@@ -71,11 +70,10 @@ strings and creates a directory for each given string.
 | --- | --- | --- |
 | schema | <code>Array</code> \| <code>string</code> | a list of directories (sections) under this binder location.  Each of these directories will be created under this binder unless they already exist. |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+emptyTrash"></a>
 
-### binder.emptyTrash(self) ⇒ <code>Promise</code>
+### binder.emptyTrash() ⇒ <code>Promise</code>
 Removes the current contents of the 'Trash' folder/section from the
 current DB.  It also resets the internal trash namespace to empty.  This
 will check that the directory requested is within the database location
@@ -85,14 +83,9 @@ The thenable resolves to a reference to the Binder instance.
 
 **Kind**: instance method of [<code>Binder</code>](#Binder)  
 **Returns**: <code>Promise</code> - a javascript promise object.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
-
 <a name="Binder+find"></a>
 
-### binder.find(search, self) ⇒ <code>Promise</code>
+### binder.find(search) ⇒ <code>Promise</code>
 Performs a text search against all artifacts within the repository.
 This will return a list of all artifacts tha contain the requested
 string.  The string can be a regex.
@@ -106,11 +99,10 @@ search criteria.
 | Param | Type | Description |
 | --- | --- | --- |
 | search | <code>string</code> | the regex string to used as the search criteria. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+get"></a>
 
-### binder.get(opts, area, self) ⇒ <code>Promise</code>
+### binder.get(opts, area) ⇒ <code>Promise</code>
 Retrieves an artifact from the schema.  If it exists, then it is returned
 by the promise.  If it is not found, then an error will be thrown.  If
 the artifact has never been loaded before, then it is read from the
@@ -127,13 +119,12 @@ The thenable resolves to the artifact created by the get request.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| opts | <code>IArtifactSearch</code> | the section/notebook/filename to search for within the schema. |
+| opts | <code>ArtifactSearch</code> | the section/notebook/filename to search for within the schema. |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+hasArtifact"></a>
 
-### binder.hasArtifact(search, area, self) ⇒ <code>boolean</code>
+### binder.hasArtifact(search, area) ⇒ <code>boolean</code>
 Checks to see if a document is in the repository by name, notebook and
 section.
 
@@ -142,13 +133,12 @@ section.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| search | <code>IArtifactSearch</code> | an object that represents the item to find in the schema. |
+| search | <code>ArtifactSearch</code> | an object that represents the item to find in the schema. |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+hasNotebook"></a>
 
-### binder.hasNotebook(search, area, self) ⇒ <code>boolean</code>
+### binder.hasNotebook(search, area) ⇒ <code>boolean</code>
 Checks the given section for the existence of a notebook by name.
 
 **Kind**: instance method of [<code>Binder</code>](#Binder)  
@@ -156,13 +146,12 @@ Checks the given section for the existence of a notebook by name.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| search | <code>IArtifactSearch</code> | an object that represents the item to find in the schema. |
+| search | <code>ArtifactSearch</code> | an object that represents the item to find in the schema. |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+hasSection"></a>
 
-### binder.hasSection(search, area, self) ⇒ <code>boolean</code>
+### binder.hasSection(search, area) ⇒ <code>boolean</code>
 Checks the current schema for the existence of a section.
 
 **Kind**: instance method of [<code>Binder</code>](#Binder)  
@@ -170,13 +159,12 @@ Checks the current schema for the existence of a section.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| search | <code>IArtifactSearch</code> | an object that represents the item to find in the schema. |
+| search | <code>ArtifactSearch</code> | an object that represents the item to find in the schema. |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+notebooks"></a>
 
-### binder.notebooks(sectionName, area, self) ⇒ <code>Array</code>
+### binder.notebooks(sectionName, area) ⇒ <code>Array</code>
 Enumerates the list of notebooks in a section from the schema.
 returns {Array} a list of the notebooks for a section
 
@@ -187,11 +175,10 @@ returns {Array} a list of the notebooks for a section
 | --- | --- | --- |
 | sectionName | <code>string</code> | the name of the section where the notebooks are located. |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+reload"></a>
 
-### binder.reload(area, self) ⇒ <code>Promise</code>
+### binder.reload(area) ⇒ <code>Promise</code>
 Scans the current repository directory to rebuild the schema.  This
 only needs to be done if a file/artifact is added to the directory
 structure after the instance has been loaded.
@@ -202,11 +189,10 @@ structure after the instance has been loaded.
 | Param | Type | Description |
 | --- | --- | --- |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+remove"></a>
 
-### binder.remove(opts, area, self) ⇒ <code>Promise</code>
+### binder.remove(opts, area) ⇒ <code>Promise</code>
 Immediately removes an section/notebook/artifact from the system.
 
 The thenable resolves to a reference to the Binder instance.
@@ -216,13 +202,12 @@ The thenable resolves to a reference to the Binder instance.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| opts | <code>IArtifactSearch</code> | the section/notebook/filename to search for within the schema. |
+| opts | <code>ArtifactSearch</code> | the section/notebook/filename to search for within the schema. |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+rename"></a>
 
-### binder.rename(src, dst, self) ⇒ <code>Promise</code>
+### binder.rename(src, dst) ⇒ <code>Promise</code>
 Renames an artifact from the source (src) to destination (dst).
 
 The thenable resolves to a reference to the renamed artifact.
@@ -232,13 +217,12 @@ The thenable resolves to a reference to the renamed artifact.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| src | <code>IArtifactSearch</code> | the source artifact that will be changed |
-| dst | <code>IArtifactSearch</code> | the destination artifact that the source will be changed into. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
+| src | <code>ArtifactSearch</code> | the source artifact that will be changed |
+| dst | <code>ArtifactSearch</code> | the destination artifact that the source will be changed into. |
 
 <a name="Binder+restore"></a>
 
-### binder.restore(opts, self) ⇒ <code>Promise</code>
+### binder.restore(opts) ⇒ <code>Promise</code>
 Takes an item from the trash and puts it back into the schema.  If the
 item is already in the schema, then it appends a timestamp to the name
 of the item that is being restored.
@@ -250,12 +234,11 @@ The thenable resolves to the artifact that was retored.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| opts | <code>IArtifactSearch</code> | The section/notebook/filename to restore |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
+| opts | <code>ArtifactSearch</code> | The section/notebook/filename to restore |
 
 <a name="Binder+save"></a>
 
-### binder.save(self) ⇒ <code>Promise</code>
+### binder.save() ⇒ <code>Promise</code>
 User requested save function.  If given an artifact, then a single
 save is performed.  If no artifact is specifid, then the binder
 artifact list is scanned for dirty artifacts that need to be saved.
@@ -264,11 +247,6 @@ The thenable resolves to a reference to the Binder instance.
 
 **Kind**: instance method of [<code>Binder</code>](#Binder)  
 **Returns**: <code>Promise</code> - a javascript promise object  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
-
 <a name="Binder+saveArtifact"></a>
 
 ### binder.saveArtifact(artifact) ⇒ <code>Promise</code>
@@ -283,7 +261,7 @@ Performs a save of a single artifact.
 
 <a name="Binder+sections"></a>
 
-### binder.sections(area, self) ⇒ <code>Array</code>
+### binder.sections(area) ⇒ <code>Array</code>
 Enumerates the list of sections from the schema.
 
 **Kind**: instance method of [<code>Binder</code>](#Binder)  
@@ -292,37 +270,26 @@ Enumerates the list of sections from the schema.
 | Param | Type | Description |
 | --- | --- | --- |
 | area | <code>string</code> | the namespace area within the schema object to search.  There are two areas: notes & trash. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
 
 <a name="Binder+shutdown"></a>
 
-### binder.shutdown(self) ⇒ <code>Promise</code>
+### binder.shutdown() ⇒ <code>Promise</code>
 Called when the database is no longer needed.  This will cleanup
 operations and shutdown the intervals.
 
 **Kind**: instance method of [<code>Binder</code>](#Binder)  
 **Returns**: <code>Promise</code> - a javascript promise object  
-
-| Param |
-| --- |
-| self | 
-
 <a name="Binder+toString"></a>
 
-### binder.toString(self) ⇒ <code>string</code>
+### binder.toString() ⇒ <code>string</code>
 Converts the internal structures to a string and returns it.
 
 **Kind**: instance method of [<code>Binder</code>](#Binder)  
 **Returns**: <code>string</code> - a string that shows the configuration and schema for
 the database.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
-
 <a name="Binder+trash"></a>
 
-### binder.trash(opts, self) ⇒ <code>Promise</code>
+### binder.trash(opts) ⇒ <code>Promise</code>
 Moves an artifact from it's current directory to the "Trash" folder.  It
 is not removed until the emptyTrash() method is called.  The artifact
 is removed from the schema dictionary and stored in the trash dictionary.
@@ -334,6 +301,5 @@ The thenable resolves to the artifact that was moved to the trash.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| opts | <code>IArtifactSearch</code> | the section/notebook/filename to remove for within the schema. |
-| self | [<code>Binder</code>](#Binder) | a reference to the notes database instance |
+| opts | <code>ArtifactSearch</code> | the section/notebook/filename to remove for within the schema. |
 

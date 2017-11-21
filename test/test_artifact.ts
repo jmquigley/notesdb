@@ -6,15 +6,17 @@ import {Fixture} from 'util.fixture';
 import {join} from 'util.join';
 import {Artifact} from '../index';
 import {
-	artifactComparator, ArtifactType, IArtifactOpts,
-	IArtifactSearch
+	artifactComparator,
+	ArtifactOpts,
+	ArtifactSearch,
+	ArtifactType
 } from '../lib/artifact';
 import {cleanup, validateArtifact} from './helpers';
 
 const pkg = require('../package.json');
 
-test.after.always.cb(t => {
-	cleanup(path.basename(__filename), t);
+test.after.always(async t => {
+	await cleanup(path.basename(__filename), t);
 });
 
 test('Testing artifact with empty creation', t => {
@@ -67,7 +69,7 @@ test('Testing artifact with empty creation', t => {
 });
 
 test('Testing artifact creation type bitmasking', t => {
-	let opts: IArtifactOpts = {
+	let opts: ArtifactOpts = {
 		section: 'section',
 		notebook: 'notebook',
 		filename: 'filename'
@@ -308,14 +310,14 @@ test('Test comparator function', t => {
 });
 
 test('Test the isEqual function', t => {
-	const s1: IArtifactSearch = {
+	const s1: ArtifactSearch = {
 		filename: 'a',
 		notebook: 'a',
 		section: 'a'
 	};
 	const a1 = Artifact.factory('fields', s1);
 
-	const s2: IArtifactSearch = {
+	const s2: ArtifactSearch = {
 		filename: 'b',
 		notebook: 'b',
 		section: 'b'
