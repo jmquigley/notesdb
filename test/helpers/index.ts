@@ -8,7 +8,7 @@
 import * as fs from 'fs-extra';
 import {Fixture} from 'util.fixture';
 import {join} from 'util.join';
-import {IRejectFn, IResolveFn} from 'util.promise';
+import {RejectFn, ResolveFn} from 'util.promise';
 import {waitPromise} from 'util.wait';
 import {Artifact, ArtifactOpts, ArtifactType} from '../../lib/artifact';
 import {Binder} from '../../lib/binder';
@@ -63,7 +63,7 @@ export async function cleanup(msg: string, t: any, delay: number = 5) {
 }
 
 function cleanupPromise(msg: string) {
-	return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
+	return new Promise((resolve: ResolveFn<string>, reject: RejectFn<string>) => {
 		if (msg) {
 			console.log(`final cleanup: ${msg}`);
 		}
@@ -79,7 +79,7 @@ function cleanupPromise(msg: string) {
 				}
 			});
 
-			resolve();
+			resolve('Successful cleanup');
 		});
 	});
 }

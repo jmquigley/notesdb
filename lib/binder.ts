@@ -14,7 +14,7 @@ import * as path from 'path';
 import {Deque} from 'util.ds';
 import {join, normalize} from 'util.join';
 import logger, {Logger} from 'util.log';
-import {IRejectFn, IResolveFn} from 'util.promise';
+import {PromiseFn} from 'util.promise';
 import {INilCallback, nil} from 'util.toolbox';
 import {
 	Artifact,
@@ -265,7 +265,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public add(opts: ArtifactSearch, area: string = NS.notes): any {
-		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
+		return new Promise((resolve: PromiseFn<Artifact>, reject: PromiseFn<string>) => {
 			let artifact: Artifact = null;
 			if (opts instanceof Artifact) {
 				artifact = opts;
@@ -308,7 +308,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public create(schema: string[] | string, area: string = NS.notes) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Binder>, reject: PromiseFn<string>) => {
 			if (typeof schema === 'string') {
 				schema = [schema];
 			}
@@ -348,7 +348,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public emptyTrash() {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Binder>, reject: PromiseFn<string>) => {
 			if (fs.existsSync(this.config.trash) &&
 				this.config.trash.endsWith(`/Trash`) &&
 				this.config.trash.startsWith(this.config.dbdir)) {
@@ -386,7 +386,7 @@ export class Binder extends EventEmitter {
 		const self = this;
 
 		function searchArtifact(artifact: Artifact) {
-			return new Promise((resolve, reject) => {
+			return new Promise((resolve: PromiseFn<Artifact>, reject: PromiseFn<string>) => {
 				const filename: string = join(self.config.dbdir, artifact.path());
 				fs.readFile(filename, (err, data) => {
 					if (err) {
@@ -402,7 +402,7 @@ export class Binder extends EventEmitter {
 			});
 		}
 
-		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
+		return new Promise((resolve: PromiseFn<Artifact[]>, reject: PromiseFn<string>) => {
 			const promises: Array<Promise<any>> = [];
 			for (const artifact of this._artifacts.values()) {
 				promises.push(searchArtifact(artifact));
@@ -415,7 +415,7 @@ export class Binder extends EventEmitter {
 					}));
 				})
 				.catch((err: Error) => {
-					reject(err);
+					reject(err.message);
 				});
 		});
 	}
@@ -440,7 +440,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public get(opts: ArtifactSearch, area: string = NS.notes) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Artifact>, reject: PromiseFn<string>) => {
 			const type: ArtifactType = Artifact.isType(opts);
 
 			if (type === ArtifactType.SNA && this.hasArtifact(opts)) {
@@ -591,7 +591,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public reload(area: string = NS.notes) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Binder>, reject: PromiseFn<string>) => {
 			this.initialized = false;
 			try {
 				this.load(area);
@@ -615,7 +615,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public remove(opts: ArtifactSearch, area: string = NS.notes) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Binder>, reject: PromiseFn<string>) => {
 			this.get(opts)
 				.then((artifact: Artifact) => {
 					switch (artifact.type) {
@@ -664,7 +664,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public rename(src: ArtifactSearch, dst: ArtifactSearch) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Artifact>, reject: PromiseFn<string>) => {
 			let srcArtifact: Artifact = null;
 			let dstArtifact: Artifact = null;
 
@@ -710,7 +710,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public restore(opts: ArtifactSearch) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Artifact>, reject: PromiseFn<string>) => {
 			const dstArtifact: Artifact = Artifact.factory('fields', opts);
 			dstArtifact.root = this.config.dbdir;
 			const srcArtifact: Artifact = dstArtifact.clone();
@@ -757,7 +757,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public save() {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Binder>, reject: PromiseFn<string>) => {
 			try {
 				this.saveBinder((err: Error) => {
 					if (err) {
@@ -779,7 +779,7 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public saveArtifact(artifact: Artifact) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Artifact>, reject: PromiseFn<string>) => {
 			if (artifact.isDirty()) {
 
 				// Keep an eye on this function if there are save issues.  When a promise is
@@ -832,11 +832,11 @@ export class Binder extends EventEmitter {
 	 */
 	@autobind
 	public shutdown() {
-		return new Promise((resolve: IResolveFn, reject: IRejectFn) => {
+		return new Promise((resolve: PromiseFn<string>, reject: PromiseFn<string>) => {
 			try {
 				this.saveBinder((err: Error) => {
 					if (err) {
-						reject(err);
+						reject(err.message);
 					}
 
 					if (this._fnSaveInterval != null) {
@@ -848,7 +848,7 @@ export class Binder extends EventEmitter {
 					resolve('The database is shutdown.');
 				});
 			} catch (err) {
-				reject(err);
+				reject(err.message);
 			}
 		});
 	}
@@ -882,7 +882,7 @@ export class Binder extends EventEmitter {
 	@autobind
 	public trash(opts: ArtifactSearch) {
 		this.createTrash();
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseFn<Artifact>, reject: PromiseFn<string>) => {
 			this.get(opts)
 				.then((srcArtifact: Artifact) => {
 					const dstArtifact: Artifact = srcArtifact.clone();
@@ -1019,7 +1019,7 @@ export class Binder extends EventEmitter {
 	 * @private
 	 */
 	@autobind
-	private createArtifact(artifact: Artifact, resolve: IResolveFn, reject: IRejectFn, area: string = NS.notes) {
+	private createArtifact(artifact: Artifact, resolve: PromiseFn<Artifact>, reject: PromiseFn<string>, area: string = NS.notes) {
 		if (artifact.hasSection() &&
 			artifact.hasNotebook() &&
 			artifact.hasFilename() &&
@@ -1289,7 +1289,7 @@ export class Binder extends EventEmitter {
 	private saveBinder(cb: INilCallback = nil) {
 		const promises: any = [];
 
-		promises.push(new Promise((resolve, reject) => {
+		promises.push(new Promise((resolve: PromiseFn<string>, reject: PromiseFn<string>) => {
 			try {
 				this.log.info(`Saving configuration: ${this.config.configFile}`);
 				const data = JSON.stringify(this.config, null, '\t');
@@ -1300,7 +1300,7 @@ export class Binder extends EventEmitter {
 			}
 		}));
 
-		promises.push(new Promise((resolve, reject) => {
+		promises.push(new Promise((resolve: PromiseFn<string>, reject: PromiseFn<string>) => {
 			try {
 				this.log.info(`Saving meta data: ${this.config.metaFile}`);
 				const data = JSON.stringify(this.meta, null, '\t');

@@ -132,20 +132,20 @@ An instance can be created with a new set of defaults:
 import {Binder} from 'notesdb';
 
 let adb = new Binder({
-	binderName: 'sampledb',
-	root: '~/mydb'
+    binderName: 'sampledb',
+    root: '~/mydb'
 });
 ```
 
-This will create a new binder with the name `sampledb`.  It also changes where the configuration will be saved *root* option.  This is the default location where the schema will be stored.  If the only the root is specified, then the configuration is also located in this directory.  This database is saved in `~/mydb/sampledb`.  The configuration and the database can be separated:
+This will create a new binder with the name `sampledb`.  It also changes where the configuration will be saved with the *root* option.  This is the default location where the schema will be stored.  If only the root is specified, then the configuration is also located in this directory.  This database is saved in `~/mydb/sampledb`.  The configuration and the database can be separated:
 
 ```javascript
 import {Binder} from 'notesdb';
 
 let adb = new Binder({
-	binderName: 'sampledb',
-	configRoot: '~/mydbconfig',
-	root: '~/mydb'
+    binderName: 'sampledb',
+    configRoot: '~/mydbconfig',
+    root: '~/mydb'
 });
 ```
 
@@ -159,17 +159,18 @@ import {Binder} from 'notesdb';
 
 let adb = new Binder();
 adb.create(['Test1', 'Test2'])
-	.then((adb: Binder) => {
-		let sections = adb.sections();
-		sections.forEach((section: string) => {
-			console.log(` ~> ${section}`);
-		});
+    .then((adb: Binder) => {
+        // After the call to create the sections we list them after async creation
+        let sections = adb.sections();
+        sections.forEach((section: string) => {
+            console.log(` ~> ${section}`);
+        });
 
-		return adb;
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+        return adb;
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
 
 This will create two new sections within the schema named `Test1` and `Test2`.  It will also contain `Default` and `Trash`.  Sections can also be created through the `add` method.  This method uses an `Artifact` object during creation.
@@ -178,19 +179,23 @@ This will create two new sections within the schema named `Test1` and `Test2`.  
 import {Artifact, Binder} from 'notesdb';
 
 let adb = new Binder();
-adb.add(Artifact.factory('all', {section: 'Test1'}))
-	.then((adb: Binder) => {
-		let sections = adb.sections();
-		sections.forEach((section: string) => {
-			console.log(` ~> ${section}`);
-		});
+adb.add(Artifact.factory('fields', {section: 'Test1'}))
+    .then((artifact: Artifact) => {
+        console.log(artifact.toString());
+        let sections = adb.sections();
+        sections.forEach((section: string) => {
+            console.log(` ~> ${section}`);
+        });
 
-		return adb;
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+        return adb;
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
+
+This will create a new section named `Test1` within a default notebook.
+
 
 #### Creating Notebooks
 A notebook is created with the `add` method.
@@ -200,18 +205,18 @@ import {Artifact, Binder} from 'notesdb';
 
 let adb = new Binder();
 adb.add(Artifact.factory('fields', {section: 'Test1', notebook: 'MyNotebook'}))
-	.then((artifact: Artifact) => {
-		console.log(artifact.toString());
-		let notebooks = adb.notebooks();
-		notebooks.forEach((notebook: string) => {
-			console.log(` ~> ${notebook}`);
-		});
+    .then((artifact: Artifact) => {
+        console.log(artifact.toString());
+        let notebooks = adb.notebooks();
+        notebooks.forEach((notebook: string) => {
+            console.log(` ~> ${notebook}`);
+        });
 
-		return adb;
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+        return adb;
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
 
 This will create a section named `Test1` (if it doesn't exist) and a notebook within that section named `MyNotebook`.
@@ -224,16 +229,16 @@ import {Artifact, Binder} from 'notesdb';
 
 let adb = new Binder();
 adb.add({
-	section: 'Test1',
-	notebook: 'MyNotebook',
-	filename: 'myfile.txt'
-	})
-	.then((artifact: Artifact) => {
-		console.log(artifact.toString());
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+    section: 'Test1',
+    notebook: 'MyNotebook',
+    filename: 'myfile.txt'
+    })
+    .then((artifact: Artifact) => {
+       console.log(artifact.toString());
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
 
 #### Retrieving Artifacts
@@ -244,16 +249,16 @@ import {Artifact, Binder} from 'notesdb';
 
 let adb = new Binder();
 adb.get({
-	section: 'Default',
-	notebook: 'Default',
-	filename: 'test1.txt'
+    section: 'Default',
+    notebook: 'Default',
+    filename: 'test1.txt'
     })
-	.then((artifact: Artifact) => {
-		// do something with the artifact
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+    .then((artifact: Artifact) => {
+        // do something with the artifact
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
 
 #### Finding Artifacts
@@ -264,14 +269,14 @@ import {Artifact, Binder} from 'notesdb';
 
 let adb = new Binder();
 adb.find('#1')
-	.then((artifacts: Array<Artifact>) => {
-		artifacts.forEach((artifact: Artifact) => {
-			console.log(artifact.absolute());
-		});
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+    .then((artifacts: Array<Artifact>) => {
+        artifacts.forEach((artifact: Artifact) => {
+            console.log(artifact.absolute());
+        });
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
 
 This call would find all artifacts that contain the string `#1` and return an array.
@@ -284,24 +289,24 @@ import {Binder} from 'notesdb';
 
 let adb = new Binder();
 let src = {
-	section: 'Test1',
-	notebook: 'Default',
-	filename: 'test4.txt'
+    section: 'Test1',
+    notebook: 'Default',
+    filename: 'test4.txt'
 }
 
 let dst = {
-	section: 'Test2',
-	notebook: 'Default',
-	filename: 'test4.txt'
+    section: 'Test2',
+    notebook: 'Default',
+    filename: 'test4.txt'
 }
 
 adb.rename(src, dst)
-	.then((filename: string) => {
-	    console.log(`renamed to: ${filename}`);
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+    .then((filename: string) => {
+        console.log(`renamed to: ${filename}`);
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 
 ```
 
@@ -315,22 +320,22 @@ import {Binder} from 'notesdb';
 
 let adb = new Binder();
 let lookup = {
-	section: 'Test2',
-	notebook: 'Default',
-	filename: 'test4.txt'
+    section: 'Test2',
+    notebook: 'Default',
+    filename: 'test4.txt'
 }
 
 adb.trash(lookup)
-	.then((filename: string) => {
-		console.log(`trashed: ${filename}`);
-		return adb.restore(lookup);
-	})
-	.then((filename: string) => {
-		console.log(`restored: ${filename}`);
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+    .then((filename: string) => {
+        console.log(`trashed: ${filename}`);
+        return adb.restore(lookup);
+    })
+    .then((filename: string) => {
+        console.log(`restored: ${filename}`);
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
 
 The example above would move the artifact `/Test2/Default/test4.txt` and place it in the trash.  After it is removed it is immediately restored back to its original path.  If there is a name collision on delete/restore, then the current timestamp is placed on the artifacts name.  In this example a file artifact is removed.  Sections and notebooks can also be removed/restored.
@@ -343,12 +348,12 @@ import {Binder} from 'notesdb';
 
 let adb = new Binder();
 adb.emptyTrash()
-	.then((adb: Binder) => {
-		assert(_.isEmpty(adb.schema.trash));
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+    .then((adb: Binder) => {
+        assert(_.isEmpty(adb.schema.trash));
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
 
 #### Shutdown
@@ -359,12 +364,12 @@ import {Binder} from 'notesdb';
 
 let adb = new Binder();
 adb.shutdown()
-	.then((msg: string) => {
-		console.log(msg);
-	})
-	.catch((err: string) => {
-		console.error(err);
-	});
+    .then((msg: string) => {
+        console.log(msg);
+    })
+    .catch((err: string) => {
+        console.error(err);
+    });
 ```
 
 It returns a message indicating that the binder was shutdown.
@@ -376,4 +381,4 @@ The API is generated with [JSDoc](https://www.npmjs.com/package/jsdoc).  It can 
 
 - [Artifact](docs/lib/artifact.md)
 - [Binder](docs/lib/binder.md)
-- [BinderManagr](docs/lib/bindermanager.md)
+- [BinderManager](docs/lib/bindermanager.md)

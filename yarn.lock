@@ -3994,9 +3994,9 @@ util.pkgwrap@0.0.73, util.pkgwrap@^0.0.73:
     workerpool "^2.3.0"
     yargs "^10.0.3"
 
-util.promise@0.0.15:
-  version "0.0.15"
-  resolved "https://registry.yarnpkg.com/util.promise/-/util.promise-0.0.15.tgz#932bfba720c078d93cc844df9a449f7829fa510d"
+util.promise@0.0.17:
+  version "0.0.17"
+  resolved "https://registry.yarnpkg.com/util.promise/-/util.promise-0.0.17.tgz#f96f3ca3a5f0d110775a854b436316874396ed8e"
   dependencies:
     util.pkgwrap "0.0.73"
 
