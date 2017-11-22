@@ -15,7 +15,7 @@ Creates an instance of the text binder class
     * [.hasArtifact(search, area)](#Binder+hasArtifact) ⇒ <code>boolean</code>
     * [.hasNotebook(search, area)](#Binder+hasNotebook) ⇒ <code>boolean</code>
     * [.hasSection(search, area)](#Binder+hasSection) ⇒ <code>boolean</code>
-    * [.notebooks(sectionName, area)](#Binder+notebooks) ⇒ <code>Array</code>
+    * [.notebooks(sectionName, area)](#Binder+notebooks) ⇒ <code>Array.&lt;NotebookDetails&gt;</code>
     * [.reload(area)](#Binder+reload) ⇒ <code>Promise</code>
     * [.remove(opts, area)](#Binder+remove) ⇒ <code>Promise</code>
     * [.rename(src, dst)](#Binder+rename) ⇒ <code>Promise</code>
@@ -164,12 +164,14 @@ Checks the current schema for the existence of a section.
 
 <a name="Binder+notebooks"></a>
 
-### binder.notebooks(sectionName, area) ⇒ <code>Array</code>
+### binder.notebooks(sectionName, area) ⇒ <code>Array.&lt;NotebookDetails&gt;</code>
 Enumerates the list of notebooks in a section from the schema.
-returns {Array} a list of the notebooks for a section
+returns {NotebookDetails[]} a list of the notebooks for a section and
+their associated artifact counts.
 
 **Kind**: instance method of [<code>Binder</code>](#Binder)  
-**Returns**: <code>Array</code> - a list of notebook names as strings  
+**Returns**: <code>Array.&lt;NotebookDetails&gt;</code> - a list of notebook names as strings and the
+number of artifacts within that notebook.  
 
 | Param | Type | Description |
 | --- | --- | --- |

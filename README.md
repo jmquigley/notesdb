@@ -208,9 +208,10 @@ adb.add(Artifact.factory('fields', {section: 'Test1', notebook: 'MyNotebook'}))
     .then((artifact: Artifact) => {
         console.log(artifact.toString());
         let notebooks = adb.notebooks();
-        notebooks.forEach((notebook: string) => {
-            console.log(` ~> ${notebook}`);
-        });
+
+        for (const {name, count} of notebooks) {
+            console.log(` ~> ${notebook}: ${count}`);
+        }
 
         return adb;
     })

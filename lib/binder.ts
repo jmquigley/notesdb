@@ -35,6 +35,11 @@ export interface Notebook {
 	[key: string]: Artifact;
 }
 
+export interface NotebookDetails {
+	name: string;
+	count: number;
+}
+
 export interface Section {
 	[key: string]: Notebook;
 }
@@ -554,16 +559,18 @@ export class Binder extends EventEmitter {
 
 	/**
 	 * Enumerates the list of notebooks in a section from the schema.
-	 * returns {Array} a list of the notebooks for a section
+	 * returns {NotebookDetails[]} a list of the notebooks for a section and
+	 * their associated artifact counts.
 	 * @param sectionName {string} the name of the section where the notebooks
 	 * are located.
 	 * @param area {string} the namespace area within the schema object to
 	 * search.  There are two areas: notes & trash.
-	 * @returns {Array} a list of notebook names as strings
+	 * @returns {NotebookDetails[]} a list of notebook names as strings and the
+	 * number of artifacts within that notebook.
 	 */
 	@autobind
-	public notebooks(sectionName: string, area: string = NS.notes): string[] {
-		const notebooks: string[] = [];
+	public notebooks(sectionName: string, area: string = NS.notes): NotebookDetails[] {
+		const notebooks: NotebookDetails[] = [];
 
 		if (!this.initialized) {
 			throw new Error('Trying to retrieve notebooks from an unitialized database.');
@@ -572,7 +579,10 @@ export class Binder extends EventEmitter {
 		if (this.hasSection({section: sectionName}, area)) {
 			_.forOwn(this.schema[area][sectionName], (value: any, key: string) => {
 				value.toString();
-				notebooks.push(key);
+				notebooks.push({
+					name: key,
+					count: Object.keys(this.schema[area][sectionName][key]).length
+				});
 			});
 		} else {
 			throw new Error(`Section '${sectionName}' not found in binder.`);

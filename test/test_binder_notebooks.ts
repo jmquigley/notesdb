@@ -1,5 +1,7 @@
 'use strict';
 
+// const debug = require('debug')('test_binder_notebooks');
+
 import test from 'ava';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -51,9 +53,15 @@ test('Get the list of notebooks from a database', t => {
 		'notebook1'
 	];
 
-	l.forEach((notebook: string) => {
-		t.true(notebooks.indexOf(notebook) > -1);
-	});
+	for (const {name, count} of notebooks) {
+		t.true(l.indexOf(name) > -1);
+
+		if (name === 'Default') {
+			t.is(count, 1);
+		} else if (name === 'notebook1') {
+			t.is(count, 2);
+		}
+	}
 });
 
 test('Try to get a notebook from an uninitialized database', t => {
@@ -117,20 +125,18 @@ test('Create a notebook within an existing database', async t => {
 			return adb;
 		})
 		.then((padb: Binder) => {
-			const notebooks: string[] = padb.notebooks(sectionName);
-			t.truthy(notebooks instanceof Array);
+			const notebooks = padb.notebooks(sectionName);
+			t.truthy(notebooks);
 			t.is(notebooks.length, 2);
 
-			l.forEach((notebookName: string) => {
-				t.true(notebooks.indexOf(notebookName) > -1);
-			});
-
-			notebooks.forEach((notebookName: string) => {
+			for (const {name, count} of notebooks) {
+				t.true(l.indexOf(name) > -1);
 				t.true(padb.hasNotebook({
-					notebook: notebookName,
+					notebook: name,
 					section: sectionName
 				}));
-			});
+				t.is(count, 0);
+			}
 			return padb;
 		})
 		.then(adb.shutdown)
