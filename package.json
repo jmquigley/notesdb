@@ -1,6 +1,6 @@
 {
   "name": "notesdb",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "author": "jmquigley <jmquigley@outlook.com>",
   "description": "A text file notes database",
   "main": "./index.js",
