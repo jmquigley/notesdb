@@ -48,14 +48,14 @@ This class is used to manage multiple Binder instances and their associated conf
 
 The [public api](docs/lib/bindermanager.md) contains the following functions:
 
-- [add()](docs/lib/bindermanagers.md#BinderManager+add)
-- [emptyTrash()](docs/lib/bindermanagers.md#BinderManager+emptyTrash)
-- [get()](docs/lib/bindermanagers.md#BinderManager+get)
-- [hasBinder()](docs/lib/bindermanagers.md#BinderManager+hasBinder)
-- [info()](docs/lib/bindermanagers.md#BinderManager+info)
-- [list()](docs/lib/bindermanagers.md#BinderManager+list)
-- [remove()](docs/lib/bindermanagers.md#BinderManager+remove)
-- [shutdown()](docs/lib/bindermanagers.md#BinderManager+shutdown)
+- [add()](docs/lib/bindermanager.md#BinderManager+add)
+- [emptyTrash()](docs/lib/bindermanager.md#BinderManager+emptyTrash)
+- [get()](docs/lib/bindermanager.md#BinderManager+get)
+- [hasBinder()](docs/lib/bindermanager.md#BinderManager+hasBinder)
+- [info()](docs/lib/bindermanager.md#BinderManager+info)
+- [list()](docs/lib/bindermanager.md#BinderManager+list)
+- [remove()](docs/lib/bindermanager.md#BinderManager+remove)
+- [shutdown()](docs/lib/bindermanager.md#BinderManager+shutdown)
 
 
 #### Creating a manager instance
