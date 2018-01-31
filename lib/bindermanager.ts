@@ -42,7 +42,7 @@ export class BinderManager extends EventEmitter {
 	private _binders: Binders = {};
 	private _opts: BinderManagerOpts = {
 		defaultName: 'default',
-		defaultDirectory: join(home, 'Notebooks')
+		defaultDirectory: join(home, 'Binders')
 	};
 	private _trashDirectory: string;
 
