@@ -20,3 +20,4 @@ test.d.ts
 jsdoc.json
 gulpfile.*
 yarn.lock
+yarn-error.log
